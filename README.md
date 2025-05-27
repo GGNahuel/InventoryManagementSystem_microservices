@@ -1,7 +1,8 @@
 # Definición base v0.1
 * App para gestionar inventarios con productos en cuentas de usuario
 * La app permite registrarse o iniciar sesión
-* Cada cuenta tiene un inventario general, pero a su vez se pueden crear otros inventarios si lo desean. Que en realidad son "filtrados" del inventario general según tags o labels
+* Cada cuenta puede tener varios inventarios. Estos se pueden filtrar según labels de los mismos
+  * Un ejemplo de uso de la app sería: una cuenta representa una cadena de tiendas de ropa por ejemplo. Esta puede tener un inventario por cada sucursal que tenga. Entonces cada sucursal (inventario) tendrá su propia lista de productos. Por cada producto en lista tendrá además info que solo se relaciona a esa sucursal (inventario), como el stock, disponibilidad y labels de inventario (ej: abrigos, ropa deportiva, etc).
 * Estas cuentas pueden crear sub-usuarios con roles y permisos para sus inventarios. Ejemplo: admin, general, jefe de x categoría, etc.
   * Por defecto ya vendría el "sub-usuario" de admin creado
 * Los productos tienen sus propias categorías y propiedades, al igual que los inventarios
@@ -16,9 +17,9 @@ Tendrá 2 entidades:
   * Nombre
   * Marca
   * Modelo
-  * Categoría (foreign key)
   * Descripción
   * Precio unitario
+  * Categorías (foreign key, many to many)
 * Categoría
   * Id
   * Nombre
@@ -30,15 +31,25 @@ Api con GraphQL también con su propia base de datos sql. Será con graphQL porq
 
 **averiguar**, realizar una apiGateway para que solo exponga los endpoints de este micro servicio, *y el de usuarios*.
 
-Entidad y DTOs
+Entidades y DTOs
 * Inventario
   * Id
-  * Label
-  * Cuenta asociada (Id de Cuenta)
-  * Usuarios asociados (List<Usuario DTO\>)
-  * Lista de DTOs de Productos
+  * Cuenta asociada (Id de Cuenta, UUID - *MS usuarios*)
+  * Lista de AssociatedUsers (One to many)
+  * Lista de ProductsInInventory (Many to many)
+* AssociatedUsers
+  * Id
+  * Id del usuario en *MS usuarios*
+* ProductsInInventory
+  * Id
+  * Id del producto en *MS productos*
+  * Stock
+  * Disponibilidad
+  * Label de inventario
+  
 * Producto DTO
-  * ...props del ms de productos
+  * ...props del producto en *MS productos*
+    * (Categorías como lista de strings con solo sus nombres)
   * Stock
   * Disponibilidad
 * Usuario DTO
