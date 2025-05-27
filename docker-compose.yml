@@ -1,0 +1,36 @@
+services:
+  api_products:
+    build: ./backend/products_mService
+    container_name: inventoryApp_api_products
+    ports:
+      - 8081:8081
+    environment:
+      - MYSQL_URL=${MYSQL_URL_PRODUCTS}
+      - MYSQL_USERNAME=${MYSQL_USERNAME}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    env_file:
+      - .env
+    volumes:
+      - .backend/products_mService:/backend/products
+    networks:
+      - inventoryApp_network
+
+  mysql_database:
+    image: mysql:8.0.42
+    container_name: inventoryApp_database
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+    env_file:
+      - .env
+    volumes:
+      - database_data:/app/data
+    networks:
+      - inventoryApp_network
+
+networks:
+  inventoryApp_network:
+
+volumes:
+  database_data:
