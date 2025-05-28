@@ -3,7 +3,7 @@ package com.nahuelgg.inventory_app.products.services;
 import java.util.List;
 import java.util.UUID;
 
-import com.nahuelgg.inventory_app.products.DTOs.ProductDTO;
+import com.nahuelgg.inventory_app.products.dtos.ProductDTO;
 
 public interface ProductService {
   public List<ProductDTO> getAll();

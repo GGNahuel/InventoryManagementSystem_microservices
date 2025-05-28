@@ -6,8 +6,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nahuelgg.inventory_app.products.DTOs.ProductDTO;
-import com.nahuelgg.inventory_app.products.Entities.ProductEntity;
+import com.nahuelgg.inventory_app.products.dtos.ProductDTO;
+import com.nahuelgg.inventory_app.products.entities.ProductEntity;
 import com.nahuelgg.inventory_app.products.repositories.CategoryRepository;
 import com.nahuelgg.inventory_app.products.repositories.ProductRepository;
 import com.nahuelgg.inventory_app.products.services.ProductService;

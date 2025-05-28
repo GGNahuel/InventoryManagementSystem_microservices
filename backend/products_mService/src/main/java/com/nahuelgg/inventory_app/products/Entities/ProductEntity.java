@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.products.Entities;
+package com.nahuelgg.inventory_app.products.entities;
 
 import java.util.List;
 import java.util.UUID;

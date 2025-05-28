@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.products.DTOs;
+package com.nahuelgg.inventory_app.products.dtos;
 
 import java.util.List;
 
