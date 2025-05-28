@@ -68,8 +68,11 @@ Entidades
   * id
   * username
   * password (encriptada)
-  * Id de inventario asociado
+  * Id de AssociatedInventories
   * Usuarios
+* AssociatedInventories
+  * Id
+  * Id del inventario en *MS Inventarios*
 * Usuario
   * Id
   * Nombre completo
