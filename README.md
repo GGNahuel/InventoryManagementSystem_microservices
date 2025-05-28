@@ -77,6 +77,10 @@ Entidades
   * Id
   * Nombre completo
   * password (encriptada)
-  * Roles
-    * Nombre
-    * Permisos (Enum)
+  * Nombre del rol
+  * Permisos por inventario (one to many)
+* Permisos para inventario
+  * id
+  * associatedInventories (one to one)
+  * associatedUser (many to one)
+  * Permisos (string formado de valores de un enum)

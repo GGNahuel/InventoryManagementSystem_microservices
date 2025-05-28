@@ -2,6 +2,7 @@ package com.nahuelgg.inventory_app.users.entities;
 
 import java.util.UUID;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -16,5 +17,6 @@ import lombok.NoArgsConstructor;
 public class InventoryRefEntity {
   @Id @GeneratedValue
   private UUID id;
+  @Column(nullable = false)
   private String inventoryIdReference;
 }
