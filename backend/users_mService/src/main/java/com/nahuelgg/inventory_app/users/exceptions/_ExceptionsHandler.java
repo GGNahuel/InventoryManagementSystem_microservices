@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.products.exceptions;
+package com.nahuelgg.inventory_app.users.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,8 +9,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import com.nahuelgg.inventory_app.products.dtos.ErrorDTO;
-import com.nahuelgg.inventory_app.products.dtos.ResponseDTO;
+import com.nahuelgg.inventory_app.users.dtos.ErrorDTO;
+import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 
 @RestControllerAdvice
 public class _ExceptionsHandler {
