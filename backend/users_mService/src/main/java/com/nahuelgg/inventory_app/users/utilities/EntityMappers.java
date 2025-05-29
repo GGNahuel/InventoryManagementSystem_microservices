@@ -12,7 +12,7 @@ import com.nahuelgg.inventory_app.users.enums.Permissions;
 
 public class EntityMappers {
   
-  public static PermissionsForInventoryDTO mapPerms(PermissionsForInventoryEntity e) {
+  public PermissionsForInventoryDTO mapPerms(PermissionsForInventoryEntity e) {
     return PermissionsForInventoryDTO.builder()
       .id(e.getId().toString())
       .permissions(Arrays.asList((e.getPermissions().split(","))).stream().map(
@@ -22,7 +22,7 @@ public class EntityMappers {
     .build();
   }
 
-  public static UserDTO mapUser(UserEntity e) {
+  public UserDTO mapUser(UserEntity e) {
     return UserDTO.builder()
       .id(e.getId().toString())
       .name(e.getName())
@@ -33,7 +33,7 @@ public class EntityMappers {
     .build();
   }
 
-  public static AccountDTO mapAccount(AccountEntity e) {
+  public AccountDTO mapAccount(AccountEntity e) {
     return AccountDTO.builder()
       .id(e.getId().toString())
       .username(e.getUsername())

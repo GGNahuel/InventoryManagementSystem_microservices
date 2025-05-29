@@ -44,9 +44,9 @@ public class DTOMappers {
       .id(UUID.fromString(dto.getId()))
       .name(dto.getName())
       .role(dto.getRole())
-      .inventoryPerms(dto.getInventoryPerms().stream().map(
+      .inventoryPerms(dto.getInventoryPerms() != null ? dto.getInventoryPerms().stream().map(
         permsDto -> mapPerms(permsDto)
-      ).toList())
+      ).toList() : null)
     .build();
   }
 }
