@@ -7,7 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +26,4 @@ public class PermissionsForInventoryEntity {
   
   @OneToOne @JoinColumn(nullable = false)
   private InventoryRefEntity inventoryReference;
-  @ManyToOne @JoinColumn(nullable = false)
-  private UserEntity associatedUser;
 }

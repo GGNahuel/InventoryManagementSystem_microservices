@@ -3,6 +3,7 @@ package com.nahuelgg.inventory_app.users.entities;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,6 +30,6 @@ public class UserEntity {
   @Column(nullable = false)
   private Boolean isAdmin;
   
-  @OneToMany(mappedBy = "associatedUser") @JoinColumn
+  @OneToMany(cascade = CascadeType.REMOVE) @JoinColumn
   private List<PermissionsForInventoryEntity> inventoryPerms;
 }

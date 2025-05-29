@@ -6,8 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.nahuelgg.inventory_app.users.entities.InventoryRefEntity;
+import java.util.List;
 
 @Repository
 public interface InventoryRefRepository extends JpaRepository<InventoryRefEntity, UUID>{
-  
+  List<InventoryRefEntity> findByInventoryIdReference(String inventoryIdReference);
 }

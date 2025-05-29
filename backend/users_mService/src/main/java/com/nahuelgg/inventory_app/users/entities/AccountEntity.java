@@ -3,6 +3,7 @@ package com.nahuelgg.inventory_app.users.entities;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,9 +25,9 @@ public class AccountEntity {
   private String username;
   @Column(nullable = false)
   private String password;
-  
-  @OneToMany @JoinColumn
+
+  @OneToMany(cascade = CascadeType.REMOVE) @JoinColumn
   private List<InventoryRefEntity> inventoriesReferences;
-  @OneToMany @JoinColumn
+  @OneToMany(cascade = CascadeType.REMOVE) @JoinColumn
   private List<UserEntity> users;
 }
