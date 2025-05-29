@@ -1,6 +1,5 @@
 package com.nahuelgg.inventory_app.users.services;
 
-import java.util.List;
 import java.util.UUID;
 
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
@@ -9,6 +8,9 @@ import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 public interface UserService {
   UserDTO getById(UUID id);
   UserDTO edit(UserDTO updatedUser);
-  UserDTO assignNewPerms(List<PermissionsForInventoryDTO> permissions);
+  UserDTO assignNewPerms(PermissionsForInventoryDTO permission, UUID userId);
   void delete(UUID id);
+  void loginAsUser(UUID id, String password, String passwordRepeated);
+  void logoutUser();
 }
+// ver cómo hacer que los users solo puedan editar productos con ciertas categorías?

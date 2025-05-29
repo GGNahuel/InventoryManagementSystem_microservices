@@ -30,7 +30,6 @@ import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 
 import jakarta.servlet.http.HttpSession;
 
-
 @Service
 public class AccountService_Impl implements AccountService{
   private final AccountRepository repository;
@@ -38,6 +37,7 @@ public class AccountService_Impl implements AccountService{
   private final InventoryRefRepository inventoryRefRepository;
   private final PermissionsForInventoryRepository permsRepository;
   private final DTOMappers dtoMappers;
+  private final EntityMappers entityMappers = new EntityMappers();
 
   public AccountService_Impl(
     AccountRepository repository, UserRepository userRepository, 
@@ -53,7 +53,7 @@ public class AccountService_Impl implements AccountService{
 
   @Override @Transactional(readOnly = true)
   public AccountDTO getById(UUID id) {
-    return EntityMappers.mapAccount(repository.findById(id).orElseThrow(
+    return entityMappers.mapAccount(repository.findById(id).orElseThrow(
       () -> new RuntimeException("")
     ));
   }
@@ -69,18 +69,21 @@ public class AccountService_Impl implements AccountService{
       .role("admin")
       .isAdmin(true)
     .build());
-    
+
     AccountEntity accountToCreate = AccountEntity.builder()
       .username(username)
       .password(new BCryptPasswordEncoder().encode(password))
       .users(List.of(adminUser))
     .build();
 
-    return EntityMappers.mapAccount(repository.save(accountToCreate));
+    return entityMappers.mapAccount(repository.save(accountToCreate));
   }
 
   @Override @Transactional
-  public UserDTO addUser(UserDTO user, UUID accountId) {
+  public UserDTO addUser(UserDTO user, UUID accountId, String passwordForNewUser, String passwordRepeated) {
+    if (!passwordForNewUser.equals(passwordRepeated))
+      throw new RuntimeException("");
+
     AccountEntity parentAccount = repository.findById(accountId).orElseThrow(
       () -> new RuntimeException("")
     );
@@ -92,12 +95,15 @@ public class AccountService_Impl implements AccountService{
 
       permsEntities.add(permsRepository.save(dtoMappers.mapPerms(permsDto)));
     }
+
     newUser.setInventoryPerms(permsEntities);
+    newUser.setIsAdmin(false);
+    newUser.setPassword(new BCryptPasswordEncoder().encode(passwordForNewUser));
     UserEntity savedUser = userRepository.save(newUser);
-    
+
     parentAccount.getUsers().add(savedUser);
     repository.save(parentAccount);
-    return EntityMappers.mapUser(savedUser);
+    return entityMappers.mapUser(savedUser);
   }
 
   @Override @Transactional
@@ -120,10 +126,17 @@ public class AccountService_Impl implements AccountService{
     AccountEntity account = repository.findById(accountId).orElseThrow(
       () -> new RuntimeException("")
     );
+    inventoryRefRepository.findByInventoryIdReference(inventoryId).orElseThrow(
+      () -> new RuntimeException("")
+    );
 
     List<InventoryRefEntity> inventoriesReferences = account.getInventoriesReferences().stream().filter(
       invRefEntity -> invRefEntity.getInventoryIdReference() != inventoryId
     ).toList();
+    List<PermissionsForInventoryEntity> permsAssociatedWithInventoryRef = permsRepository.findByReferencedInventoryId(inventoryId);
+    for (int i = 0; i < permsAssociatedWithInventoryRef.size(); i++) {
+      permsRepository.deleteById(permsAssociatedWithInventoryRef.get(i).getId());
+    }
 
     account.setInventoriesReferences(inventoriesReferences);
     repository.save(account);
@@ -132,6 +145,8 @@ public class AccountService_Impl implements AccountService{
   @Override @Transactional
   public void delete(UUID accountId) {
     repository.deleteById(accountId);
+
+    // agregar llamado al microservicio de inventarios para la eliminación de los asociados
   }
 
   @Override
