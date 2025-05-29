@@ -47,7 +47,7 @@ public class AccountController {
     );
   }
 
-  @PatchMapping("/add_user")
+  @PostMapping("/add_user")
   public ResponseEntity<ResponseDTO> addUser(
     @RequestBody UserDTO user, @RequestParam String accountId,
     @RequestParam String password, @RequestParam String passwordRepeated

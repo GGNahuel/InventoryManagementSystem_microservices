@@ -10,7 +10,7 @@ public interface UserService {
   UserDTO edit(UserDTO updatedUser);
   UserDTO assignNewPerms(PermissionsForInventoryDTO permission, UUID userId);
   void delete(UUID id);
-  void loginAsUser(UUID id, String password, String passwordRepeated);
+  void loginAsUser(UUID id, String password);
   void logoutUser();
 }
 // ver cómo hacer que los users solo puedan editar productos con ciertas categorías?

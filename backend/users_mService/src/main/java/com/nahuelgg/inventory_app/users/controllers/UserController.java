@@ -64,8 +64,8 @@ public class UserController {
   }
 
   @PostMapping("/login")
-  public ResponseEntity<ResponseDTO> login(@RequestParam String id, @RequestParam String pass1, @RequestParam String pass2) {
-    service.loginAsUser(UUID.fromString(id), pass1, pass2);
+  public ResponseEntity<ResponseDTO> login(@RequestParam String id, @RequestParam String pass) {
+    service.loginAsUser(UUID.fromString(id), pass);
     return new ResponseEntity<>(
       new ResponseDTO(200, null, "Log-in exitoso"),
       HttpStatus.OK

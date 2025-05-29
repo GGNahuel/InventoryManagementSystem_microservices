@@ -20,6 +20,8 @@ import com.nahuelgg.inventory_app.users.entities.AccountEntity;
 import com.nahuelgg.inventory_app.users.entities.InventoryRefEntity;
 import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
+import com.nahuelgg.inventory_app.users.exceptions.InvalidValueException;
+import com.nahuelgg.inventory_app.users.exceptions.ResourceNotFoundException;
 import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
 import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
@@ -27,6 +29,9 @@ import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.AccountService;
 import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
+import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
+
+import static com.nahuelgg.inventory_app.users.utilities.Validations.*;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -53,15 +58,21 @@ public class AccountService_Impl implements AccountService{
 
   @Override @Transactional(readOnly = true)
   public AccountDTO getById(UUID id) {
+    checkFieldsHasContent(new Field("id de cuenta", id));
+
     return entityMappers.mapAccount(repository.findById(id).orElseThrow(
-      () -> new RuntimeException("")
+      () -> new ResourceNotFoundException("cuenta", "id", id.toString())
     ));
   }
 
   @Override @Transactional
   public AccountDTO create(String username, String password, String passwordRepeated, String adminPassword, String adminPasswordRepeated) {
+    checkFieldsHasContent(
+      new Field("nombre de usuario", username), new Field("contraseña", password), new Field("contraseña de admin", adminPassword),
+      new Field("repetición de contraseña", passwordRepeated), new Field("repetición de contraseña de admin", adminPasswordRepeated)
+    );
     if (!password.equals(passwordRepeated) || !adminPassword.equals(adminPasswordRepeated))
-      throw new RuntimeException("");
+      throw new InvalidValueException("Las contraseñas no coinciden con sus respectivas repeticiones");
 
     UserEntity adminUser = userRepository.save(UserEntity.builder()
       .name("admin")
@@ -81,11 +92,18 @@ public class AccountService_Impl implements AccountService{
 
   @Override @Transactional
   public UserDTO addUser(UserDTO user, UUID accountId, String passwordForNewUser, String passwordRepeated) {
+    checkFieldsHasContent(new Field("usuario a agregar", user));
+    checkFieldsHasContent(
+      new Field("nombre del usuario", user.getName()), new Field("rol/puesto del usuario", user.getRole()),
+      new Field("id de cuenta a asociar", accountId),
+      new Field("contraseña para el usuario", passwordForNewUser), new Field("repetición de contraseña", passwordRepeated)
+    );
+
     if (!passwordForNewUser.equals(passwordRepeated))
-      throw new RuntimeException("");
+      throw new InvalidValueException("Las contraseñas para el nuevo usuario no coinciden");
 
     AccountEntity parentAccount = repository.findById(accountId).orElseThrow(
-      () -> new RuntimeException("")
+      () -> new ResourceNotFoundException("cuenta", "id", accountId.toString())
     );
 
     UserEntity newUser = dtoMappers.mapUser(user);
@@ -108,8 +126,10 @@ public class AccountService_Impl implements AccountService{
 
   @Override @Transactional
   public void assignInventory(UUID accountId, String inventoryId) {
+    checkFieldsHasContent(new Field("id de cuenta", accountId), new Field("id referenciada de inventario", inventoryId));
+
     AccountEntity account = repository.findById(accountId).orElseThrow(
-      () -> new RuntimeException("")
+      () -> new ResourceNotFoundException("cuenta", "id", accountId.toString())
     );
 
     List<InventoryRefEntity> inventoriesReferences = account.getInventoriesReferences() == null ? new ArrayList<>() : account.getInventoriesReferences();
@@ -123,11 +143,13 @@ public class AccountService_Impl implements AccountService{
 
   @Override @Transactional
   public void removeInventoryAssigned(UUID accountId, String inventoryId) {
+    checkFieldsHasContent(new Field("id de cuenta", accountId), new Field("id referenciada de inventario", inventoryId));
+
     AccountEntity account = repository.findById(accountId).orElseThrow(
-      () -> new RuntimeException("")
+      () -> new ResourceNotFoundException("cuenta", "id", accountId.toString())
     );
     inventoryRefRepository.findByInventoryIdReference(inventoryId).orElseThrow(
-      () -> new RuntimeException("")
+      () -> new ResourceNotFoundException("entidad de referencia a inventario", "id de referencia", inventoryId)
     );
 
     List<InventoryRefEntity> inventoriesReferences = account.getInventoriesReferences().stream().filter(
@@ -144,15 +166,22 @@ public class AccountService_Impl implements AccountService{
 
   @Override @Transactional
   public void delete(UUID accountId) {
-    repository.deleteById(accountId);
+    checkFieldsHasContent(new Field("id de cuenta", accountId));
 
-    // agregar llamado al microservicio de inventarios para la eliminación de los asociados
+    boolean accountWithIdExists = repository.findById(accountId).isPresent();
+    if (accountWithIdExists) {
+      repository.deleteById(accountId);
+      
+      // agregar llamado al microservicio de inventarios para la eliminación de los asociados
+    }
   }
 
   @Override
   public UserDetails loadUserByUsername(String username) {
+    checkFieldsHasContent(new Field("nombre usuario", username));
+
     AccountEntity account = repository.findByUsername(username).orElseThrow(
-      () -> new RuntimeException("")
+      () -> new ResourceNotFoundException("cuenta", "nombre de usuario", username)
     );
 
     ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
