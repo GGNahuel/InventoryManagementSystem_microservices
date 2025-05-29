@@ -14,5 +14,5 @@ import lombok.NoArgsConstructor;
 public class PermissionsForInventoryDTO {
   private String id;
   private List<Permissions> permissions;
-  private String idOfInventoryReference;
+  private String idOfInventoryReferenced;
 }
