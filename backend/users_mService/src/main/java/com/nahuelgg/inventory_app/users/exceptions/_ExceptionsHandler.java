@@ -35,6 +35,11 @@ public class _ExceptionsHandler {
     return new ResponseEntity<>(buildResponseDTO(406, ex, ErrorDTO.Type.warning, null), HttpStatus.NOT_ACCEPTABLE);
   }
 
+  @ExceptionHandler(InvalidValueException.class)
+  public ResponseEntity<ResponseDTO> invalidValue(InvalidValueException ex) {
+    return new ResponseEntity<>(buildResponseDTO(400, ex, ErrorDTO.Type.warning, null), HttpStatus.BAD_REQUEST);
+  }
+
   // INPUTS IN CONTROLLERS JAVA EXCEPTIONS
   @ExceptionHandler(UnrecognizedPropertyException.class)
   public ResponseEntity<ResponseDTO> handleUnknownProperty(UnrecognizedPropertyException ex) {
