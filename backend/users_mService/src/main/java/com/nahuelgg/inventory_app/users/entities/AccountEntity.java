@@ -26,7 +26,7 @@ public class AccountEntity {
   @Column(nullable = false)
   private String password;
 
-  @OneToMany(cascade = CascadeType.REMOVE) @JoinColumn
+  @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true) @JoinColumn
   private List<InventoryRefEntity> inventoriesReferences;
   @OneToMany(cascade = CascadeType.REMOVE) @JoinColumn
   private List<UserEntity> users;
