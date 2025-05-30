@@ -10,6 +10,7 @@ public interface UserService {
   UserDTO edit(UserDTO updatedUser);
   UserDTO assignNewPerms(PermissionsForInventoryDTO permission, UUID userId);
   void delete(UUID id);
+  boolean checkUserIsAdmin();
   void loginAsUser(UUID id, String password);
   void logoutUser();
 }

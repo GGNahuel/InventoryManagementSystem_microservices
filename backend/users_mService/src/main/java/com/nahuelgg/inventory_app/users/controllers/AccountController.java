@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -48,6 +49,7 @@ public class AccountController {
   }
 
   @PostMapping("/add_user")
+  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> addUser(
     @RequestBody UserDTO user, @RequestParam String accountId,
     @RequestParam String password, @RequestParam String passwordRepeated
@@ -59,6 +61,7 @@ public class AccountController {
   }
 
   @PatchMapping("/add_inventory")
+  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> assignInventory(@RequestParam String accountId, @RequestParam String invId) {
     service.assignInventory(UUID.fromString(accountId), invId);
     return new ResponseEntity<>(
@@ -68,6 +71,7 @@ public class AccountController {
   }
 
   @PatchMapping("/remove_inventory")
+  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> removeInventoryAssigned(@RequestParam String accountId, @RequestParam String invId) {
     service.removeInventoryAssigned(UUID.fromString(accountId), invId);
     return new ResponseEntity<>(

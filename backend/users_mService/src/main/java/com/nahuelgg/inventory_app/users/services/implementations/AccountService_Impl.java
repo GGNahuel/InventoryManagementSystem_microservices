@@ -27,6 +27,7 @@ import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.AccountService;
+import com.nahuelgg.inventory_app.users.utilities.Constants;
 import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
@@ -186,7 +187,7 @@ public class AccountService_Impl implements AccountService{
 
     ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
     HttpSession session = attr.getRequest().getSession();
-    session.setAttribute("loggedAccount", account);
+    session.setAttribute(Constants.accountSessionAttr, account);
 
     return new User(account.getUsername(), account.getPassword(), new ArrayList<GrantedAuthority>());
   }

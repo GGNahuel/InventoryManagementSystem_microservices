@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -39,6 +40,7 @@ public class UserController {
   }
 
   @PutMapping("")
+  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> edit(@RequestBody UserDTO user) {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.edit(user)),
@@ -47,6 +49,7 @@ public class UserController {
   }
 
   @PatchMapping("/add_perms")
+  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> assignNewPerms(@RequestBody PermissionsForInventoryDTO perm, @RequestParam String id) {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.assignNewPerms(perm, UUID.fromString(id))),
@@ -55,6 +58,7 @@ public class UserController {
   }
 
   @DeleteMapping("/{id}")
+  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> delete(@PathVariable String id) {
     service.delete(UUID.fromString(id));
     return new ResponseEntity<>(
@@ -64,6 +68,7 @@ public class UserController {
   }
 
   @PostMapping("/login")
+  @PreAuthorize("isAuthenticated()")
   public ResponseEntity<ResponseDTO> login(@RequestParam String id, @RequestParam String pass) {
     service.loginAsUser(UUID.fromString(id), pass);
     return new ResponseEntity<>(

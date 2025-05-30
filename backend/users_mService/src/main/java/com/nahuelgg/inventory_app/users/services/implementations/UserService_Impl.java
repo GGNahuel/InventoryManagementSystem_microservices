@@ -18,6 +18,7 @@ import com.nahuelgg.inventory_app.users.exceptions.ResourceNotFoundException;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.UserService;
+import com.nahuelgg.inventory_app.users.utilities.Constants;
 import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 
@@ -93,6 +94,14 @@ public class UserService_Impl implements UserService {
   }
 
   @Override
+  public boolean checkUserIsAdmin() {
+    ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+    HttpSession session = attr.getRequest().getSession();
+    UserEntity userLogged = (UserEntity) session.getAttribute(Constants.userSessionAttr);
+    return userLogged != null && userLogged.getIsAdmin();
+  }
+
+  @Override
   public void loginAsUser(UUID id, String password) {
     checkFieldsHasContent(new Field("id", id), new Field("contraseña", password));
 
@@ -102,13 +111,13 @@ public class UserService_Impl implements UserService {
 
     ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
     HttpSession session = attr.getRequest().getSession();
-    session.setAttribute("loggedUser", user);
+    session.setAttribute(Constants.userSessionAttr, user);
   }
 
   @Override
   public void logoutUser() {
     ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
     HttpSession session = attr.getRequest().getSession();
-    session.setAttribute("loggedUser", null);
+    session.setAttribute(Constants.userSessionAttr, null);
   }
 }
