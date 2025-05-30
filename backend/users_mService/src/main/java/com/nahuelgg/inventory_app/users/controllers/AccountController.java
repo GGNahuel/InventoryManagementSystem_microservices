@@ -1,5 +1,7 @@
 package com.nahuelgg.inventory_app.users.controllers;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -17,8 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
+import com.nahuelgg.inventory_app.users.entities.AccountEntity;
+import com.nahuelgg.inventory_app.users.entities.UserEntity;
 import com.nahuelgg.inventory_app.users.services.AccountService;
 import com.nahuelgg.inventory_app.users.utilities.Constants;
+
+import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping(Constants.endpointPrefix + "/account")
@@ -27,6 +33,20 @@ public class AccountController {
 
   public AccountController(AccountService service) {
     this.service = service;
+  }
+
+  @GetMapping("/session")
+  public ResponseEntity<ResponseDTO> session(HttpSession session) {
+    AccountEntity accountLogged = (AccountEntity) session.getAttribute(Constants.accountSessionAttr);
+    UserEntity userLogged = (UserEntity) session.getAttribute(Constants.userSessionAttr);
+    Map<String, Object> data = new HashMap<>();
+    data.put("account", accountLogged);
+    data.put("user", userLogged);
+
+    return new ResponseEntity<>(
+      new ResponseDTO(200, null, data),
+      HttpStatus.OK
+      );
   }
 
   @GetMapping("/{id}")
