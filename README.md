@@ -55,11 +55,6 @@ Entidades y DTOs
     * (Categorías como lista de strings con solo sus nombres)
   * Stock
   * Disponibilidad
-* Usuario DTO
-  * Nombre
-  * Rol
-    * Nombre
-    * Permisos (Enum)
 
 Tendrá un crud solo para la entidad de inventario y la asignación de productos. Lo que refiere a la relación con cuenta y usuarios no será administrado en este micro servicio.
 
