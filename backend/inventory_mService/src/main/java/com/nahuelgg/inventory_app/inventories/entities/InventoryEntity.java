@@ -30,6 +30,6 @@ public class InventoryEntity {
     inverseJoinColumns = @JoinColumn(referencedColumnName = "id") // id de la ref al usuario
   )
   private List<UserReferenceEntity> users;
-  @OneToMany @JoinColumn
+  @OneToMany(mappedBy = "inventory") @JoinColumn
   private List<ProductInInvEntity> products;
 }
