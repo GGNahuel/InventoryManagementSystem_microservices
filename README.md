@@ -1,3 +1,5 @@
+La idea es que la app escale y las personas puedan crear sus cuentas, para eso no se usaría una base de datos embebida, sino que, en este caso se usará MySql alojado en la nube. Caso contrario h2
+
 # Definición base v0.1
 * App para gestionar inventarios con productos en cuentas de usuario
 * La app permite registrarse o iniciar sesión
