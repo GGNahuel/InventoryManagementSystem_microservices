@@ -4,7 +4,7 @@
 * Cada cuenta puede tener varios inventarios. Estos se pueden filtrar según labels de los mismos
   * Un ejemplo de uso de la app sería: una cuenta representa una cadena de tiendas de ropa por ejemplo. Esta puede tener un inventario por cada sucursal que tenga. Entonces cada sucursal (inventario) tendrá su propia lista de productos. Por cada producto en lista tendrá además info que solo se relaciona a esa sucursal (inventario), como el stock, disponibilidad y labels de inventario (ej: abrigos, ropa deportiva, etc).
 * Estas cuentas pueden crear sub-usuarios con roles y permisos para sus inventarios. Ejemplo: admin, general, jefe de x categoría, etc.
-  * Por defecto ya vendría el "sub-usuario" de admin creado
+  * Por defecto ya viene el "sub-usuario" de admin creado
 * Los productos tienen sus propias categorías y propiedades, al igual que los inventarios
 
 ## Microservicios
