@@ -3,6 +3,7 @@ cambiar de mysql a h2
 en el ms de productos
   ✅ revisar el tema de creación y asignación de categorías
   agregar param de categoría al método y query de searchProducts, eliminar el getByCategories
+  agregar attribute de referencia a cuenta a los productos. Agregar este param a las queries del repo
 
 en el ms de usuarios
   ❓ anular/comentar el método de registro de cuentas 
