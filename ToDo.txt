@@ -1,0 +1,3 @@
+en el ms de productos
+  ✅ revisar el tema de creación y asignación de categorías
+  agregar param de categoría al método y query de searchProducts, eliminar el getByCategories
