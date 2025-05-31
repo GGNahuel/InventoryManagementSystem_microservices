@@ -1,3 +1,7 @@
 en el ms de productos
   ✅ revisar el tema de creación y asignación de categorías
   agregar param de categoría al método y query de searchProducts, eliminar el getByCategories
+
+en el ms de usuarios
+  cuando se crea usuario llamar al ms de inv y agregarlo
+  cuando se asigna inv devolver el account DTO para que ese ms revise los usuarios

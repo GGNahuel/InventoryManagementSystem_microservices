@@ -3,31 +3,77 @@ type Query {
   getInventoryById(id: ID!): Inventory
   getInventoriesByAccount(accountId: ID!): [Inventory]
   getInventoryByNameAndAccount:(accountId: ID!, invName: String): Inventory
-
   searchInventoriesByProducts(name: String, brand: String, model: String, categories: [String]): [Inventory]
 }
 
 type Mutation {
   createInventory(inv: InventoryInput!, accountId: ID!): Inventory
   editInventory(inv: InventoryInput!, invId: ID!): Inventory
-  addProductToInventory(prod: ProductInput!, invId: ID!): Product
-  copyProductsToInventory(prods: [ProductInput]!, idFrom: ID!, idTo: ID!): Inventory
-  addUser(user: UserInput!, invId: ID!): User
   deleteInventory(id: ID!): String
+
+  addUser(user: UserInputFromUSERS_MS!, invId: ID!): Boolean
+
+  addProductToInventory(prod: ProductInput!, invId: ID!): ProductInInventory
+  copyProductsToInventory(prods: [ProductToCopyInput]!, idFrom: ID!, idTo: ID!): Inventory
+  editProductInInventory(newStock: Int): ProductInInventory
 }
 
 
 type Inventory {
-  id: ID!
-  name: String
-  associatedAccountId: ID!
+  id: ID
+  name: String!
+  associatedAccountId: ID
   associatedUsers: [User]
-  products: [ProductsInInventory]
+  products: [ProductInInventory]
 }
 
 type User {
-  id: ID!
-  name: String
+  refId: ID
+  name: String!
   role: String
-  permissionsForInventory: [Permissions]
+  permissionsForInventory: [String]
+}
+
+type ProductInInventory {
+  refId: ID
+  name: String!
+  brand: String
+  model: String
+  description: String
+  unitPrice: Int!
+  categories: [String]
+  stock: Int
+}
+
+
+input InventoryInput {
+  name: string!
+}
+
+input ProductInput {
+  name: String!
+  brand: String!
+  model: String
+  description: String
+  unitPrice: Int!
+  categories: [String]!
+  stock: Int!
+}
+
+input ProductToCopyInput {
+  id: ID!
+  stock: Int!
+}
+
+input UserInputFromUSERS_MS {
+  id: ID!
+  name: String!
+  role: String!
+  inventoryPerms: [PermissionInput]!
+}
+
+input PermissionInput {
+  id: ID!
+  permissions: [String]!
+  idOfInventoryReferenced: ID!
 }
