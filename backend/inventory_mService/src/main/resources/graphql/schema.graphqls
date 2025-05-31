@@ -1,0 +1,33 @@
+type Query {
+  getAllInventories: [Inventory]
+  getInventoryById(id: ID!): Inventory
+  getInventoriesByAccount(accountId: ID!): [Inventory]
+  getInventoryByNameAndAccount:(accountId: ID!, invName: String): Inventory
+
+  searchInventoriesByProducts(name: String, brand: String, model: String, categories: [String]): [Inventory]
+}
+
+type Mutation {
+  createInventory(inv: InventoryInput!, accountId: ID!): Inventory
+  editInventory(inv: InventoryInput!, invId: ID!): Inventory
+  addProductToInventory(prod: ProductInput!, invId: ID!): Product
+  copyProductsToInventory(prods: [ProductInput]!, idFrom: ID!, idTo: ID!): Inventory
+  addUser(user: UserInput!, invId: ID!): User
+  deleteInventory(id: ID!): String
+}
+
+
+type Inventory {
+  id: ID!
+  name: String
+  associatedAccountId: ID!
+  associatedUsers: [User]
+  products: [ProductsInInventory]
+}
+
+type User {
+  id: ID!
+  name: String
+  role: String
+  permissionsForInventory: [Permissions]
+}
