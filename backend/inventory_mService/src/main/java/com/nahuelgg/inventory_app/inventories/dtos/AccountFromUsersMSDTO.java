@@ -9,10 +9,9 @@ import lombok.NoArgsConstructor;
 
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
-public class InventoryDTO {
+public class AccountFromUsersMSDTO {
   private String id;
-  private String name;
-  private String accountId;
-  private List<String> usersIds;
-  private List<ProductInInvDTO> products;
+  private String username;
+  private List<String> idsOfInventoryReferred;
+  private List<UserFromUsersMSDTO> users;
 }

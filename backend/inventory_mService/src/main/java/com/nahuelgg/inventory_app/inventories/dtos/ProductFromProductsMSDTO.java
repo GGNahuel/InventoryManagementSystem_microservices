@@ -9,10 +9,12 @@ import lombok.NoArgsConstructor;
 
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
-public class InventoryDTO {
+public class ProductFromProductsMSDTO {
   private String id;
   private String name;
-  private String accountId;
-  private List<String> usersIds;
-  private List<ProductInInvDTO> products;
+  private String brand;
+  private String model;
+  private String description;
+  private Integer unitPrice;
+  private List<String> categories;
 }
