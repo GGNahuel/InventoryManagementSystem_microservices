@@ -76,8 +76,8 @@ public class ProductController {
     service.deleteByAccountId(UUID.fromString(id));
 
     return new ResponseEntity<>(
-      new ResponseDTO(204, null, null),
-      HttpStatus.NO_CONTENT
+      new ResponseDTO(200, null, null),
+      HttpStatus.OK
     );
   }
 
@@ -86,8 +86,8 @@ public class ProductController {
     service.deleteByIds(ids.stream().map(id -> UUID.fromString(id)).toList());
 
     return new ResponseEntity<>(
-      new ResponseDTO(204, null, null),
-      HttpStatus.NO_CONTENT
+      new ResponseDTO(200, null, null),
+      HttpStatus.OK
     ); 
   }
 }
