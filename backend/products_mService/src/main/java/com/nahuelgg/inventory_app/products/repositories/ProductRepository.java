@@ -17,11 +17,11 @@ public interface ProductRepository extends JpaRepository<ProductEntity, UUID>{
     lo que por ejemplo si no se envía ningún parámetro la query devolverá todos los productos (a excepción del parámetro de cuenta).
     ya que todas las condiciones se cumplieron
   */
-  @Query("select p from ProductEntity p where" + 
-    "(?1 is null or p.brand like %?1%) and" +
-    "(?2 is null or p.name like %?2%) and" +
-    "(?3 is null or p.model like %?3%) and" +
-    "(?4 is null or p.category.name in ?4) and" + 
+  @Query("select p from product p join p.categories c where" + 
+    "(?1 is null or lower(p.brand) like %?1%) and" +
+    "(?2 is null or lower(p.name) like %?2%) and" +
+    "(?3 is null or lower(p.model) like %?3%) and" +
+    "(?4 is null or c.name in ?4) and" + 
     "(p.accountId = ?5)"
   )
   List<ProductEntity> search(String brand, String name, String model, List<String> categoryNames, UUID accountId);
