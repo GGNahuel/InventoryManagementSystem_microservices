@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
@@ -50,7 +51,7 @@ public class UserController {
 
   @PatchMapping("/add_perms")
   @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
-  public ResponseEntity<ResponseDTO> assignNewPerms(@RequestBody PermissionsForInventoryDTO perm, @RequestParam String id) {
+  public ResponseEntity<ResponseDTO> assignNewPerms(@RequestBody PermissionsForInventoryDTO perm, @RequestParam String id) throws JsonProcessingException {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.assignNewPerms(perm, UUID.fromString(id))),
       HttpStatus.OK

@@ -97,7 +97,7 @@ public class UserService_Impl implements UserService {
         addUser(
           user: """ + userDTOtoString + """
           , invId: """ + permission.getIdOfInventoryReferenced() + """
-        ) {}
+        )
       }
     """);
     WebClient.create("http://api_inventory/graphql")
