@@ -2,16 +2,21 @@ package com.nahuelgg.inventory_app.users.services.implementations;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
@@ -44,17 +49,19 @@ public class AccountService_Impl implements AccountService{
   private final PermissionsForInventoryRepository permsRepository;
   private final DTOMappers dtoMappers;
   private final EntityMappers entityMappers = new EntityMappers();
+  private final RestTemplate restTemplate;
 
   public AccountService_Impl(
     AccountRepository repository, UserRepository userRepository, 
     InventoryRefRepository inventoryRefRepository, PermissionsForInventoryRepository permsRepository,
-    DTOMappers dtoMappers
+    DTOMappers dtoMappers, RestTemplate restTemplate
   ) {
     this.repository = repository;
     this.userRepository = userRepository;
     this.inventoryRefRepository = inventoryRefRepository;
     this.permsRepository = permsRepository;
     this.dtoMappers = dtoMappers;
+    this.restTemplate = restTemplate;
   }
 
   @Override @Transactional(readOnly = true)
@@ -171,9 +178,25 @@ public class AccountService_Impl implements AccountService{
 
     boolean accountWithIdExists = repository.findById(accountId).isPresent();
     if (accountWithIdExists) {
+      Map<String, String> requestBody = Map.of("query", """
+        mutation {
+          deleteByAccountId(
+            id: """ + accountId.toString() + """
+          )
+        }
+      """);
+      WebClient.create("http://api_inventory/graphql")
+        .post()
+        .uri("/")
+        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+        .bodyValue(requestBody)
+        .retrieve()
+        .bodyToMono(Boolean.class)
+      .block();
+
+      restTemplate.delete("http://api_products/product/delete_by_account?id=" + accountId.toString());
+
       repository.deleteById(accountId);
-      
-      // agregar llamado al microservicio de inventarios para la eliminación de los asociados
     }
   }
 
