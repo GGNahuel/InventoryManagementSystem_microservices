@@ -3,6 +3,8 @@ package com.nahuelgg.inventory_app.inventories.entities;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -21,7 +23,9 @@ import lombok.NoArgsConstructor;
 public class InventoryEntity {
   @Id @GeneratedValue
   private UUID id;
+  @Column(nullable = false)
   private String name;
+  @Column(nullable = false)
   private UUID accountId;
 
   @ManyToMany @JoinTable(
@@ -30,6 +34,6 @@ public class InventoryEntity {
     inverseJoinColumns = @JoinColumn(referencedColumnName = "id") // id de la ref al usuario
   )
   private List<UserReferenceEntity> users;
-  @OneToMany(mappedBy = "inventory") @JoinColumn
+  @OneToMany(mappedBy = "inventory", cascade = CascadeType.REMOVE) @JoinColumn
   private List<ProductInInvEntity> products;
 }
