@@ -126,7 +126,7 @@ public class AccountService_Impl implements AccountService{
   }
 
   @Override @Transactional
-  public void assignInventory(UUID accountId, String inventoryId) {
+  public AccountDTO assignInventory(UUID accountId, String inventoryId) {
     checkFieldsHasContent(new Field("id de cuenta", accountId), new Field("id referenciada de inventario", inventoryId));
 
     AccountEntity account = repository.findById(accountId).orElseThrow(
@@ -139,7 +139,7 @@ public class AccountService_Impl implements AccountService{
     );
 
     account.setInventoriesReferences(inventoriesReferences);
-    repository.save(account);
+    return entityMappers.mapAccount(repository.save(account));
   }
 
   @Override @Transactional

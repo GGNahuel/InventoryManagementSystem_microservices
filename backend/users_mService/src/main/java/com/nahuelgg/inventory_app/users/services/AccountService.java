@@ -11,7 +11,7 @@ public interface AccountService extends UserDetailsService {
   AccountDTO getById(UUID id);
   AccountDTO create(String username, String password, String passwordRepeated, String adminPassword, String adminPasswordRepeated);
   UserDTO addUser(UserDTO user, UUID accountId, String passwordForNewUser, String passwordRepeated);
-  void assignInventory(UUID accountId, String inventoryId);
+  AccountDTO assignInventory(UUID accountId, String inventoryId);
   void removeInventoryAssigned(UUID accountId, String inventoryId);
   // este método también tendría que eliminar todos los inventarios asociados y a su vez los productos asociados a estos,
   // en cada micro servicio según corresponda
