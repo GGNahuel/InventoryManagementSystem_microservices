@@ -17,4 +17,5 @@ public class ProductFromProductsMSDTO {
   private String description;
   private Integer unitPrice;
   private List<String> categories;
+  private String accountId;
 }

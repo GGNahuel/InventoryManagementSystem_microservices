@@ -3,6 +3,7 @@ package com.nahuelgg.inventory_app.inventories.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
@@ -20,46 +21,46 @@ public class InventoryController {
   }
 
   @QueryMapping
-  public InventoryDTO getById(String id) {
+  public InventoryDTO getById(@Argument String id) {
     return service.getById(UUID.fromString(id));
   }
 
   @QueryMapping
-  public List<InventoryDTO> getByAccountId(String accountId) {
+  public List<InventoryDTO> getByAccountId(@Argument String accountId) {
     return service.getByAccount(UUID.fromString(accountId));
   }
 
   @QueryMapping
-  public InventoryDTO getByNameAndAccount(String invName, String accountID) {
+  public InventoryDTO getByNameAndAccount(@Argument String invName, @Argument String accountID) {
     return service.getByNameAndAccount(invName, UUID.fromString(accountID));
   }
 
   @QueryMapping
   public List<InventoryDTO> searchProductsInInventories(
-    String name, String brand, String model, List<String> categories, String accountId
+    @Argument String name, @Argument String brand, @Argument String model, @Argument List<String> categories, @Argument String accountId
   ) {
     return service.searchProductsInInventories(name, brand, model, categories, UUID.fromString(name));
   }
 
   @MutationMapping
-  public InventoryDTO create(String name, String accountId) {
+  public InventoryDTO create(@Argument String name, @Argument String accountId) {
     return service.create(name, UUID.fromString(accountId));
   }
 
   @MutationMapping
-  public String edit(String invId, String name) {
+  public String edit(@Argument String invId, @Argument String name) {
     if (service.edit(UUID.fromString(invId), name))
       return "Nombre editado con éxito";
     else return "No se pudo editar";
   }
 
   @MutationMapping
-  public boolean delete(String id) {
+  public boolean delete(@Argument String id) {
     return service.delete(UUID.fromString(id));
   }
 
   @MutationMapping
-  public boolean addUser(UserFromUsersMSDTO user, String invId) {
+  public boolean addUser(@Argument UserFromUsersMSDTO user, @Argument String invId) {
     return service.addUser(user, UUID.fromString(invId));
   }
 }
