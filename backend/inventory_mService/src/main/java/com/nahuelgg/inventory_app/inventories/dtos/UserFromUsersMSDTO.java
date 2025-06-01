@@ -10,14 +10,15 @@ import lombok.NoArgsConstructor;
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
 public class UserFromUsersMSDTO {
+  private String id;
+  private String name;
+  private String role;
+  private List<InventoryPermsDTO> inventoryPerms;
+
   @Data @AllArgsConstructor
   public class InventoryPermsDTO {
     private String id;
     private List<String> permissions;
     private String idOfInventoryReferenced;
   }
-
-  private String id;
-  private String role;
-  private List<InventoryPermsDTO> inventoryPerms;
 }

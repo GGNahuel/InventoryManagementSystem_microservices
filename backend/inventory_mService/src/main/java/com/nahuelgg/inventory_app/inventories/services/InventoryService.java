@@ -12,11 +12,13 @@ import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO;
 public interface InventoryService {
   InventoryDTO getById(UUID id);
   List<InventoryDTO> getByAccount(UUID accountID);
-  InventoryDTO getByNameAndAccount(String name, UUID accountId);
+  InventoryDTO getByNameAndAccount(String invName, UUID accountId);
   List<InventoryDTO> searchProductsInInventories(
     String name, String brand, String model, List<String> categories, UUID accountId);
+  
   InventoryDTO create(String name, UUID accountId);
   boolean edit(UUID id, String name);
+  boolean delete(UUID id);
 
   boolean addUser(UserFromUsersMSDTO user, UUID invId);
   ProductInInvDTO addProduct(ProductInputDTO product, UUID invID);

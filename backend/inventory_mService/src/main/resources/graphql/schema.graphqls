@@ -1,29 +1,34 @@
 type Query {
-  getAllInventories: [Inventory]
-  getInventoryById(id: ID!): Inventory
-  getInventoriesByAccount(accountId: ID!): [Inventory]
-  getInventoryByNameAndAccount:(invName: String!, accountId: ID!): Inventory
-  searchProductsInInventories(name: String, brand: String, model: String, categories: [String], accountId: ID!): [Inventory]
+  getById(id: ID!): Inventory
+  getByAccount(accountId: ID!): [Inventory]
+  getByNameAndAccount:(invName: String!, accountId: ID!): Inventory
+  searchProductsInInventories(
+    name: String, 
+    brand: String, 
+    model: String, 
+    categories: [String], 
+    accountId: ID!
+  ): [Inventory]
 }
 
 type Mutation {
-  createInventory(name: String!, accountId: ID!): Inventory
-  editInventory(invId: ID!, name: String!): Inventory
-  deleteInventory(id: ID!): String
+  create(name: String!, accountId: ID!): Inventory
+  edit(invId: ID!, name: String!): String
+  delete(id: ID!): Boolean
 
   addUser(user: UserInputFromUSERS_MS!, invId: ID!): Boolean
 
-  addProductToInventory(prod: ProductInput!, invId: ID!): ProductInInventory
-  copyProductsToInventory(prods: [ProductToCopyInput]!, idFrom: ID!, idTo: ID!): Inventory
-  editStockOfProductInInventory(newStock: Int!, productRefId: ID!, invId: ID!): ProductInInventory
+  addProduct(product: ProductInput!, invId: ID!): ProductInInventory
+  copyProducts(products: [ProductToCopyInput]!, idTo: ID!): String
+  editStockOfProduct(relativeNewStock: Int!, productRefId: ID!, invId: ID!): String
 }
 
 
 type Inventory {
   id: ID
   name: String!
-  associatedAccountId: ID
-  associatedUsers: [ID]
+  accountId: ID
+  usersIds: [ID]
   products: [ProductInInventory]
 }
 
