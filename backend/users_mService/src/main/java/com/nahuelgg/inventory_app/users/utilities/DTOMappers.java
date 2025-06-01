@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
+import com.nahuelgg.inventory_app.users.entities.AccountEntity;
 import com.nahuelgg.inventory_app.users.entities.InventoryRefEntity;
 import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
@@ -39,7 +40,7 @@ public class DTOMappers {
     .build();
   }
 
-  public UserEntity mapUser(UserDTO dto) {
+  public UserEntity mapUser(UserDTO dto, AccountEntity account) {
     return UserEntity.builder()
       .id(UUID.fromString(dto.getId()))
       .name(dto.getName())
@@ -47,6 +48,7 @@ public class DTOMappers {
       .inventoryPerms(dto.getInventoryPerms() != null ? dto.getInventoryPerms().stream().map(
         permsDto -> mapPerms(permsDto)
       ).toList() : null)
+      .associatedAccount(account)
     .build();
   }
 }

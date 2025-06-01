@@ -9,6 +9,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,6 +31,8 @@ public class UserEntity {
   @Column(nullable = false)
   private Boolean isAdmin;
   
+  @ManyToOne @JoinColumn
+  private AccountEntity associatedAccount;  
   @OneToMany(cascade = CascadeType.REMOVE) @JoinColumn
   private List<PermissionsForInventoryEntity> inventoryPerms;
 }

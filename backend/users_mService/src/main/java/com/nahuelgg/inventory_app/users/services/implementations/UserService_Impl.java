@@ -67,7 +67,7 @@ public class UserService_Impl implements UserService {
       () -> new ResourceNotFoundException("usuario", "id", updatedUser.getId())
     );
 
-    UserEntity newUser = dtoMappers.mapUser(updatedUser);
+    UserEntity newUser = dtoMappers.mapUser(updatedUser, userInDB.getAssociatedAccount());
     // la idea es que solo se editen los permisos con sus respectivos métodos
     newUser.setInventoryPerms(userInDB.getInventoryPerms());
 
@@ -115,6 +115,27 @@ public class UserService_Impl implements UserService {
   @Override @Transactional
   public void delete(UUID id) {
     checkFieldsHasContent(new Field("id", id));
+
+    UserEntity user = repository.findById(id).orElseThrow(
+      () -> new ResourceNotFoundException("usuario", "id", id.toString())
+    );
+    
+    Map<String, String> requestBody = Map.of("query", """
+      mutation {
+        removeUser(
+          userId: """ + id.toString() + """
+          , accountId: """ + user.getAssociatedAccount().getId().toString() + """
+        )
+      }
+    """);
+    WebClient.create("http://api_inventory/graphql")
+      .post()
+      .uri("/")
+      .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+      .bodyValue(requestBody)
+      .retrieve()
+      .bodyToMono(Boolean.class)
+    .block();
 
     repository.deleteById(id);
   }
