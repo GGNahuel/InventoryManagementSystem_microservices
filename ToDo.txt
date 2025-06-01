@@ -9,7 +9,7 @@ TESTS
   ✅ revisar el tema de creación y asignación de categorías
   ✅ agregar param de categoría al método y query de searchProducts, eliminar el getByCategories
   ✅ agregar attribute de referencia a cuenta a los productos. Agregar este param a las queries del repo
-  agregar delete by ids 
+  ✅ agregar delete by ids 
     (para usarse cuando se borra un inventario, 
       se debería recorrer en el ms de invs los productos que no esten asociados a ningún inv 
       y pasar esas ids al ms de productos)
