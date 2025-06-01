@@ -25,4 +25,6 @@ public interface ProductRepository extends JpaRepository<ProductEntity, UUID>{
     "(p.accountId = ?5)"
   )
   List<ProductEntity> search(String brand, String name, String model, List<String> categoryNames, UUID accountId);
+
+  List<ProductEntity> findByAccountId(UUID accountId);
 }

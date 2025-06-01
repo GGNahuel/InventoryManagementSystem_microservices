@@ -120,4 +120,10 @@ public class ProductService_Impl implements ProductService {
 
     repository.deleteById(id);
   }
+
+  @Override @Transactional
+  public void deleteByAccountId(UUID id) {
+    List<ProductEntity> productsToDelete = repository.findByAccountId(id);
+    repository.deleteAll(productsToDelete);
+  }
 }

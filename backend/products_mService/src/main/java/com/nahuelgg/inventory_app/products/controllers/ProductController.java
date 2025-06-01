@@ -77,4 +77,14 @@ public class ProductController {
 
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
+
+  @DeleteMapping("/delete_by_account")
+  public ResponseEntity<ResponseDTO> deleteByAccountId(@RequestParam String id) {
+    service.deleteByAccountId(UUID.fromString(id));
+
+    return new ResponseEntity<>(
+      new ResponseDTO(204, null, null),
+      HttpStatus.NO_CONTENT
+    );
+  }
 }

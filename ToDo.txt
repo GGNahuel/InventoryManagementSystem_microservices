@@ -1,11 +1,20 @@
 cambiar de mysql a h2
 
-en el ms de productos
+JWT
+
+TESTS
+
+🔄 en el ms de productos
   ✅ revisar el tema de creación y asignación de categorías
-  agregar param de categoría al método y query de searchProducts, eliminar el getByCategories
-  agregar attribute de referencia a cuenta a los productos. Agregar este param a las queries del repo
+  ✅ agregar param de categoría al método y query de searchProducts, eliminar el getByCategories
+  ✅ agregar attribute de referencia a cuenta a los productos. Agregar este param a las queries del repo
+  agregar delete by ids 
+    (para usarse cuando se borra un inventario, 
+      se debería recorrer en el ms de invs los productos que no esten asociados a ningún inv 
+      y pasar esas ids al ms de productos)
 
 en el ms de usuarios
   ❓ anular/comentar el método de registro de cuentas 
   cuando se crea usuario llamar al ms de inv y agregarlo
-  cuando se asigna inv devolver el account DTO para que ese ms revise los usuarios
+  ✅ cuando se asigna inv devolver el account DTO para que ese ms revise los usuarios
+  al eliminar cuenta se eliminan inventarios y productos asociados

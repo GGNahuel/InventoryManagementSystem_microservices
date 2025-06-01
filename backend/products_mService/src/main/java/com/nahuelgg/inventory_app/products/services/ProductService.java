@@ -12,4 +12,5 @@ public interface ProductService {
   public ProductDTO create(ProductDTO productToCreate);
   public ProductDTO update(ProductDTO updatedProduct);
   public void delete(UUID id);
+  public void deleteByAccountId(UUID id);
 }
