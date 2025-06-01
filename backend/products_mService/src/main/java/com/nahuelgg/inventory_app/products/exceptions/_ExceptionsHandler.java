@@ -37,7 +37,7 @@ public class _ExceptionsHandler {
 
   // INPUTS IN CONTROLLERS JAVA EXCEPTIONS
   @ExceptionHandler(UnrecognizedPropertyException.class)
-  public ResponseEntity<ResponseDTO> handleUnknownProperty(UnrecognizedPropertyException ex) {
+  public ResponseEntity<ResponseDTO> unknownProperty(UnrecognizedPropertyException ex) {
     return new ResponseEntity<>(
       buildResponseDTO(400, ex, null, "Campo no reconocido: " + ex.getPropertyName()),
       HttpStatus.BAD_REQUEST
@@ -45,7 +45,7 @@ public class _ExceptionsHandler {
   }
 
   @ExceptionHandler(MismatchedInputException.class)
-  public ResponseEntity<ResponseDTO> handleMismatchedType(MismatchedInputException ex) {
+  public ResponseEntity<ResponseDTO> mismatchedType(MismatchedInputException ex) {
     return new ResponseEntity<>(
       buildResponseDTO(400, ex, null, "Error de tipo en el body: " + ex.getOriginalMessage()),
       HttpStatus.BAD_REQUEST
@@ -53,7 +53,7 @@ public class _ExceptionsHandler {
   }
 
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-  public ResponseEntity<ResponseDTO> handleParamTypeMismatch(MethodArgumentTypeMismatchException ex) {
+  public ResponseEntity<ResponseDTO> paramTypeMismatch(MethodArgumentTypeMismatchException ex) {
     return new ResponseEntity<>(
       buildResponseDTO(400, ex, null, "Tipo incorrecto en parámetro: " + ex.getName()),
       HttpStatus.BAD_REQUEST
@@ -61,7 +61,7 @@ public class _ExceptionsHandler {
   }
 
   @ExceptionHandler(MissingServletRequestParameterException.class)
-  public ResponseEntity<ResponseDTO> handleMissingParam(MissingServletRequestParameterException ex) {
+  public ResponseEntity<ResponseDTO> missingParam(MissingServletRequestParameterException ex) {
     return new ResponseEntity<>(
       buildResponseDTO(400, ex, null, "Falta el parámetro: " + ex.getParameterName()),
       HttpStatus.BAD_REQUEST
