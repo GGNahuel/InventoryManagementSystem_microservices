@@ -92,7 +92,7 @@ public class InventoryService_Impl implements InventoryService {
       .queryParam("name", name)
       .queryParam("brand", brand)
       .queryParam("model", model)
-      .queryParam("categories", categories.toArray())
+      .queryParam("categoryNames", categories.toArray())
       .queryParam("accountId", accountId.toString())
     .toUriString(); 
     List<ProductFromProductsMSDTO> resultsOfProducts = (List<ProductFromProductsMSDTO>) restTemplate.getForObject(completeUrl, ResponseDTO.class).getData();

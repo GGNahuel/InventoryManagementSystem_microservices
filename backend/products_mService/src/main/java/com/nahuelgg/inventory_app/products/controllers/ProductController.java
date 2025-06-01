@@ -35,13 +35,6 @@ public class ProductController {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @GetMapping("/category")
-  public ResponseEntity<ResponseDTO> getByCategoryName(@RequestParam String name) {
-    ResponseDTO response = new ResponseDTO(200, null, service.getByCategoryName(name));
-
-    return new ResponseEntity<>(response, HttpStatus.OK);
-  }
-
   @GetMapping("/ids")
   public ResponseEntity<ResponseDTO> getByIds(@RequestParam List<String> list) {
     List<UUID> uuidList = list.stream().map(string -> UUID.fromString(string)).toList();
@@ -54,9 +47,11 @@ public class ProductController {
   public ResponseEntity<ResponseDTO> search(
     @RequestParam(required = false) String brand,
     @RequestParam(required = false) String name,
-    @RequestParam(required = false) String model
+    @RequestParam(required = false) String model,
+    @RequestParam(required = false) List<String> categoryNames,
+    @RequestParam String accountId
   ) {
-    ResponseDTO response = new ResponseDTO(200, null, service.searchByBrandNameAndModel(brand, name, model));
+    ResponseDTO response = new ResponseDTO(200, null, service.search(brand, name, model, categoryNames, UUID.fromString(accountId)));
 
     return new ResponseEntity<>(response, HttpStatus.OK);
   }

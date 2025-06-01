@@ -27,6 +27,8 @@ public class ProductEntity {
   private String model;
   private String description;
   @Column(nullable = false)
+  private UUID accountId;
+  @Column(nullable = false)
   private Double unitPrice;
 
   @ManyToMany @JoinTable(

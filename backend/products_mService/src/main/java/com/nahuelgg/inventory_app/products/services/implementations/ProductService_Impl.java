@@ -38,6 +38,7 @@ public class ProductService_Impl implements ProductService {
       .categories(p.getCategories().stream().map(
         category -> category.getName()
       ).toList())
+      .accountId(p.getAccountId().toString())
     .build();
   }
 
@@ -54,6 +55,7 @@ public class ProductService_Impl implements ProductService {
           () -> new ResourceNotFoundException("categoría", "nombre", name)
         )
       ).toList())
+      .accountId(UUID.fromString(p.getAccountId()))
     .build();
   }
 
@@ -64,18 +66,13 @@ public class ProductService_Impl implements ProductService {
   }
 
   @Override @Transactional(readOnly = true)
-  public List<ProductDTO> getByCategoryName(String category) {
-    checkFieldsHasContent(new Field("nombre de categoría", category));
-
-    return repository.findByCategoryName(category).stream().map(p -> mapEntityToDTO(p)).toList();
-  }
-
-  @Override @Transactional(readOnly = true)
-  public List<ProductDTO> searchByBrandNameAndModel(String brand, String name, String model) {
-    return repository.findByBrandNameAndModel(
+  public List<ProductDTO> search(String brand, String name, String model, List<String> categoryNames, UUID accountId) {
+    return repository.search(
       brand == null || brand.isBlank() ? null : brand,
       name == null || name.isBlank() ? null : name,
-      model == null || model.isBlank() ? null : model
+      model == null || model.isBlank() ? null : model,
+      categoryNames == null || categoryNames.isEmpty() ? null : categoryNames,
+      accountId
     ).stream().map(p -> mapEntityToDTO(p)).toList();
   }
 

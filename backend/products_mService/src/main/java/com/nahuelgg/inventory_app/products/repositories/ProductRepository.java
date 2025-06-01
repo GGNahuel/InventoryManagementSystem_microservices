@@ -11,19 +11,18 @@ import com.nahuelgg.inventory_app.products.entities.ProductEntity;
 
 @Repository
 public interface ProductRepository extends JpaRepository<ProductEntity, UUID>{
-  @Query("select p from ProductEntity p where p.categories.name = ?1")
-  List<ProductEntity> findByCategoryName(String category);
-
   /*
     Por cada producto que revise se fijará cada una de las condiciones.
     Cada condición devolverá true si coincide con el parámetro o el valor de este es nulo,
-    lo que por ejemplo si no se envía ningún parámetro la query devolverá todos los productos.
+    lo que por ejemplo si no se envía ningún parámetro la query devolverá todos los productos (a excepción del parámetro de cuenta).
     ya que todas las condiciones se cumplieron
   */
   @Query("select p from ProductEntity p where" + 
-    "(p.brand = ?1 or ?1 is null) and" +
-    "(p.name = ?2 or ?2is null) and" +
-    "(p.model like %?3% or ?3 is null)"
+    "(?1 is null or p.brand like %?1%) and" +
+    "(?2 is null or p.name like %?2%) and" +
+    "(?3 is null or p.model like %?3%) and" +
+    "(?4 is null or p.category.name in ?4) and" + 
+    "(p.accountId = ?5)"
   )
-  List<ProductEntity> findByBrandNameAndModel(String brand, String name, String model);
+  List<ProductEntity> search(String brand, String name, String model, List<String> categoryNames, UUID accountId);
 }

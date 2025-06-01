@@ -16,5 +16,6 @@ public class ProductDTO {
   private String model;
   private String description;
   private Double unitPrice;
+  private String accountId;
   private List<String> categories;
 }
