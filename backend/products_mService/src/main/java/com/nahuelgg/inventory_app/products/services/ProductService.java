@@ -13,4 +13,5 @@ public interface ProductService {
   public ProductDTO update(ProductDTO updatedProduct);
   public void delete(UUID id);
   public void deleteByAccountId(UUID id);
+  public void deleteByIds(List<UUID> ids);
 }

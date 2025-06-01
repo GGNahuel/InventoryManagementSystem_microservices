@@ -87,4 +87,14 @@ public class ProductController {
       HttpStatus.NO_CONTENT
     );
   }
+
+  @DeleteMapping("/delete_by_ids")
+  public ResponseEntity<ResponseDTO> deleteByIds(@RequestParam List<String> ids) {
+    service.deleteByIds(ids.stream().map(id -> UUID.fromString(id)).toList());
+
+    return new ResponseEntity<>(
+      new ResponseDTO(204, null, null),
+      HttpStatus.NO_CONTENT
+    ); 
+  }
 }

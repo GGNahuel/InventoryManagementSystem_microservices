@@ -123,7 +123,14 @@ public class ProductService_Impl implements ProductService {
 
   @Override @Transactional
   public void deleteByAccountId(UUID id) {
+    checkFieldsHasContent(new Field("id", id));
     List<ProductEntity> productsToDelete = repository.findByAccountId(id);
     repository.deleteAll(productsToDelete);
+  }
+
+  @Override @Transactional
+  public void deleteByIds(List<UUID> ids) {
+    checkFieldsHasContent(new Field("ids", ids));
+    repository.deleteAllById(ids);    
   }
 }
