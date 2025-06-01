@@ -3,13 +3,19 @@ package com.nahuelgg.inventory_app.users.services.implementations;
 import static com.nahuelgg.inventory_app.users.utilities.Validations.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
@@ -30,11 +36,13 @@ public class UserService_Impl implements UserService {
   private final PermissionsForInventoryRepository permsRepository;
   private final DTOMappers dtoMappers;
   private final EntityMappers entityMappers = new EntityMappers();
+  private final ObjectMapper objectMapper;
 
-  public UserService_Impl(UserRepository repository, PermissionsForInventoryRepository permsRepository, DTOMappers dtoMappers) {
+  public UserService_Impl(UserRepository repository, PermissionsForInventoryRepository permsRepository, DTOMappers dtoMappers, ObjectMapper objMapper) {
     this.repository = repository;
     this.permsRepository = permsRepository;
     this.dtoMappers = dtoMappers;
+    this.objectMapper = objMapper;
   }
 
   @Override @Transactional(readOnly = true)
@@ -67,7 +75,7 @@ public class UserService_Impl implements UserService {
   }
 
   @Override @Transactional
-  public UserDTO assignNewPerms(PermissionsForInventoryDTO permission, UUID userId) {
+  public UserDTO assignNewPerms(PermissionsForInventoryDTO permission, UUID userId) throws JsonProcessingException {
     checkFieldsHasContent(new Field("permiso", permission), new Field("id de usuario", userId));
     checkFieldsHasContent(
       new Field("lista de permisos", permission.getPermissions()), 
@@ -82,6 +90,24 @@ public class UserService_Impl implements UserService {
     PermissionsForInventoryEntity newPerm = permsRepository.save(dtoMappers.mapPerms(permission));
     perms.add(newPerm);
     user.setInventoryPerms(perms);
+
+    String userDTOtoString = objectMapper.writeValueAsString(entityMappers.mapUser(user));
+    Map<String, String> requestBody = Map.of("query", """
+      mutation {
+        addUser(
+          user: """ + userDTOtoString + """
+          , invId: """ + permission.getIdOfInventoryReferenced() + """
+        ) {}
+      }
+    """);
+    WebClient.create("http://api_inventory/graphql")
+      .post()
+      .uri("/")
+      .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+      .bodyValue(requestBody)
+      .retrieve()
+      .bodyToMono(Boolean.class)
+    .block();
 
     return entityMappers.mapUser(repository.save(user));
   }

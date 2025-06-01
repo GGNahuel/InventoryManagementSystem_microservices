@@ -106,6 +106,7 @@ public class InventoryService_Impl implements InventoryService {
     ).toList();
   }
 
+  // mutations
   @Override @Transactional
   public InventoryDTO create(String name, UUID accountId) {
     InventoryEntity inv = repository.save(InventoryEntity.builder().name(name).build());
