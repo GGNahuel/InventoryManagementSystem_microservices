@@ -30,10 +30,7 @@ public class Test_Repositories {
     this.categoryRepository = categoryRepository;
   }
 
-  private ProductEntity pr1;
-  private ProductEntity pr2;
-  private ProductEntity pr3;
-  private ProductEntity pr4;
+  private ProductEntity pr1, pr2, pr3, pr4;
   private CategoryEntity cat1;
   private UUID acc1ID = UUID.randomUUID();
   private UUID acc2ID = UUID.randomUUID();

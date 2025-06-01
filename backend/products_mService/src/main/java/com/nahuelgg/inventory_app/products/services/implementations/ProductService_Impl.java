@@ -67,6 +67,8 @@ public class ProductService_Impl implements ProductService {
 
   @Override @Transactional(readOnly = true)
   public List<ProductDTO> search(String brand, String name, String model, List<String> categoryNames, UUID accountId) {
+    checkFieldsHasContent(new Field("id de cuenta", accountId));
+    
     return repository.search(
       brand == null || brand.isBlank() ? null : brand,
       name == null || name.isBlank() ? null : name,
@@ -80,11 +82,7 @@ public class ProductService_Impl implements ProductService {
   public List<ProductDTO> getByIds(List<UUID> ids) {
     checkFieldsHasContent(new Field("lista de Id", ids));
 
-    return ids.stream().map(
-      id -> mapEntityToDTO(repository.findById(id).orElseThrow(
-        () -> new ResourceNotFoundException("producto", "id", id.toString())
-      ))
-    ).toList();
+    return repository.findAllById(ids).stream().map(p -> mapEntityToDTO(p)).toList();
   }
 
   @Override @Transactional
