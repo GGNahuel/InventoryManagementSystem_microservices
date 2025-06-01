@@ -6,7 +6,6 @@ import java.util.UUID;
 import com.nahuelgg.inventory_app.products.dtos.ProductDTO;
 
 public interface ProductService {
-  public List<ProductDTO> getAll();
   public List<ProductDTO> search(String brand, String name, String model, List<String> categoryNames, UUID accountId);
   public List<ProductDTO> getByIds(List<UUID> ids);
   public ProductDTO create(ProductDTO productToCreate);

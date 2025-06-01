@@ -61,11 +61,6 @@ public class ProductService_Impl implements ProductService {
 
   // CRUD IMPLEMENTATION METHODS
   @Override @Transactional(readOnly = true)
-  public List<ProductDTO> getAll() {
-    return repository.findAll().stream().map(p -> mapEntityToDTO(p)).toList();
-  }
-
-  @Override @Transactional(readOnly = true)
   public List<ProductDTO> search(String brand, String name, String model, List<String> categoryNames, UUID accountId) {
     checkFieldsHasContent(new Field("id de cuenta", accountId));
     

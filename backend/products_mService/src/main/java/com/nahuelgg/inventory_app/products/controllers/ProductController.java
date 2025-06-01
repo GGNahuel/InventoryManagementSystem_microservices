@@ -28,13 +28,6 @@ public class ProductController {
     this.service = service;
   }
 
-  @GetMapping("")
-  public ResponseEntity<ResponseDTO> getAll() {
-    ResponseDTO response = new ResponseDTO(200, null, service.getAll());
-
-    return new ResponseEntity<>(response, HttpStatus.OK);
-  }
-
   @GetMapping("/ids")
   public ResponseEntity<ResponseDTO> getByIds(@RequestParam List<String> list) {
     List<UUID> uuidList = list.stream().map(string -> UUID.fromString(string)).toList();

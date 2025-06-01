@@ -99,14 +99,6 @@ public class Test_ProductService {
   }
 
   @Test
-  void getAll() {
-    List<ProductDTO> expected = List.of(prDTO1, prDTO2, prDTO3);
-    when(repository.findAll()).thenReturn(List.of(pr1, pr2, pr3));
-
-    assertIterableEquals(expected, service.getAll());
-  }
-
-  @Test
   void search() {
     List<ProductDTO> expected = List.of(prDTO3);
     when(repository.search(null, null, null, null, acc2ID))
