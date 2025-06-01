@@ -18,6 +18,7 @@ type Mutation {
   deleteByAccountId(id: ID!): Boolean
 
   addUser(user: UserInputFromUSERS_MS!, invId: ID!): Boolean
+  removeUser(userId: ID!, accountId: ID!): Boolean
 
   addProduct(product: ProductInput!, invId: ID!): ProductInInventory
   copyProducts(products: [ProductToCopyInput]!, idTo: ID!): String

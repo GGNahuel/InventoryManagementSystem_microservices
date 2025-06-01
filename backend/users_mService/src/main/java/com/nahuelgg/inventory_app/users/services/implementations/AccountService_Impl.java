@@ -114,7 +114,7 @@ public class AccountService_Impl implements AccountService{
       () -> new ResourceNotFoundException("cuenta", "id", accountId.toString())
     );
 
-    UserEntity newUser = dtoMappers.mapUser(user);
+    UserEntity newUser = dtoMappers.mapUser(user, parentAccount);
     List<PermissionsForInventoryEntity> permsEntities = new ArrayList<>();
     for (int i = 0; i < user.getInventoryPerms().size(); i++) {
       PermissionsForInventoryDTO permsDto = user.getInventoryPerms().get(i);

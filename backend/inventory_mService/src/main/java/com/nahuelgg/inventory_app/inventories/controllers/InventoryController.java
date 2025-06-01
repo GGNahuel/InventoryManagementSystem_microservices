@@ -73,6 +73,11 @@ public class InventoryController {
   }
 
   @MutationMapping
+  public boolean removeUser(@Argument String userId, @Argument String accountId) {
+    return service.removeUser(UUID.fromString(userId), UUID.fromString(accountId));
+  }
+
+  @MutationMapping
   public ProductInInvDTO addProduct(@Argument ProductInputDTO product, @Argument String invId) {
     return service.addProduct(product, UUID.fromString(invId));
   }

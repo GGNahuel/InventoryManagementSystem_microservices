@@ -1,4 +1,5 @@
 cambiar de mysql a h2
+  crear iniciadores de datos
 
 JWT
 
@@ -15,6 +16,6 @@ TESTS
 
 en el ms de usuarios
   ❓ anular/comentar el método de registro de cuentas 
-  cuando se crea usuario llamar al ms de inv y agregarlo
+  ✅ cuando se crea usuario llamar al ms de inv y agregarlo
   ✅ cuando se asigna inv devolver el account DTO para que ese ms revise los usuarios
-  al eliminar cuenta se eliminan inventarios y productos asociados
+  ✅ al eliminar cuenta se eliminan inventarios y productos asociados

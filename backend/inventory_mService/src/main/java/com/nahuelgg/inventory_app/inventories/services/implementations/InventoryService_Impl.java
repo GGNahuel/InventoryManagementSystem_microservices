@@ -156,6 +156,19 @@ public class InventoryService_Impl implements InventoryService {
   }
 
   @Override @Transactional
+  public boolean removeUser(UUID userId, UUID accountId) {
+    List<InventoryEntity> invs = repository.findByAccountId(accountId);
+    for (InventoryEntity inv : invs) {
+      inv.setUsers(inv.getUsers().stream().filter(
+        userRefEntity -> userRefEntity.getReferenceId() != userId 
+      ).toList());
+    }
+    repository.saveAll(invs);
+
+    return true;
+  }
+
+  @Override @Transactional
   public ProductInInvDTO addProduct(ProductInputDTO productInput, UUID invId) {
     String baseUrl = "http://api_products:8081/product/";
     ProductFromProductsMSDTO productCreated = (ProductFromProductsMSDTO) restTemplate.postForObject(

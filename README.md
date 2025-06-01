@@ -85,13 +85,15 @@ Entidades
 ## Flujo de interacción entre micro-servicios
 ### Relacionado a usuarios
 * ### Creación de cuenta
-  Se llama al **ms de usuarios** y éste crea la account únicamente
+  Se llama al **ms de usuarios** y éste crea la cuenta. Por defecto creará también un usuario/sub-usuario con rol de admin
 * ### Creación de usuario/sub-usuario para la cuenta
-  Se llama directamente al **ms de usuarios** al método de asignación del accountController
+  Se llama directamente al **ms de usuarios** al método de asignación a la cuenta
 * ### Asignación de permisos a sub-usuario en un inventario específico
   LLamando al **ms de usuarios**, pasándole la id del usuario y un dto que incluye la id del inventario a asociar, éste se encargará de crear los permisos según el dto. También llamará al **ms de inventarios** para sumar el usuario a la entidad
 * ### Sesiones
   Todo lo que tenga que ver con sesiones, ya sea de la cuenta o del sub-usuario, o para obtenerla, iniciarla o cerrarla, se llamará al **ms de usuarios**
+* ### Eliminación de cuenta o de usuarios
+  Desde el **ms de usuarios** se invocarán estos métodos. Si se borra una cuenta, este ms se encargará de eliminar también los inventarios y productos asociados a esta llamando a los correspondientes **micro-servicios**. En cambio se se borra un usuario se llamará al **ms de inventarios** para quitar ese usuario de los inventarios asociados a él
 ### Relacionado a inventarios y productos
 * ### Creación de inventario y asignación a cuenta
   Se llama al **ms de inventario** con el body del inventario a crear (nombre del mismo) y el id de la cuenta a asociar, la que está en sesión.
@@ -103,4 +105,6 @@ Entidades
   En el **ms de inventarios** habrá un método al que se le pasa una lista de ProductoDTO y dos id de inventario. Una referenciando al inventario de donde se extraen los productos, y la otra al inventario en donde se asignarán. El ms se encargará de crear las entidades y relaciones necesarias.
 * ### Edición de productos
   Se llama directamente al **ms de productos** pasando un dto del producto a editar
+* ### Eliminación de inventario
+  Cuando se elimina un inventario desde el **ms de inventarios**, se busca también aquellos productos que no están asociados a ningún otro de la misma cuenta. Posteriormente se llama al endpoint del **ms de productos** que se encarga de borrar varios elementos dadas ciertas ids. La búsqueda se hace a través de las referencias de id en el **ms de inventarios**
   

@@ -22,6 +22,7 @@ public interface InventoryService {
   boolean deleteByAccountId(UUID id);
 
   boolean addUser(UserFromUsersMSDTO user, UUID invId);
+  boolean removeUser(UUID userId, UUID accountId);
   ProductInInvDTO addProduct(ProductInputDTO product, UUID invID);
   boolean copyProducts(List<ProductToCopyDTO> products, UUID idTo);
   boolean editStockOfProduct(int relativeNewStock, UUID productRefId, UUID invId);
