@@ -234,15 +234,31 @@ public class InventoryService_Impl implements InventoryService {
     InventoryEntity inv = repository.findById(id).orElseThrow(
       () -> new RuntimeException("")
     );
-    repository.deleteById(id);
-
-    String baseUrl = "http://api_users/account/remove_inventory";
-    String completeUrl = UriComponentsBuilder.fromUriString(baseUrl)
+    
+    String baseUrlToUsers = "http://api_users/account/remove_inventory";
+    String completeUrlToUsers = UriComponentsBuilder.fromUriString(baseUrlToUsers)
       .queryParam("accountId", inv.getAccountId().toString()) // esto lo tendría que extraer del JWT
       .queryParam("invId", inv.getId().toString())
     .toUriString();
-    restTemplate.delete(completeUrl);
-
+    restTemplate.delete(completeUrlToUsers);
+    
+    List<UUID> refIdsOfProducts = inv.getProducts().stream().map(pInInv -> pInInv.getReferenceId()).toList();
+    List<UUID> idsOfOthersInvsInAccount = repository.findByAccountId(inv.getAccountId()).stream().filter(
+      i -> i.getId() != id
+    ).map(
+      i -> i.getId()
+    ).toList();
+    List<UUID> refIdsToDelete = productInvRepository.findThoseWichAreNotInOthersInvs(refIdsOfProducts, idsOfOthersInvsInAccount).stream().map(
+      pInInv -> pInInv.getReferenceId()
+    ).toList();
+    
+    String baseUrlToProducts = "http://api_products/delete_by_ids";
+    String completeUrlToProducts = UriComponentsBuilder.fromUriString(baseUrlToProducts)
+      .queryParam("ids", refIdsToDelete.toArray())
+    .toUriString();
+    restTemplate.delete(completeUrlToProducts);
+    
+    repository.deleteById(id);
     return true;
   }
 

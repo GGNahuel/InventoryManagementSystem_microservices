@@ -17,4 +17,7 @@ public interface ProductInInvRepository extends JpaRepository<ProductInInvEntity
 
   @Query("select p from ProductInInvEntity p where p.referenceId = ?1 and  p.inventory.id = ?2")
   Optional<ProductInInvEntity> findByReferenceIdAndInventoryId(UUID referenceId, UUID inventoryId);
+
+  @Query("select p from ProductInInvEntity p where p.referenceId in ?1 and p.inventory.id not in ?2")
+  List<ProductInInvEntity> findThoseWichAreNotInOthersInvs(List<UUID> referenceIds, List<UUID> inventoryIds);
 }
