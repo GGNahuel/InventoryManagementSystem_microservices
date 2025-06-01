@@ -9,6 +9,9 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
 import com.nahuelgg.inventory_app.inventories.dtos.InventoryDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.ProductInInvDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.ProductInputDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.ProductToCopyDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO;
 import com.nahuelgg.inventory_app.inventories.services.InventoryService;
 
@@ -60,7 +63,27 @@ public class InventoryController {
   }
 
   @MutationMapping
+  public boolean deleteByAccountId(@Argument String id) {
+    return service.deleteByAccountId(UUID.fromString(id));
+  }
+
+  @MutationMapping
   public boolean addUser(@Argument UserFromUsersMSDTO user, @Argument String invId) {
     return service.addUser(user, UUID.fromString(invId));
+  }
+
+  @MutationMapping
+  public ProductInInvDTO addProduct(@Argument ProductInputDTO product, @Argument String invId) {
+    return service.addProduct(product, UUID.fromString(invId));
+  }
+
+  @MutationMapping
+  public boolean copyProducts(@Argument List<ProductToCopyDTO> products, @Argument String idTo) {
+    return service.copyProducts(products, UUID.fromString(idTo));
+  }
+
+  @MutationMapping
+  public boolean editStockOfProduct(@Argument int relativeNewStock, @Argument String productRefId, @Argument String invId) {
+    return service.editStockOfProduct(relativeNewStock, UUID.fromString(productRefId), UUID.fromString(invId));
   }
 }

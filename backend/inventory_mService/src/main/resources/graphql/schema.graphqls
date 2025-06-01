@@ -15,6 +15,7 @@ type Mutation {
   create(name: String!, accountId: ID!): Inventory
   edit(invId: ID!, name: String!): String
   delete(id: ID!): Boolean
+  deleteByAccountId(id: ID!): Boolean
 
   addUser(user: UserInputFromUSERS_MS!, invId: ID!): Boolean
 

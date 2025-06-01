@@ -232,4 +232,11 @@ public class InventoryService_Impl implements InventoryService {
 
     return true;
   }
+
+  @Override @Transactional
+  public boolean deleteByAccountId(UUID id) {
+    List<InventoryEntity> invs = repository.findByAccountId(id);
+    repository.deleteAll(invs);
+    return true;
+  }
 }

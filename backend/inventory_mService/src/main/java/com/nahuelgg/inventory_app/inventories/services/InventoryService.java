@@ -19,6 +19,7 @@ public interface InventoryService {
   InventoryDTO create(String name, UUID accountId);
   boolean edit(UUID id, String name);
   boolean delete(UUID id);
+  boolean deleteByAccountId(UUID id);
 
   boolean addUser(UserFromUsersMSDTO user, UUID invId);
   ProductInInvDTO addProduct(ProductInputDTO product, UUID invID);
