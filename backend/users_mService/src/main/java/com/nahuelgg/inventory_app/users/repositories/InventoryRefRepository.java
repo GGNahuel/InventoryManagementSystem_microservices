@@ -10,5 +10,5 @@ import com.nahuelgg.inventory_app.users.entities.InventoryRefEntity;
 
 @Repository
 public interface InventoryRefRepository extends JpaRepository<InventoryRefEntity, UUID>{
-  Optional<InventoryRefEntity> findByInventoryIdReference(String inventoryIdReference);
+  Optional<InventoryRefEntity> findByInventoryIdReference(UUID inventoryIdReference);
 }

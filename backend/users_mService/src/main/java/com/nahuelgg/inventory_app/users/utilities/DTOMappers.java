@@ -21,7 +21,7 @@ public class DTOMappers {
   }
 
   public InventoryRefEntity mapInventoryRef(String inventoryIdRef) {
-    return inventoryRefRepository.findByInventoryIdReference(inventoryIdRef).orElseThrow(
+    return inventoryRefRepository.findByInventoryIdReference(UUID.fromString(inventoryIdRef)).orElseThrow(
       () -> new RuntimeException("")
     );
   }

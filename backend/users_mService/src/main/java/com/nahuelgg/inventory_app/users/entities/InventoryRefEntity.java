@@ -18,5 +18,5 @@ public class InventoryRefEntity {
   @Id @GeneratedValue
   private UUID id;
   @Column(nullable = false, unique = true)
-  private String inventoryIdReference;
+  private UUID inventoryIdReference;
 }

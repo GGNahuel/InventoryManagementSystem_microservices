@@ -83,7 +83,7 @@ public class AccountController {
   @PatchMapping("/add_inventory")
   @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> assignInventory(@RequestParam String accountId, @RequestParam String invId) {
-    service.assignInventory(UUID.fromString(accountId), invId);
+    service.assignInventory(UUID.fromString(accountId), UUID.fromString(invId));
     return new ResponseEntity<>(
       new ResponseDTO(204, null, null),
       HttpStatus.NO_CONTENT
@@ -93,7 +93,7 @@ public class AccountController {
   @PatchMapping("/remove_inventory")
   @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> removeInventoryAssigned(@RequestParam String accountId, @RequestParam String invId) {
-    service.removeInventoryAssigned(UUID.fromString(accountId), invId);
+    service.removeInventoryAssigned(UUID.fromString(accountId), UUID.fromString(invId));
     return new ResponseEntity<>(
       new ResponseDTO(204, null, null),
       HttpStatus.NO_CONTENT

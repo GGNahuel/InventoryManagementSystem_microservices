@@ -13,5 +13,5 @@ import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
 @Repository
 public interface PermissionsForInventoryRepository extends JpaRepository<PermissionsForInventoryEntity, UUID>{
   @Query("select p from PermissionsForInventoryEntity p where p.inventoryReference.inventoryIdReference = ?1")
-  List<PermissionsForInventoryEntity> findByReferencedInventoryId(String idReferenced);
+  List<PermissionsForInventoryEntity> findByReferencedInventoryId(UUID idReferenced);
 }

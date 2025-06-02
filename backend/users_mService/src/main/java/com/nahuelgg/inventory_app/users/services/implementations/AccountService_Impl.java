@@ -133,7 +133,7 @@ public class AccountService_Impl implements AccountService{
   }
 
   @Override @Transactional
-  public AccountDTO assignInventory(UUID accountId, String inventoryId) {
+  public AccountDTO assignInventory(UUID accountId, UUID inventoryId) {
     checkFieldsHasContent(new Field("id de cuenta", accountId), new Field("id referenciada de inventario", inventoryId));
 
     AccountEntity account = repository.findById(accountId).orElseThrow(
@@ -150,14 +150,14 @@ public class AccountService_Impl implements AccountService{
   }
 
   @Override @Transactional
-  public void removeInventoryAssigned(UUID accountId, String inventoryId) {
+  public void removeInventoryAssigned(UUID accountId, UUID inventoryId) {
     checkFieldsHasContent(new Field("id de cuenta", accountId), new Field("id referenciada de inventario", inventoryId));
 
     AccountEntity account = repository.findById(accountId).orElseThrow(
       () -> new ResourceNotFoundException("cuenta", "id", accountId.toString())
     );
     inventoryRefRepository.findByInventoryIdReference(inventoryId).orElseThrow(
-      () -> new ResourceNotFoundException("entidad de referencia a inventario", "id de referencia", inventoryId)
+      () -> new ResourceNotFoundException("entidad de referencia a inventario", "id de referencia", inventoryId.toString())
     );
 
     List<InventoryRefEntity> inventoriesReferences = account.getInventoriesReferences().stream().filter(

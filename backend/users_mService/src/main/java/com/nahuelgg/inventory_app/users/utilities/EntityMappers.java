@@ -18,7 +18,7 @@ public class EntityMappers {
       .permissions(Arrays.asList((e.getPermissions().split(","))).stream().map(
         permString -> Permissions.valueOf(permString)
       ).toList())
-      .idOfInventoryReferenced(e.getInventoryReference().getInventoryIdReference())
+      .idOfInventoryReferenced(e.getInventoryReference().getInventoryIdReference().toString())
     .build();
   }
 
@@ -39,7 +39,7 @@ public class EntityMappers {
       .username(e.getUsername())
       .idsOfInventoryReferred(e.getInventoriesReferences() != null ? 
         e.getInventoriesReferences().stream().map(
-          idRefEntity -> idRefEntity.getInventoryIdReference()
+          idRefEntity -> idRefEntity.getInventoryIdReference().toString()
         ).toList() 
       : null)
       .users(e.getUsers() != null ? 
