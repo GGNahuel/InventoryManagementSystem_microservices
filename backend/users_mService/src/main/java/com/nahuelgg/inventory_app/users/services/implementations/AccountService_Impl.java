@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -50,11 +48,14 @@ public class AccountService_Impl implements AccountService{
   private final DTOMappers dtoMappers;
   private final EntityMappers entityMappers = new EntityMappers();
   private final RestTemplate restTemplate;
+  private final BCryptPasswordEncoder encoder;
+  private final WebClient webClient;
 
   public AccountService_Impl(
     AccountRepository repository, UserRepository userRepository, 
     InventoryRefRepository inventoryRefRepository, PermissionsForInventoryRepository permsRepository,
-    DTOMappers dtoMappers, RestTemplate restTemplate
+    DTOMappers dtoMappers, RestTemplate restTemplate, BCryptPasswordEncoder encoder,
+    WebClient webClient
   ) {
     this.repository = repository;
     this.userRepository = userRepository;
@@ -62,6 +63,8 @@ public class AccountService_Impl implements AccountService{
     this.permsRepository = permsRepository;
     this.dtoMappers = dtoMappers;
     this.restTemplate = restTemplate;
+    this.webClient = webClient;
+    this.encoder = encoder;
   }
 
   @Override @Transactional(readOnly = true)
@@ -84,14 +87,14 @@ public class AccountService_Impl implements AccountService{
 
     UserEntity adminUser = userRepository.save(UserEntity.builder()
       .name("admin")
-      .password(new BCryptPasswordEncoder().encode(adminPassword))
+      .password(encoder.encode(adminPassword))
       .role("admin")
       .isAdmin(true)
     .build());
 
     AccountEntity accountToCreate = AccountEntity.builder()
       .username(username)
-      .password(new BCryptPasswordEncoder().encode(password))
+      .password(encoder.encode(password))
       .users(List.of(adminUser))
     .build();
 
@@ -106,6 +109,14 @@ public class AccountService_Impl implements AccountService{
       new Field("id de cuenta a asociar", accountId),
       new Field("contraseña para el usuario", passwordForNewUser), new Field("repetición de contraseña", passwordRepeated)
     );
+    if (user.getInventoryPerms() != null && !user.getInventoryPerms().isEmpty()) {
+      for (PermissionsForInventoryDTO perm : user.getInventoryPerms()) {
+        checkFieldsHasContent(
+          new Field("inventario de referemcia", perm.getIdOfInventoryReferenced()),
+          new Field("permisos", perm.getPermissions())
+        );
+      }
+    }
 
     if (!passwordForNewUser.equals(passwordRepeated))
       throw new InvalidValueException("Las contraseñas para el nuevo usuario no coinciden");
@@ -115,6 +126,7 @@ public class AccountService_Impl implements AccountService{
     );
 
     UserEntity newUser = dtoMappers.mapUser(user, parentAccount);
+
     List<PermissionsForInventoryEntity> permsEntities = new ArrayList<>();
     for (int i = 0; i < user.getInventoryPerms().size(); i++) {
       PermissionsForInventoryDTO permsDto = user.getInventoryPerms().get(i);
@@ -124,7 +136,7 @@ public class AccountService_Impl implements AccountService{
 
     newUser.setInventoryPerms(permsEntities);
     newUser.setIsAdmin(false);
-    newUser.setPassword(new BCryptPasswordEncoder().encode(passwordForNewUser));
+    newUser.setPassword(encoder.encode(passwordForNewUser));
     UserEntity savedUser = userRepository.save(newUser);
 
     parentAccount.getUsers().add(savedUser);
@@ -185,10 +197,8 @@ public class AccountService_Impl implements AccountService{
           )
         }
       """);
-      WebClient.create("http://api_inventory/graphql")
-        .post()
+      webClient.post()
         .uri("/")
-        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .bodyValue(requestBody)
         .retrieve()
         .bodyToMono(Boolean.class)

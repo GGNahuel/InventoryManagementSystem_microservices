@@ -16,7 +16,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity(name = "account")
-@Data @Builder
+@Data @Builder(toBuilder = true)
 @NoArgsConstructor @AllArgsConstructor
 public class AccountEntity {
   @Id @GeneratedValue

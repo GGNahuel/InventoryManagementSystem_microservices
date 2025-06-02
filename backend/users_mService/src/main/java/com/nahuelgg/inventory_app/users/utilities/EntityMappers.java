@@ -27,9 +27,11 @@ public class EntityMappers {
       .id(e.getId().toString())
       .name(e.getName())
       .role(e.getRole())
-      .inventoryPerms(e.getInventoryPerms().stream().map(
-        permsEntity -> mapPerms(permsEntity)
-      ).toList())
+      .inventoryPerms(e.getInventoryPerms() != null ? 
+        e.getInventoryPerms().stream().map(
+          permsEntity -> mapPerms(permsEntity)
+        ).toList()
+      : null)
     .build();
   }
 
