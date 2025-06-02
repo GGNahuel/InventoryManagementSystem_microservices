@@ -10,6 +10,7 @@ import com.nahuelgg.inventory_app.users.entities.AccountEntity;
 import com.nahuelgg.inventory_app.users.entities.InventoryRefEntity;
 import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
+import com.nahuelgg.inventory_app.users.exceptions.ResourceNotFoundException;
 import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
 
 @Component
@@ -22,7 +23,7 @@ public class DTOMappers {
 
   public InventoryRefEntity mapInventoryRef(String inventoryIdRef) {
     return inventoryRefRepository.findByInventoryIdReference(UUID.fromString(inventoryIdRef)).orElseThrow(
-      () -> new RuntimeException("")
+      () -> new ResourceNotFoundException("referencia de inventario", "id de referencia", inventoryIdRef)
     );
   }
 
@@ -30,7 +31,7 @@ public class DTOMappers {
     String permissionsString = "";
     for (int i = 0; i < dto.getPermissions().size(); i++) {
       String perm = dto.getPermissions().get(i).toString();
-      permissionsString.concat(i < dto.getPermissions().size() -1 ? perm + "," : perm);
+      permissionsString += i < dto.getPermissions().size() -1 ? perm + "," : perm;
     }
 
     return PermissionsForInventoryEntity.builder()
