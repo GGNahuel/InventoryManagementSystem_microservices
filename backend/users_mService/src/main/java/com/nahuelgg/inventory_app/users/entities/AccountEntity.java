@@ -28,6 +28,6 @@ public class AccountEntity {
 
   @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true) @JoinColumn
   private List<InventoryRefEntity> inventoriesReferences;
-  @OneToMany(cascade = CascadeType.REMOVE) @JoinColumn
+  @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "associatedAccount")
   private List<UserEntity> users;
 }

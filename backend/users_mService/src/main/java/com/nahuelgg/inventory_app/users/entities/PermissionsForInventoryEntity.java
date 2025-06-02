@@ -7,13 +7,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity(name = "permissionForInventory")
+@Entity(name = "permissions_for_inventory")
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
 public class PermissionsForInventoryEntity {
@@ -24,6 +24,6 @@ public class PermissionsForInventoryEntity {
   @Column(nullable = false)
   private String permissions;
   
-  @OneToOne @JoinColumn(nullable = false)
+  @ManyToOne @JoinColumn(nullable = false)
   private InventoryRefEntity inventoryReference;
 }
