@@ -22,6 +22,7 @@ import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.entities.AccountEntity;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
 import com.nahuelgg.inventory_app.users.services.AccountService;
+import com.nahuelgg.inventory_app.users.services.UserService;
 import com.nahuelgg.inventory_app.users.utilities.Constants;
 
 import jakarta.servlet.http.HttpSession;
@@ -30,9 +31,12 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping(Constants.endpointPrefix + "/account")
 public class AccountController {
   private final AccountService service;
+  @SuppressWarnings("unused")
+  private final UserService userService;
 
-  public AccountController(AccountService service) {
+  public AccountController(AccountService service, UserService userService) {
     this.service = service;
+    this.userService = userService;
   }
 
   @GetMapping("/session")
@@ -85,8 +89,8 @@ public class AccountController {
   public ResponseEntity<ResponseDTO> assignInventory(@RequestParam String accountId, @RequestParam String invId) {
     service.assignInventory(UUID.fromString(accountId), UUID.fromString(invId));
     return new ResponseEntity<>(
-      new ResponseDTO(204, null, null),
-      HttpStatus.NO_CONTENT
+      new ResponseDTO(200, null, null),
+      HttpStatus.OK
     );
   }
 
@@ -95,8 +99,8 @@ public class AccountController {
   public ResponseEntity<ResponseDTO> removeInventoryAssigned(@RequestParam String accountId, @RequestParam String invId) {
     service.removeInventoryAssigned(UUID.fromString(accountId), UUID.fromString(invId));
     return new ResponseEntity<>(
-      new ResponseDTO(204, null, null),
-      HttpStatus.NO_CONTENT
+      new ResponseDTO(200, null, null),
+      HttpStatus.OK
     );
   }
 

@@ -2,12 +2,10 @@ package com.nahuelgg.inventory_app.users.services;
 
 import java.util.UUID;
 
-import org.springframework.security.core.userdetails.UserDetailsService;
-
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 
-public interface AccountService extends UserDetailsService {
+public interface AccountService {
   AccountDTO getById(UUID id);
   AccountDTO create(String username, String password, String passwordRepeated, String adminPassword, String adminPasswordRepeated);
   UserDTO addUser(UserDTO user, UUID accountId, String passwordForNewUser, String passwordRepeated);

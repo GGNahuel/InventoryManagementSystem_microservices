@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +41,7 @@ import static com.nahuelgg.inventory_app.users.utilities.Validations.*;
 import jakarta.servlet.http.HttpSession;
 
 @Service
-public class AccountService_Impl implements AccountService{
+public class AccountService_Impl implements AccountService, UserDetailsService{
   private final AccountRepository repository;
   private final UserRepository userRepository;
   private final InventoryRefRepository inventoryRefRepository;
