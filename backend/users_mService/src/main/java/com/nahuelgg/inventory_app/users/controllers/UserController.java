@@ -63,8 +63,8 @@ public class UserController {
   public ResponseEntity<ResponseDTO> delete(@PathVariable String id) {
     service.delete(UUID.fromString(id));
     return new ResponseEntity<>(
-      new ResponseDTO(204, null, null),
-      HttpStatus.NO_CONTENT
+      new ResponseDTO(200, null, null),
+      HttpStatus.OK
     );
   }
 
