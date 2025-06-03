@@ -26,8 +26,6 @@ public class SecurityConfig {
       )
       .formLogin(form -> form
         .loginProcessingUrl(Constants.endpointPrefix + "/logincheck")
-        .usernameParameter("username")
-        .passwordParameter("password")
         .successHandler((request, response, auth) -> {
           response.setStatus(HttpServletResponse.SC_OK);
         })
@@ -35,6 +33,7 @@ public class SecurityConfig {
           if (authEx instanceof BadCredentialsException) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           } else {
+            System.out.println(authEx.getClass());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
           }
         })

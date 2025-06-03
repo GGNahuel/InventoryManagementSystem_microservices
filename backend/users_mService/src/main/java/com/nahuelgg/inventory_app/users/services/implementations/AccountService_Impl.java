@@ -211,7 +211,7 @@ public class AccountService_Impl implements AccountService, UserDetailsService{
     }
   }
 
-  @Override
+  @Override @Transactional
   public UserDetails loadUserByUsername(String username) {
     checkFieldsHasContent(new Field("nombre usuario", username));
 
