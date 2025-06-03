@@ -221,7 +221,7 @@ public class AccountService_Impl implements AccountService, UserDetailsService{
 
     ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
     HttpSession session = attr.getRequest().getSession();
-    session.setAttribute(Constants.accountSessionAttr, account);
+    session.setAttribute(Constants.accountSessionAttr, entityMappers.mapAccount_session(account));
 
     return new User(account.getUsername(), account.getPassword(), new ArrayList<GrantedAuthority>());
   }

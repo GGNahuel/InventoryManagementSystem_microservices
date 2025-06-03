@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
+import com.nahuelgg.inventory_app.users.dtos.UserSessionDTO;
 import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
 import com.nahuelgg.inventory_app.users.exceptions.ResourceNotFoundException;
@@ -144,7 +145,7 @@ public class UserService_Impl implements UserService {
   public boolean checkUserIsAdmin() {
     ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
     HttpSession session = attr.getRequest().getSession();
-    UserEntity userLogged = (UserEntity) session.getAttribute(Constants.userSessionAttr);
+    UserSessionDTO userLogged = (UserSessionDTO) session.getAttribute(Constants.userSessionAttr);
     return userLogged != null && userLogged.getIsAdmin();
   }
 
@@ -158,7 +159,7 @@ public class UserService_Impl implements UserService {
 
     ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
     HttpSession session = attr.getRequest().getSession();
-    session.setAttribute(Constants.userSessionAttr, user);
+    session.setAttribute(Constants.userSessionAttr, entityMappers.mapUser_session(user));
   }
 
   @Override

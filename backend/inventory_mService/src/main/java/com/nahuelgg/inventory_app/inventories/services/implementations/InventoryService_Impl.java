@@ -15,15 +15,18 @@ import com.nahuelgg.inventory_app.inventories.dtos.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductInputDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductToCopyDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ResponseDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.SessionDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
 import com.nahuelgg.inventory_app.inventories.entities.UserReferenceEntity;
+import com.nahuelgg.inventory_app.inventories.enums.Permissions;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.UserReferenceRepository;
 import com.nahuelgg.inventory_app.inventories.services.InventoryService;
 import com.nahuelgg.inventory_app.inventories.utitlities.Mappers;
+import com.nahuelgg.inventory_app.inventories.utitlities.SessionHandler;
 
 @Service
 public class InventoryService_Impl implements InventoryService {
@@ -31,19 +34,24 @@ public class InventoryService_Impl implements InventoryService {
   private final ProductInInvRepository productInvRepository;
   private final UserReferenceRepository userRefRepository;
   private final RestTemplate restTemplate;
+  private final SessionHandler sessionHandler;
   private final Mappers mappers = new Mappers();
 
   public InventoryService_Impl(
     InventoryRepository repository, ProductInInvRepository productInInvRepository, UserReferenceRepository userRefRepository,
-    RestTemplate restTemplate
+    RestTemplate restTemplate, SessionHandler sessionHandler
   ) {
     this.repository = repository;
     this.productInvRepository = productInInvRepository;
     this.userRefRepository = userRefRepository;
     this.restTemplate = restTemplate;
+    this.sessionHandler = sessionHandler;
   }
 
   private List<ProductFromProductsMSDTO> getProductsFromMS(InventoryEntity inv) {
+    SessionDTO session = sessionHandler.setSession();
+    if (session.getAccount() == null) throw new RuntimeException("Se debe estar logeado para visualizar los productos");
+
     List<String> productsId = inv.getProducts().stream().map(
       pInInvEntity -> pInInvEntity.getReferenceId().toString()
     ).toList();
@@ -109,6 +117,9 @@ public class InventoryService_Impl implements InventoryService {
   // mutations
   @Override @Transactional
   public InventoryDTO create(String name, UUID accountId) {
+    if (!sessionHandler.checkLoggedUserHasPerms(null, true))
+      throw new RuntimeException("");
+
     InventoryEntity inv = repository.save(InventoryEntity.builder().name(name).build());
 
     String baseUrl = "http://api_users:8082/account/add_inventory";
@@ -132,6 +143,9 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public boolean edit(UUID id, String name) {
+    if (!sessionHandler.checkLoggedUserHasPerms(List.of(Permissions.editInventory), false))
+      throw new RuntimeException("access denied");
+
     InventoryEntity inv = repository.findById(id).orElseThrow(
       () -> new RuntimeException("")
     );
@@ -142,6 +156,9 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public boolean addUser(UserFromUsersMSDTO user, UUID invId) {
+    if (!sessionHandler.checkLoggedUserHasPerms(null, true))
+      throw new RuntimeException("access denied");
+
     InventoryEntity inv = repository.findById(invId).orElseThrow(
       () -> new RuntimeException("")
     );
@@ -170,6 +187,9 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public ProductInInvDTO addProduct(ProductInputDTO productInput, UUID invId) {
+    if (!sessionHandler.checkLoggedUserHasPerms(List.of(Permissions.addProducts), false))
+      throw new RuntimeException("access denied");
+
     String baseUrl = "http://api_products:8081/product/";
     ProductFromProductsMSDTO productCreated = (ProductFromProductsMSDTO) restTemplate.postForObject(
       baseUrl, 
@@ -197,6 +217,9 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public boolean copyProducts(List<ProductToCopyDTO> products, UUID idTo) {
+    if (!sessionHandler.checkLoggedUserHasPerms(List.of(Permissions.addProducts), false))
+      throw new RuntimeException("access denied");
+    
     InventoryEntity invTo = repository.findById(idTo).orElseThrow(
       () -> new RuntimeException("")
     );
@@ -220,6 +243,9 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public boolean editStockOfProduct(int relativeNewStock, UUID productRefId, UUID invId) {
+    if (!sessionHandler.checkLoggedUserHasPerms(List.of(Permissions.editInventory), false))
+      throw new RuntimeException("access denied");
+
     ProductInInvEntity p = productInvRepository.findByReferenceIdAndInventoryId(productRefId, invId).orElseThrow(
       () -> new RuntimeException("")
     );
@@ -231,6 +257,9 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public boolean delete(UUID id) {
+    if (!sessionHandler.checkLoggedUserHasPerms(null, true))
+      throw new RuntimeException("access denied");
+
     InventoryEntity inv = repository.findById(id).orElseThrow(
       () -> new RuntimeException("")
     );
