@@ -1,19 +1,23 @@
-La idea es que la app escale y las personas puedan crear sus cuentas, para eso no se usaría una base de datos embebida, sino que, en este caso se usará MySql alojado en la nube. Caso contrario h2
+## Funcionalidades de la app
+* La app sirve para gestionar inventarios con productos en cuentas de usuario
 
-# Definición base v0.1
-* App para gestionar inventarios con productos en cuentas de usuario
-* La app permite registrarse o iniciar sesión
-* Cada cuenta puede tener varios inventarios. Estos se pueden filtrar según labels de los mismos
-  * Un ejemplo de uso de la app sería: una cuenta representa una cadena de tiendas de ropa por ejemplo. Esta puede tener un inventario por cada sucursal que tenga. Entonces cada sucursal (inventario) tendrá su propia lista de productos. Por cada producto en lista tendrá además info que solo se relaciona a esa sucursal (inventario), como el stock, disponibilidad y labels de inventario (ej: abrigos, ropa deportiva, etc).
+* Permite registrarse e iniciar sesión
+
+* Cada cuenta puede tener varios inventarios
+  * Un ejemplo de uso de la app sería: una cuenta representa una cadena de tiendas de ropa por ejemplo. Esta puede tener un inventario por cada sucursal que tenga. Entonces cada sucursal (inventario) tendrá su propia lista de productos. 
+
+    Por cada producto en lista tendrá además info que solo se relaciona a esa sucursal (inventario), como el stock, disponibilidad y nombre de inventario (ej: abrigos, ropa deportiva, etc).
+
 * Estas cuentas pueden crear sub-usuarios con roles y permisos para sus inventarios. Ejemplo: admin, general, jefe de x categoría, etc.
   * Por defecto ya viene el "sub-usuario" de admin creado
-* Los productos tienen sus propias categorías y propiedades, al igual que los inventarios
+
+* Los productos tienen sus propias categorías y propiedades
 
 * El cliente se comunicará principalmente con el micro-servicio de inventarios y usuarios, salvo para cosas específicas al de productos (como edición)
 
 ## Microservicios
 ### Productos
-Api REST con su propia base de datos sql. Será REST por dos cuestiones principalmente: ***narrar***
+Api REST con su propia base de datos sql. Se encargará de solicitudes especificas a productos, como edición y eliminación
 
 Tendrá 2 entidades:
 * Productos
@@ -32,8 +36,6 @@ Tendrá un crud completo para los productos, y también para las categorías.
 
 ### Inventarios
 Api con GraphQL también con su propia base de datos sql. Será con graphQL porque es la que se comunica con el cliente, *salvo para cuestiones de autenticación o usuarios, o cosas específicas de los productos*. Por lo que permitiría devolver solo los datos solicitados y no realizar ni over-fetching ni under-fetching.
-
-**averiguar**, realizar una apiGateway para que exponga los endpoints de este micro servicio, *el de usuarios*, y solo algunos *del de productos*.
 
 Entidades y DTOs
 * Inventario
@@ -59,7 +61,7 @@ Entidades y DTOs
 Tendrá un crud solo para la entidad de inventario y la asignación de productos. Lo que refiere a la relación con cuenta y usuarios no será administrado en este micro servicio.
 
 ### Usuarios y cuentas
-API REST con implementación de seguridad para autenticación con permisos y roles. 
+API REST con implementación de seguridad para autenticación con permisos y roles usando sesiones de usuario
 
 Entidades
 * Cuenta
@@ -108,3 +110,7 @@ Entidades
 * ### Eliminación de inventario
   Cuando se elimina un inventario desde el **ms de inventarios**, se busca también aquellos productos que no están asociados a ningún otro de la misma cuenta. Posteriormente se llama al endpoint del **ms de productos** que se encarga de borrar varios elementos dadas ciertas ids. La búsqueda se hace a través de las referencias de id en el **ms de inventarios**
   
+## Notas para versiones futuras
+- Usar una apiGateway para exponer ciertos endpoints de cada micro-servicio según corresponda
+- Usar JWT para la autenticación, autorización y comunicación entre micro-servicios
+- Ver la posibilidad de usar base de datos no sql para micro-servicios de inventarios y productos

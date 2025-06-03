@@ -3,7 +3,7 @@ services:
     build: ./backend/products_mService
     container_name: api_products
     ports:
-      - 8081:8081
+      - "8081:8081"
     environment:
       - MYSQL_URL_PRODUCTS=jdbc:mysql://database:3306/products?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=GMT&characterEncoding=UTF-8 #${MYSQL_URL_PRODUCTS}
       - MYSQL_USERNAME=root #${MYSQL_USERNAME}
@@ -21,7 +21,7 @@ services:
     build: ./backend/users_mService
     container_name: api_users
     ports:
-      - 8082:8082
+      - "8082:8082"
     environment:
       - MYSQL_URL_USERS=jdbc:mysql://database:3306/users?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=GMT&characterEncoding=UTF-8 #${MYSQL_URL_USERS}
       - MYSQL_USERNAME=root #${MYSQL_USERNAME}
@@ -39,7 +39,7 @@ services:
     build: ./backend/inventory_mService
     container_name: api_inventories
     ports:
-      - 8080:8080
+      - "8080:8080"
     environment:
       - MYSQL_URL_INVENTORIES=jdbc:mysql://database:3306/inventories?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=GMT&characterEncoding=UTF-8 #${MYSQL_URL_INVENTORIES}
       - MYSQL_USERNAME=root #${MYSQL_USERNAME}
@@ -57,7 +57,7 @@ services:
     image: mysql:8.0.42
     container_name: database
     ports:
-      - 3307:3306
+      - "3307:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=root #${MYSQL_PASSWORD}
     env_file:
