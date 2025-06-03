@@ -1,19 +1,20 @@
 services:
   api_products:
     build: ./backend/products_mService
+    container_name: api_products
     ports:
       - 8081:8081
     environment:
-      - MYSQL_URL=jdbc:mysql://mysql_database:3306/products?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=GMT&characterEncoding=UTF-8 #${MYSQL_URL_PRODUCTS}
+      - MYSQL_URL_PRODUCTS=jdbc:mysql://database:3306/products?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=GMT&characterEncoding=UTF-8 #${MYSQL_URL_PRODUCTS}
       - MYSQL_USERNAME=root #${MYSQL_USERNAME}
       - MYSQL_PASSWORD=root #${MYSQL_PASSWORD}
     env_file:
       - .env
     volumes:
-      - .backend/products_mService:/backend/products
+      - ./backend/products_mService:/backend/products
     networks:
       - inventoryApp_network
-    depends-on:
+    depends_on:
       - mysql_database
 
   api_users:
@@ -22,41 +23,41 @@ services:
     ports:
       - 8082:8082
     environment:
-      - MYSQL_URL=jdbc:mysql://mysql_database:3306/users?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=GMT&characterEncoding=UTF-8 #${MYSQL_URL_USERS}
+      - MYSQL_URL_USERS=jdbc:mysql://database:3306/users?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=GMT&characterEncoding=UTF-8 #${MYSQL_URL_USERS}
       - MYSQL_USERNAME=root #${MYSQL_USERNAME}
       - MYSQL_PASSWORD=root #${MYSQL_PASSWORD}
     env_file:
       - .env
     volumes:
-      - .backend/users_mService:/backend/users
+      - ./backend/users_mService:/backend/users
     networks:
       - inventoryApp_network
-    depends-on:
+    depends_on:
       - mysql_database
 
   api_inventories:
     build: ./backend/inventory_mService
     container_name: api_inventories
     ports:
-      - 8082:8080
+      - 8080:8080
     environment:
-      - MYSQL_URL=jdbc:mysql://mysql_database:3306/inventories?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=GMT&characterEncoding=UTF-8 #${MYSQL_URL_INVENTORIES}
+      - MYSQL_URL_INVENTORIES=jdbc:mysql://database:3306/inventories?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=GMT&characterEncoding=UTF-8 #${MYSQL_URL_INVENTORIES}
       - MYSQL_USERNAME=root #${MYSQL_USERNAME}
       - MYSQL_PASSWORD=root #${MYSQL_PASSWORD}
     env_file:
       - .env
     volumes:
-      - .backend/inventory_mService:/backend/inventories
+      - ./backend/inventory_mService:/backend/inventories
     networks:
       - inventoryApp_network
-    depends-on:
+    depends_on:
       - mysql_database
 
   mysql_database:
     image: mysql:8.0.42
     container_name: database
     ports:
-      - 3306:3306
+      - 3307:3306
     environment:
       - MYSQL_ROOT_PASSWORD=root #${MYSQL_PASSWORD}
     env_file:

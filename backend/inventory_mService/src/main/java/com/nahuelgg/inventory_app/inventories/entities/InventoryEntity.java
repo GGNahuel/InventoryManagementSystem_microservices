@@ -34,6 +34,6 @@ public class InventoryEntity {
     inverseJoinColumns = @JoinColumn(referencedColumnName = "id") // id de la ref al usuario
   )
   private List<UserReferenceEntity> users;
-  @OneToMany(mappedBy = "inventory", cascade = CascadeType.REMOVE) @JoinColumn
+  @OneToMany(mappedBy = "inventory", cascade = CascadeType.REMOVE)
   private List<ProductInInvEntity> products;
 }
