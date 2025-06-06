@@ -56,7 +56,7 @@ public class InventoryService_Impl implements InventoryService {
       pInInvEntity -> pInInvEntity.getReferenceId().toString()
     ).toList();
 
-    String baseUrl = "http://api_products:8081/product/ids";
+    String baseUrl = "http://api-products:8081/product/ids";
     String completeUrl = UriComponentsBuilder.fromUriString(baseUrl)
       .queryParam("list", productsId.toArray())
     .toUriString();
@@ -95,7 +95,7 @@ public class InventoryService_Impl implements InventoryService {
   public List<InventoryDTO> searchProductsInInventories(
     String name, String brand, String model, List<String> categories, UUID accountId
   ) {
-    String baseUrl = "http://api_products:8081/product/search";
+    String baseUrl = "http://api-products:8081/product/search";
     String completeUrl = UriComponentsBuilder.fromUriString(baseUrl)
       .queryParam("name", name)
       .queryParam("brand", brand)
@@ -122,7 +122,7 @@ public class InventoryService_Impl implements InventoryService {
 
     InventoryEntity inv = repository.save(InventoryEntity.builder().name(name).build());
 
-    String baseUrl = "http://api_users:8082/account/add_inventory";
+    String baseUrl = "http://api-users:8082/account/add_inventory";
     String completeUrl = UriComponentsBuilder.fromUriString(baseUrl)
       .queryParam("accountId", accountId.toString())
       .queryParam("invId", inv.getId().toString())
@@ -190,7 +190,7 @@ public class InventoryService_Impl implements InventoryService {
     if (!sessionHandler.checkLoggedUserHasPerms(List.of(Permissions.addProducts), false))
       throw new RuntimeException("access denied");
 
-    String baseUrl = "http://api_products:8081/product/";
+    String baseUrl = "http://api-products:8081/product/";
     ProductFromProductsMSDTO productCreated = (ProductFromProductsMSDTO) restTemplate.postForObject(
       baseUrl, 
       mappers.mapProductInput(productInput), 
@@ -264,7 +264,7 @@ public class InventoryService_Impl implements InventoryService {
       () -> new RuntimeException("")
     );
     
-    String baseUrlToUsers = "http://api_users/account/remove_inventory";
+    String baseUrlToUsers = "http://api-users/account/remove_inventory";
     String completeUrlToUsers = UriComponentsBuilder.fromUriString(baseUrlToUsers)
       .queryParam("accountId", inv.getAccountId().toString()) // esto lo tendría que extraer del JWT
       .queryParam("invId", inv.getId().toString())
@@ -281,7 +281,7 @@ public class InventoryService_Impl implements InventoryService {
       pInInv -> pInInv.getReferenceId()
     ).toList();
     
-    String baseUrlToProducts = "http://api_products/delete_by_ids";
+    String baseUrlToProducts = "http://api-products/delete_by_ids";
     String completeUrlToProducts = UriComponentsBuilder.fromUriString(baseUrlToProducts)
       .queryParam("ids", refIdsToDelete.toArray())
     .toUriString();

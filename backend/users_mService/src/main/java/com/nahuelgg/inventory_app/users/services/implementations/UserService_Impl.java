@@ -101,7 +101,7 @@ public class UserService_Impl implements UserService {
         )
       }
     """);
-    WebClient.create("http://api_inventory/graphql")
+    WebClient.create("http://api-inventory/graphql")
       .post()
       .uri("/")
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -129,7 +129,7 @@ public class UserService_Impl implements UserService {
         )
       }
     """);
-    WebClient.create("http://api_inventory/graphql")
+    WebClient.create("http://api-inventory/graphql")
       .post()
       .uri("/")
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

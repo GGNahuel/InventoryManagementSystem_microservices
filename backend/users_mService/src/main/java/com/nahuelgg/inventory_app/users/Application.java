@@ -18,7 +18,7 @@ public class Application {
 	@Bean
   public WebClient webClientToInventoryMS() {
     return WebClient.builder()
-      .baseUrl("http://api_inventory/graphql")
+      .baseUrl("http://api-inventory/graphql")
       .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
 		.build();
   }

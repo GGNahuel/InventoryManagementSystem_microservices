@@ -25,7 +25,7 @@ public class SessionHandler {
   }
 
   public SessionDTO setSession() {
-    String url = "http://api_users:8082/account/session";
+    String url = "http://api-users:8082/account/session";
     ResponseEntity<HttpSession> responseEntity = restTemplate.getForEntity(url, HttpSession.class);
 
     if (responseEntity.getStatusCode() == HttpStatus.OK) {

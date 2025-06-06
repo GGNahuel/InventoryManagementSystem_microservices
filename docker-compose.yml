@@ -1,7 +1,7 @@
 services:
   api_products:
     build: ./backend/products_mService
-    container_name: api_products
+    container_name: "api-products"
     ports:
       - "8081:8081"
     environment:
@@ -19,7 +19,7 @@ services:
 
   api_users:
     build: ./backend/users_mService
-    container_name: api_users
+    container_name: "api-users"
     ports:
       - "8082:8082"
     environment:
@@ -37,7 +37,7 @@ services:
 
   api_inventories:
     build: ./backend/inventory_mService
-    container_name: api_inventories
+    container_name: "api-inventories"
     ports:
       - "8080:8080"
     environment:

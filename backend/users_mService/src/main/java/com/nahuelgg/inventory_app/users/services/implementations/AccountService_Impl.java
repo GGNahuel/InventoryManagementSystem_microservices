@@ -217,7 +217,7 @@ public class AccountService_Impl implements AccountService, UserDetailsService{
         .bodyToMono(Boolean.class)
       .block();
 
-      restTemplate.delete("http://api_products/product/delete_by_account?id=" + accountId.toString());
+      restTemplate.delete("http://api-products/product/delete_by_account?id=" + accountId.toString());
 
       repository.deleteById(accountId);
     }

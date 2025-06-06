@@ -313,7 +313,7 @@ public class Test_AccountService {
     /* averiguar cómo se testean las llamadas con webClient transformadas a comunicación sincróna
     when(repository.findById(acc.getId())).thenReturn(Optional.of(acc));
     when(restTemplate.exchange(
-      eq("http://api_products/product/delete_by_account?id=" + acc.getId()),
+      eq("http://api-products/product/delete_by_account?id=" + acc.getId()),
       eq(HttpMethod.DELETE),
       any(),
       eq(Void.class)
