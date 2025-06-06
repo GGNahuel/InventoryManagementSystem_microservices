@@ -99,7 +99,12 @@ public class AccountService_Impl implements AccountService, UserDetailsService{
       .users(List.of(adminUser))
     .build();
 
-    return entityMappers.mapAccount(repository.save(accountToCreate));
+    AccountEntity accountSaved = repository.save(accountToCreate);
+
+    adminUser.setAssociatedAccount(accountSaved);
+    userRepository.save(adminUser);
+
+    return entityMappers.mapAccount(accountSaved);
   }
 
   @Override @Transactional
