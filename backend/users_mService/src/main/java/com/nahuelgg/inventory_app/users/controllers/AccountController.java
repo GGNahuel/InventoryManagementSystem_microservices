@@ -35,6 +35,14 @@ public class AccountController {
     this.userService = userService;
   }
 
+  @GetMapping("")
+  public ResponseEntity<ResponseDTO> getAll() {
+    return new ResponseEntity<>(
+      new ResponseDTO(200, null, service.getAll()),
+      HttpStatus.OK
+    );
+  }
+
   @GetMapping("/session")
   public ResponseEntity<HttpSession> session(HttpSession session) {
     /* AccountSessionDTO accountLogged = (AccountSessionDTO) session.getAttribute(Constants.accountSessionAttr);

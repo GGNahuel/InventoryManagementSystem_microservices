@@ -69,6 +69,13 @@ public class AccountService_Impl implements AccountService, UserDetailsService{
   }
 
   @Override @Transactional(readOnly = true)
+  public List<AccountDTO> getAll() {
+    return repository.findAll().stream().map(
+      acc -> entityMappers.mapAccount(acc)
+    ).toList();
+  }
+
+  @Override @Transactional(readOnly = true)
   public AccountDTO getById(UUID id) {
     checkFieldsHasContent(new Field("id de cuenta", id));
 
