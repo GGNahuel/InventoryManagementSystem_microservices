@@ -74,11 +74,11 @@ public class _ExceptionsHandler {
   }
 
   // OTHER EXCEPTIONS
-  @ExceptionHandler(Exception.class)
+  /* @ExceptionHandler(Exception.class)
   public ResponseEntity<ResponseDTO> generalExceptions(Exception ex) {
     return new ResponseEntity<>(
       buildResponseDTO(500, ex, ErrorDTO.Type.critical, "Ocurrió un error inesperado, intente de nuevo más tarde"),
       HttpStatus.INTERNAL_SERVER_ERROR
     );
-  }
+  } */
 }

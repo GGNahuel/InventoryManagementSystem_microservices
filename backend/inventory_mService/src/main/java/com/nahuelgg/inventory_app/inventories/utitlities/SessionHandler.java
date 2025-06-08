@@ -26,15 +26,16 @@ public class SessionHandler {
 
   public SessionDTO setSession() {
     String url = "http://api-users:8082/account/session";
-    ResponseEntity<HttpSession> responseEntity = restTemplate.getForEntity(url, HttpSession.class);
+    ResponseEntity<SessionDTO> responseEntity = restTemplate.getForEntity(url, SessionDTO.class);
+    System.out.println("___________________________" + responseEntity.toString());
 
     if (responseEntity.getStatusCode() == HttpStatus.OK) {
-      HttpSession response = responseEntity.getBody();
+      SessionDTO response = responseEntity.getBody();
 
-      ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-      AccountSession loggedAccount = (AccountSession) response.getAttribute("loggedAccount");
-      UserSession loggedUser = (UserSession) response.getAttribute("loggedUser");
+      AccountSession loggedAccount = response.getAccount();
+      UserSession loggedUser = response.getUser();
       
+      ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
       HttpSession session = attr.getRequest().getSession();
       session.setAttribute("loggedAccount", loggedAccount);
       session.setAttribute("loggedUser", loggedUser);
@@ -49,6 +50,8 @@ public class SessionHandler {
   public boolean checkLoggedUserHasPerms(List<Permissions> perms, boolean checkIfUserIsAdmin) {
     SessionDTO session = setSession();
     if (session != null) {
+      if (session.getUser() == null) return false;
+
       if (checkIfUserIsAdmin) return session.getUser().getIsAdmin();
 
       if (session.getUser().getIsAdmin()) return true;

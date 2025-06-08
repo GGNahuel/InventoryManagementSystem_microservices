@@ -118,8 +118,9 @@ public class InventoryService_Impl implements InventoryService {
   @Override @Transactional
   public InventoryDTO create(String name, UUID accountId) {
     if (!sessionHandler.checkLoggedUserHasPerms(null, true))
-      throw new RuntimeException("");
+      throw new RuntimeException("No posee los permisos para realizar esta operación");
 
+    System.out.println("PASO EL SETEO DE SESSION");
     InventoryEntity inv = repository.save(InventoryEntity.builder().name(name).build());
 
     String baseUrl = "http://api-users:8082/account/add_inventory";

@@ -1,5 +1,7 @@
 package com.nahuelgg.inventory_app.users.controllers;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -15,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.nahuelgg.inventory_app.users.dtos.AccountSessionDTO;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
+import com.nahuelgg.inventory_app.users.dtos.UserSessionDTO;
 import com.nahuelgg.inventory_app.users.services.AccountService;
 import com.nahuelgg.inventory_app.users.services.UserService;
 import com.nahuelgg.inventory_app.users.utilities.Constants;
@@ -44,17 +48,22 @@ public class AccountController {
   }
 
   @GetMapping("/session")
-  public ResponseEntity<HttpSession> session(HttpSession session) {
-    /* AccountSessionDTO accountLogged = (AccountSessionDTO) session.getAttribute(Constants.accountSessionAttr);
+  public ResponseEntity<Map<String, Object>> session(HttpSession session) {
+    System.out.println(session.getAttribute(Constants.accountSessionAttr));
+    AccountSessionDTO accountLogged = (AccountSessionDTO) session.getAttribute(Constants.accountSessionAttr);
+    if (accountLogged == null) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
     UserSessionDTO userLogged = (UserSessionDTO) session.getAttribute(Constants.userSessionAttr);
+    System.out.println(accountLogged.toString());
+    System.out.println("_______________" + session.getAttribute(Constants.accountSessionAttr));
     Map<String, Object> data = new HashMap<>();
     data.put("account", accountLogged);
-    data.put("user", userLogged); */
+    data.put("user", userLogged);
 
     return new ResponseEntity<>(
-      session,
+      data,
       HttpStatus.OK
-      );
+    );
   }
 
   @GetMapping("/{id}")
