@@ -14,14 +14,20 @@ spring:
             - PATH=/account/delete
             - PATH=/logincheck
             - PATH=/user/**
+          filters:
+            - AuthenticationFilter
 
         - id: inventories-service
           uri: http://api-inventories:8083
           predicates:
             - PATH=/graphql
+          filters:
+            - AuthenticationFilter
 
         - id: products-service
           uri: http://api-products:8081
           predicates:
             - PATH=/product/edit
             - PATH=/category/**
+          filters:
+            - AuthenticationFilter
