@@ -22,7 +22,6 @@ import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserSessionDTO;
 import com.nahuelgg.inventory_app.users.services.AccountService;
-import com.nahuelgg.inventory_app.users.services.UserService;
 import com.nahuelgg.inventory_app.users.utilities.Constants;
 
 import jakarta.servlet.http.HttpSession;
@@ -31,12 +30,9 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping(Constants.endpointPrefix + "/account")
 public class AccountController {
   private final AccountService service;
-  @SuppressWarnings("unused")
-  private final UserService userService;
 
-  public AccountController(AccountService service, UserService userService) {
+  public AccountController(AccountService service) {
     this.service = service;
-    this.userService = userService;
   }
 
   @GetMapping("")
@@ -66,7 +62,7 @@ public class AccountController {
     );
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/id/{id}")
   public ResponseEntity<ResponseDTO> getById(@PathVariable String id) {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.getById(UUID.fromString(id))),
@@ -74,7 +70,7 @@ public class AccountController {
     );
   }
 
-  @PostMapping("")
+  @PostMapping("/register")
   public ResponseEntity<ResponseDTO> create(
     @RequestParam String username, @RequestParam String password, @RequestParam String passwordRepeated, 
     @RequestParam String adminPassword, @RequestParam String adminPasswordRepeated
@@ -85,7 +81,7 @@ public class AccountController {
     );
   }
 
-  @PostMapping("/add_user")
+  @PostMapping("/add-user")
   @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> addUser(
     @RequestBody UserDTO user, @RequestParam String accountId,
@@ -97,7 +93,7 @@ public class AccountController {
     );
   }
 
-  @PatchMapping("/add_inventory")
+  @PatchMapping("/add-inventory")
   @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> assignInventory(@RequestParam String accountId, @RequestParam String invId) {
     service.assignInventory(UUID.fromString(accountId), UUID.fromString(invId));
@@ -107,7 +103,7 @@ public class AccountController {
     );
   }
 
-  @PatchMapping("/remove_inventory")
+  @PatchMapping("/remove-inventory")
   @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> removeInventoryAssigned(@RequestParam String accountId, @RequestParam String invId) {
     service.removeInventoryAssigned(UUID.fromString(accountId), UUID.fromString(invId));
@@ -117,7 +113,7 @@ public class AccountController {
     );
   }
 
-  @DeleteMapping("")
+  @DeleteMapping("/delete")
   public ResponseEntity<ResponseDTO> delete(@RequestParam String id) {
     service.delete(UUID.fromString(id));
     return new ResponseEntity<>(

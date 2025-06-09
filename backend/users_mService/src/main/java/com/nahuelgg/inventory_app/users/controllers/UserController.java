@@ -40,7 +40,7 @@ public class UserController {
     );
   }
 
-  @PutMapping("")
+  @PutMapping("/edit")
   @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> edit(@RequestBody UserDTO user) {
     return new ResponseEntity<>(
@@ -49,7 +49,7 @@ public class UserController {
     );
   }
 
-  @PatchMapping("/add_perms")
+  @PatchMapping("/add-perms")
   @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> assignNewPerms(@RequestBody PermissionsForInventoryDTO perm, @RequestParam String id) throws JsonProcessingException {
     return new ResponseEntity<>(

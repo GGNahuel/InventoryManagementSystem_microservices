@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: inventory_app.gateway
+
+  cloud:
+    gateway:
+      routes:
+        - id: users-service
+          uri: http://api-users:8082
+          predicates:
+            - PATH=/account/id/**
+            - PATH=/account/register
+            - PATH=/account/add-user
+            - PATH=/account/delete
+            - PATH=/logincheck
+            - PATH=/user/**
+
+        - id: inventories-service
+          uri: http://api-inventories:8083
+          predicates:
+            - PATH=/graphql
+
+        - id: products-service
+          uri: http://api-products:8081
+          predicates:
+            - PATH=/product/edit
+            - PATH=/category/**

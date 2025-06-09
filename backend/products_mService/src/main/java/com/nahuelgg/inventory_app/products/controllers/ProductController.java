@@ -56,7 +56,7 @@ public class ProductController {
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
-  @PutMapping("")
+  @PutMapping("/edit")
   public ResponseEntity<ResponseDTO> update(@RequestBody ProductDTO product) {
     ResponseDTO response = new ResponseDTO(200, null, service.update(product));
 
@@ -71,7 +71,7 @@ public class ProductController {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @DeleteMapping("/delete_by_account")
+  @DeleteMapping("/delete-by-account")
   public ResponseEntity<ResponseDTO> deleteByAccountId(@RequestParam String id) {
     service.deleteByAccountId(UUID.fromString(id));
 
@@ -81,7 +81,7 @@ public class ProductController {
     );
   }
 
-  @DeleteMapping("/delete_by_ids")
+  @DeleteMapping("/delete-by-ids")
   public ResponseEntity<ResponseDTO> deleteByIds(@RequestParam List<String> ids) {
     service.deleteByIds(ids.stream().map(id -> UUID.fromString(id)).toList());
 

@@ -39,7 +39,7 @@ services:
     build: ./backend/inventory_mService
     container_name: "api-inventories"
     ports:
-      - "8080:8080"
+      - "8083:8083"
     environment:
       - MYSQL_URL_INVENTORIES=jdbc:mysql://database:3306/inventories?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=GMT&characterEncoding=UTF-8 #${MYSQL_URL_INVENTORIES}
       - MYSQL_USERNAME=root #${MYSQL_USERNAME}
