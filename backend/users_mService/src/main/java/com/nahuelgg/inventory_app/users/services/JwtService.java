@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -87,9 +86,9 @@ public class JwtService {
     .compact();
   }
 
-  public boolean isTokenValid(String token, UserDetails userDetails) {
+  public boolean isTokenValid(String token, String accountUsername) {
     final String username = getClaim(token, claims -> claims.getSubject());
-    return (username.equals(userDetails.getUsername()));
+    return (username.equals(accountUsername));
   }
 
   public boolean isTokenExpired(String token) {
