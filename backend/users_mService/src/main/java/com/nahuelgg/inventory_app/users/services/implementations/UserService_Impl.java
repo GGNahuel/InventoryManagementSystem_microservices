@@ -1,35 +1,30 @@
 package com.nahuelgg.inventory_app.users.services.implementations;
 
-import static com.nahuelgg.inventory_app.users.utilities.Validations.*;
+import static com.nahuelgg.inventory_app.users.utilities.Validations.checkFieldsHasContent;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.http.MediaType;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
-import com.nahuelgg.inventory_app.users.dtos.UserSessionDTO;
 import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
 import com.nahuelgg.inventory_app.users.exceptions.ResourceNotFoundException;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.UserService;
-import com.nahuelgg.inventory_app.users.utilities.Constants;
 import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
-
-import jakarta.servlet.http.HttpSession;
+import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
 
 @Service
 public class UserService_Impl implements UserService {
@@ -143,29 +138,30 @@ public class UserService_Impl implements UserService {
 
   @Override
   public boolean checkUserIsAdmin() {
-    ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+    /* ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
     HttpSession session = attr.getRequest().getSession();
     UserSessionDTO userLogged = (UserSessionDTO) session.getAttribute(Constants.userSessionAttr);
-    return userLogged != null && userLogged.getIsAdmin();
+    return userLogged != null && userLogged.getIsAdmin(); */
+    return true;
   }
 
   @Override
   public void loginAsUser(UUID id, String password) {
     checkFieldsHasContent(new Field("id", id), new Field("contraseña", password));
 
-    UserEntity user = repository.findById(id).orElseThrow(
+    /* UserEntity user = repository.findById(id).orElseThrow(
       () -> new ResourceNotFoundException("usuario", "id", id.toString())
-    );
+    ); */
 
-    ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+/*     ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
     HttpSession session = attr.getRequest().getSession();
-    session.setAttribute(Constants.userSessionAttr, entityMappers.mapUser_session(user));
+    session.setAttribute(Constants.userSessionAttr, entityMappers.mapUser_session(user)); */
   }
 
   @Override
   public void logoutUser() {
-    ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+    /* ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
     HttpSession session = attr.getRequest().getSession();
-    session.setAttribute(Constants.userSessionAttr, null);
+    session.setAttribute(Constants.userSessionAttr, null); */
   }
 }

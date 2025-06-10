@@ -1,20 +1,16 @@
 package com.nahuelgg.inventory_app.users.services.implementations;
 
+import static com.nahuelgg.inventory_app.users.utilities.Validations.checkFieldsHasContent;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
@@ -31,17 +27,15 @@ import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.AccountService;
-import com.nahuelgg.inventory_app.users.utilities.Constants;
 import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
 
-import static com.nahuelgg.inventory_app.users.utilities.Validations.*;
-
-import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 @Service
-public class AccountService_Impl implements AccountService, UserDetailsService{
+@RequiredArgsConstructor
+public class AccountService_Impl implements AccountService {
   private final AccountRepository repository;
   private final UserRepository userRepository;
   private final InventoryRefRepository inventoryRefRepository;
@@ -51,22 +45,6 @@ public class AccountService_Impl implements AccountService, UserDetailsService{
   private final RestTemplate restTemplate;
   private final BCryptPasswordEncoder encoder;
   private final WebClient webClient;
-
-  public AccountService_Impl(
-    AccountRepository repository, UserRepository userRepository, 
-    InventoryRefRepository inventoryRefRepository, PermissionsForInventoryRepository permsRepository,
-    DTOMappers dtoMappers, RestTemplate restTemplate, BCryptPasswordEncoder encoder,
-    WebClient webClient
-  ) {
-    this.repository = repository;
-    this.userRepository = userRepository;
-    this.inventoryRefRepository = inventoryRefRepository;
-    this.permsRepository = permsRepository;
-    this.dtoMappers = dtoMappers;
-    this.restTemplate = restTemplate;
-    this.webClient = webClient;
-    this.encoder = encoder;
-  }
 
   @Override @Transactional(readOnly = true)
   public List<AccountDTO> getAll() {
@@ -221,21 +199,5 @@ public class AccountService_Impl implements AccountService, UserDetailsService{
 
       repository.deleteById(accountId);
     }
-  }
-
-  @Override @Transactional
-  public UserDetails loadUserByUsername(String username) {
-    checkFieldsHasContent(new Field("nombre usuario", username));
-
-    AccountEntity account = repository.findByUsername(username).orElseThrow(
-      () -> new ResourceNotFoundException("cuenta", "nombre de usuario", username)
-    );
-
-    ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-    HttpSession session = attr.getRequest().getSession();
-    session.setAttribute(Constants.accountSessionAttr, entityMappers.mapAccount_session(account));
-    System.out.println(session.getAttribute(Constants.accountSessionAttr).toString());
-
-    return new User(account.getUsername(), account.getPassword(), new ArrayList<GrantedAuthority>());
   }
 }
