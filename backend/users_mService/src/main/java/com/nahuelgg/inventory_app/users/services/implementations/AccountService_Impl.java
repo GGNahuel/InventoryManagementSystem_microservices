@@ -112,6 +112,9 @@ public class AccountService_Impl implements AccountService {
     if (!passwordForNewUser.equals(passwordRepeated))
       throw new InvalidValueException("Las contraseñas para el nuevo usuario no coinciden");
 
+    if (userRepository.findByNameAndAssociatedAccountId(user.getName(), accountId).isPresent())
+      throw new InvalidValueException("Ya existe un usuario con ese nombre asociado a esta cuenta");
+
     AccountEntity parentAccount = repository.findById(accountId).orElseThrow(
       () -> new ResourceNotFoundException("cuenta", "id", accountId.toString())
     );

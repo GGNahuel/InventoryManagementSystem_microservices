@@ -18,6 +18,7 @@ import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
+import com.nahuelgg.inventory_app.users.exceptions.InvalidValueException;
 import com.nahuelgg.inventory_app.users.exceptions.ResourceNotFoundException;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
@@ -63,9 +64,11 @@ public class UserService_Impl implements UserService {
       () -> new ResourceNotFoundException("usuario", "id", updatedUser.getId())
     );
 
+    if (repository.findByNameAndAssociatedAccountId(updatedUser.getName(), userInDB.getAssociatedAccount().getId()).isPresent())
+      throw new InvalidValueException("Ya existe un usuario con ese nombre asociado a esta cuenta");
+
     UserEntity newUser = dtoMappers.mapUser(updatedUser, userInDB.getAssociatedAccount());
-    // la idea es que solo se editen los permisos con sus respectivos métodos
-    newUser.setInventoryPerms(userInDB.getInventoryPerms());
+    newUser.setInventoryPerms(userInDB.getInventoryPerms()); // la idea es que solo se editen los permisos con sus respectivos métodos
 
     return entityMappers.mapUser(repository.save(newUser));
   }
