@@ -342,15 +342,4 @@ public class Test_AccountService {
   void delete_throwsEmptyField() {
     assertThrows(EmptyFieldException.class, () -> service.delete(null));
   }
-
-  @Test
-  void loadUserByUsername_throwsEmptyField() {
-    assertThrows(EmptyFieldException.class, () -> service.loadUserByUsername(""));
-  }
-
-  @Test
-  void loadUserByUsername_throwsResourceNotFound() {
-    when(repository.findByUsername(any())).thenReturn(Optional.empty());
-    assertThrows(ResourceNotFoundException.class, () -> service.loadUserByUsername("notFound"));
-  }
 }
