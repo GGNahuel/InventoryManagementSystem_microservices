@@ -10,7 +10,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import com.nahuelgg.inventory_app.users.entities.AccountEntity;
 import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
+import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,9 +23,13 @@ public class AuthenticationConfig {
 
   @Bean
   public UserDetailsService userDetailsService() {
-    return username -> accountRepository.findByUsername(username).orElseThrow(
-      () -> new UsernameNotFoundException("User not found")
-    );
+    return username -> {
+      AccountEntity accountToAuthenticate = accountRepository.findByUsername(username).orElseThrow(
+        () -> new UsernameNotFoundException("User not found")
+      );
+
+      return new ContextAuthenticationPrincipal(accountToAuthenticate.getUsername(), accountToAuthenticate.getPassword());
+    };
   }
 
   @Bean
