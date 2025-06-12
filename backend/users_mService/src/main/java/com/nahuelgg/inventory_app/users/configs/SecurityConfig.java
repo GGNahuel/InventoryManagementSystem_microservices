@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
   private final AuthenticationProvider authenticationProvider;
+  private final JwtRequestFilterConfig jwtRequestFilterConfig;
 
   @Bean
   SecurityFilterChain setFilterChainProps(HttpSecurity httpSecurity) throws Exception {
@@ -30,15 +31,10 @@ public class SecurityConfig {
         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
       )
       .authenticationProvider(authenticationProvider)
-      .addFilterBefore(jwtRequestFilterConfig(), UsernamePasswordAuthenticationFilter.class)
+      .addFilterBefore(jwtRequestFilterConfig, UsernamePasswordAuthenticationFilter.class)
       .csrf(csrf -> csrf.disable());
 
     return httpSecurity.build();
-  }
-
-  @Bean
-  JwtRequestFilterConfig jwtRequestFilterConfig() {
-    return new JwtRequestFilterConfig();
   }
 }
 
