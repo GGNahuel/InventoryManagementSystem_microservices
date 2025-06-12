@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nahuelgg.inventory_app.users.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.users.dtos.LoginDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
+import com.nahuelgg.inventory_app.users.entities.AccountEntity;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
 import com.nahuelgg.inventory_app.users.exceptions.ResourceNotFoundException;
 import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
@@ -55,11 +56,11 @@ public class AuthenticationService {
       )
     );
 
-    accountRepository.findByUsername(username).orElseThrow(
+    AccountEntity accountToLog = accountRepository.findByUsername(username).orElseThrow(
       () -> new ResourceNotFoundException("cuenta", "nombre de usuario", username)
     );
 
-    String token = jwtService.generateToken(JwtClaimsDTO.builder().accountUsername(username).build());
+    String token = jwtService.generateToken(JwtClaimsDTO.builder().accountId(accountToLog.getId().toString()).build(), username);
 
     return token;
   }
@@ -101,11 +102,11 @@ public class AuthenticationService {
     SecurityContextHolder.getContext().setAuthentication(newAuthInContext);
 
     return jwtService.generateToken(JwtClaimsDTO.builder()
-      .accountUsername(currentAccountLogged.getUsername())
+      .accountId(userToAuthenticate.getAssociatedAccount().getId().toString())
       .userName(username)
       .userRole(userToAuthenticate.getRole())
       .isAdmin(userToAuthenticate.getIsAdmin())
       .userPerms(permsDto)
-    .build());
+    .build(), currentAccountLogged.getUsername());
   }
 }

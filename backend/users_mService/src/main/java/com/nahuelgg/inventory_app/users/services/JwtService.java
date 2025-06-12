@@ -66,7 +66,7 @@ public class JwtService {
     ).toList();
 
     return JwtClaimsDTO.builder()
-      .accountUsername(claims.getSubject())
+      .accountId(claims.get("accountId", String.class))
       .userName(claims.get("userName", String.class))
       .userRole(claims.get("userRole", String.class))
       .isAdmin(claims.get("isAdmin", boolean.class))
@@ -79,8 +79,9 @@ public class JwtService {
     return claimGetter.apply(claims);
   }
 
-  public String generateToken(JwtClaimsDTO info) {
-    checkFieldsHasContent(new Field("nombre de cuenta", info.getAccountUsername()));
+  public String generateToken(JwtClaimsDTO info, String username) {
+    checkFieldsHasContent(new Field("nombre de cuenta", username), new Field("info de sesión", info));
+    checkFieldsHasContent(new Field("id de cuenta", info.getAccountId()));
 
     String userPerms = null;
     try {
@@ -97,7 +98,7 @@ public class JwtService {
 
     return Jwts.builder()
       .setClaims(extraClaims)
-      .setSubject(info.getAccountUsername())
+      .setSubject(username)
       .setIssuedAt(new Date(System.currentTimeMillis()))
       .setExpiration(new Date(System.currentTimeMillis() + TOKEN_EXPIRATION))
       .signWith(getSignInKey(), SignatureAlgorithm.HS256)
@@ -129,6 +130,6 @@ public class JwtService {
     if (!canTokenBeRenewed(token)) 
       throw new IllegalArgumentException("The JWT couldn't be renewed");
 
-    return generateToken(info);
+    return generateToken(info, getClaim(token, claim -> claim.getSubject()));
   }
 }
