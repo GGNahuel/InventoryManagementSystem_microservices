@@ -12,7 +12,5 @@ public interface UserService {
   UserDTO assignNewPerms(PermissionsForInventoryDTO permission, UUID userId) throws JsonProcessingException;
   void delete(UUID id);
   boolean checkUserIsAdmin();
-  void loginAsUser(UUID id, String password);
-  void logoutUser();
 }
-// ver cómo hacer que los users solo puedan editar productos con ciertas categorías?
+// TODO: ver cómo hacer que los users solo puedan editar productos con ciertas categorías?

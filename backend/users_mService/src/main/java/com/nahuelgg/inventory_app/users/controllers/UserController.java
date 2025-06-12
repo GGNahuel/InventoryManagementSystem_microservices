@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,25 +63,6 @@ public class UserController {
     service.delete(UUID.fromString(id));
     return new ResponseEntity<>(
       new ResponseDTO(200, null, null),
-      HttpStatus.OK
-    );
-  }
-
-  @PostMapping("/login")
-  @PreAuthorize("isAuthenticated()")
-  public ResponseEntity<ResponseDTO> login(@RequestParam String id, @RequestParam String pass) {
-    service.loginAsUser(UUID.fromString(id), pass);
-    return new ResponseEntity<>(
-      new ResponseDTO(200, null, "Log-in exitoso"),
-      HttpStatus.OK
-    );
-  }
-
-  @PostMapping("/logout")
-  public ResponseEntity<ResponseDTO> logout() {
-    service.logoutUser();
-    return new ResponseEntity<>(
-      new ResponseDTO(200, null, "Log-out exitoso"),
       HttpStatus.OK
     );
   }

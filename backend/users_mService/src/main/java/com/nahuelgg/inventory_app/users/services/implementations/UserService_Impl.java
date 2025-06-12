@@ -147,24 +147,4 @@ public class UserService_Impl implements UserService {
     return userLogged != null && userLogged.getIsAdmin(); */
     return true;
   }
-
-  @Override
-  public void loginAsUser(UUID id, String password) {
-    checkFieldsHasContent(new Field("id", id), new Field("contraseña", password));
-
-    /* UserEntity user = repository.findById(id).orElseThrow(
-      () -> new ResourceNotFoundException("usuario", "id", id.toString())
-    ); */
-
-/*     ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-    HttpSession session = attr.getRequest().getSession();
-    session.setAttribute(Constants.userSessionAttr, entityMappers.mapUser_session(user)); */
-  }
-
-  @Override
-  public void logoutUser() {
-    /* ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-    HttpSession session = attr.getRequest().getSession();
-    session.setAttribute(Constants.userSessionAttr, null); */
-  }
 }

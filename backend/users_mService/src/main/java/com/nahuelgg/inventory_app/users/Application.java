@@ -27,4 +27,6 @@ public class Application {
   public RestTemplate restTemplate() {
     return new RestTemplate();
   }
+
+  // TODO: crear componente que tenga los metodos de validación para usar en los endpoints de los controladores (como se hacía con el checkUserIsAdmin)
 }
