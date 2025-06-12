@@ -5,6 +5,7 @@ import static com.nahuelgg.inventory_app.users.utilities.Validations.checkFields
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.users.dtos.JwtClaimsDTO;
+import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
 
 import io.jsonwebtoken.Claims;
@@ -54,6 +56,22 @@ public class JwtService {
     } catch (UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
       throw new RuntimeException("Invalid JWT token or mal formed", e);
     }
+  }
+
+  public JwtClaimsDTO mapTokenClaims(String token) {
+    Claims claims = getAllClaims(token);
+    List<Map<String, Object>> rawPermList = claims.get("userPerms", List.class);
+    List<PermissionsForInventoryDTO> convertedPerms = rawPermList.stream().map(
+      rawPerm -> objectMapper.convertValue(rawPerm, PermissionsForInventoryDTO.class)
+    ).toList();
+
+    return JwtClaimsDTO.builder()
+      .accountUsername(claims.getSubject())
+      .userName(claims.get("userName", String.class))
+      .userRole(claims.get("userRole", String.class))
+      .isAdmin(claims.get("isAdmin", boolean.class))
+      .userPerms(convertedPerms)
+    .build();
   }
 
   public <T> T getClaim(String token, Function<Claims, T> claimGetter) {

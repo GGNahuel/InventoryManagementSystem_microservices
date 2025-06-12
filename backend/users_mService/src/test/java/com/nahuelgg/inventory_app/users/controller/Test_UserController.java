@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nahuelgg.inventory_app.users.SecurityConfig;
+import com.nahuelgg.inventory_app.users.configs.SecurityConfig;
 import com.nahuelgg.inventory_app.users.controllers.UserController;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
