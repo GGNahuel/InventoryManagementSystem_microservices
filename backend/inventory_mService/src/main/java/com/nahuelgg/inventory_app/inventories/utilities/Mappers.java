@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.inventories.utitlities;
+package com.nahuelgg.inventory_app.inventories.utilities;
 
 import java.util.ArrayList;
 import java.util.List;
