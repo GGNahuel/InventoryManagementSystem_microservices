@@ -138,13 +138,4 @@ public class UserService_Impl implements UserService {
 
     repository.deleteById(id);
   }
-
-  @Override
-  public boolean checkUserIsAdmin() {
-    /* ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-    HttpSession session = attr.getRequest().getSession();
-    UserSessionDTO userLogged = (UserSessionDTO) session.getAttribute(Constants.userSessionAttr);
-    return userLogged != null && userLogged.getIsAdmin(); */
-    return true;
-  }
 }
