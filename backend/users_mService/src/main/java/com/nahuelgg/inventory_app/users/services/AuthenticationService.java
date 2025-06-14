@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nahuelgg.inventory_app.users.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.users.dtos.LoginDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
+import com.nahuelgg.inventory_app.users.dtos.TokenDTO;
 import com.nahuelgg.inventory_app.users.entities.AccountEntity;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
 import com.nahuelgg.inventory_app.users.exceptions.ResourceNotFoundException;
@@ -39,8 +40,8 @@ public class AuthenticationService {
   private final UserRepository userRepository;
   private final EntityMappers entityMappers = new EntityMappers();
 
-  @Transactional
-  public String login(LoginDTO info) {
+  @Transactional(readOnly = true)
+  public TokenDTO login(LoginDTO info) {
     String username = info.getUsername();
 
     checkFieldsHasContent(new Field("tipo de login", info.isAccountLogin()));
@@ -62,11 +63,11 @@ public class AuthenticationService {
 
     String token = jwtService.generateToken(JwtClaimsDTO.builder().accountId(accountToLog.getId().toString()).build(), username);
 
-    return token;
+    return new TokenDTO(token);
   }
 
-  @Transactional
-  public String loginAsUser(LoginDTO info) {
+  @Transactional(readOnly = true)
+  public TokenDTO loginAsUser(LoginDTO info) {
     String username = info.getUsername();
     
     checkFieldsHasContent(new Field("tipo de login", info.isAccountLogin()));
@@ -101,12 +102,33 @@ public class AuthenticationService {
     Authentication newAuthInContext = new UsernamePasswordAuthenticationToken(loggedAccountAndUser, null);
     SecurityContextHolder.getContext().setAuthentication(newAuthInContext);
 
-    return jwtService.generateToken(JwtClaimsDTO.builder()
+    return new TokenDTO(jwtService.generateToken(JwtClaimsDTO.builder()
       .accountId(userToAuthenticate.getAssociatedAccount().getId().toString())
       .userName(username)
       .userRole(userToAuthenticate.getRole())
       .isAdmin(userToAuthenticate.getIsAdmin())
       .userPerms(permsDto)
-    .build(), currentAccountLogged.getUsername());
+    .build(), currentAccountLogged.getUsername()));
+  }
+
+  public void logout() {
+    SecurityContextHolder.clearContext();
+  }
+
+  public TokenDTO logoutAsUser() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !(auth.getPrincipal() instanceof ContextAuthenticationPrincipal)) {
+      throw new RuntimeException("No hay usuario en sesión para cerrarla");
+    }
+
+    ContextAuthenticationPrincipal currentAuth = (ContextAuthenticationPrincipal) auth.getPrincipal();
+    String accountUsername = currentAuth.getUsername();
+    SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(accountUsername, currentAuth.getPassword()));
+
+    AccountEntity accountLogged = accountRepository.findByUsername(accountUsername).orElseThrow(
+      () -> new ResourceNotFoundException("cuenta", "username", accountUsername)
+    );
+
+    return new TokenDTO(jwtService.generateToken(JwtClaimsDTO.builder().accountId(accountLogged.getId().toString()).build(), accountUsername));
   }
 }
