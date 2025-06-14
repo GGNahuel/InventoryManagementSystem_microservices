@@ -24,7 +24,7 @@ public class SecurityConfig {
   SecurityFilterChain setFilterChainProps(HttpSecurity httpSecurity) throws Exception {
     httpSecurity
       .authorizeHttpRequests(request -> request
-        .requestMatchers("/account/register", "/authenticate/account").permitAll()
+        .requestMatchers("/account/register", "/authenticate/login/account").permitAll()
         .anyRequest().authenticated()
       )
       .sessionManagement(session ->
