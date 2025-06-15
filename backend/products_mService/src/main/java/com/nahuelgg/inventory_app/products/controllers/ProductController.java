@@ -67,7 +67,7 @@ public class ProductController {
   }
   
   @DeleteMapping("")
-  @PreAuthorize("@authorizationService.checkUserHasPerms('editInventories', #invId)")
+  @PreAuthorize("@authorizationService.checkUserHasPerms('editInventory', #invId)")
   public ResponseEntity<ResponseDTO> delete(@RequestParam String id, @RequestParam String invId) {
     service.delete(UUID.fromString(id));
     ResponseDTO response = new ResponseDTO(200, null, "Producto eliminado con éxito");
