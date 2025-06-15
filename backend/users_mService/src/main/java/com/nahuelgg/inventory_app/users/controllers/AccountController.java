@@ -20,14 +20,13 @@ import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.services.AccountService;
 import com.nahuelgg.inventory_app.users.utilities.Constants;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping(Constants.endpointPrefix + "/account")
+@RequiredArgsConstructor
 public class AccountController {
   private final AccountService service;
-
-  public AccountController(AccountService service) {
-    this.service = service;
-  }
 
   @GetMapping("")
   public ResponseEntity<ResponseDTO> getAll() {
@@ -57,7 +56,7 @@ public class AccountController {
   }
 
   @PostMapping("/add-user")
-  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> addUser(
     @RequestBody UserDTO user, @RequestParam String accountId,
     @RequestParam String password, @RequestParam String passwordRepeated
@@ -69,7 +68,7 @@ public class AccountController {
   }
 
   @PatchMapping("/add-inventory")
-  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> assignInventory(@RequestParam String accountId, @RequestParam String invId) {
     service.assignInventory(UUID.fromString(accountId), UUID.fromString(invId));
     return new ResponseEntity<>(
@@ -79,7 +78,7 @@ public class AccountController {
   }
 
   @PatchMapping("/remove-inventory")
-  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> removeInventoryAssigned(@RequestParam String accountId, @RequestParam String invId) {
     service.removeInventoryAssigned(UUID.fromString(accountId), UUID.fromString(invId));
     return new ResponseEntity<>(
@@ -89,6 +88,7 @@ public class AccountController {
   }
 
   @DeleteMapping("/delete")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> delete(@RequestParam String id) {
     service.delete(UUID.fromString(id));
     return new ResponseEntity<>(

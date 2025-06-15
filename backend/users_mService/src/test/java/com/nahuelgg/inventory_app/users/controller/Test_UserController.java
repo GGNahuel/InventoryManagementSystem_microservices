@@ -27,6 +27,7 @@ import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
+import com.nahuelgg.inventory_app.users.services.AuthorizationService;
 import com.nahuelgg.inventory_app.users.services.UserService;
 import com.nahuelgg.inventory_app.users.utilities.Constants;
 
@@ -37,12 +38,13 @@ public class Test_UserController {
   @Autowired MockMvc mockMvc;
   @Autowired ObjectMapper objectMapper;
 
-  @MockitoBean(name = "userService_Impl") UserService service;
+  @MockitoBean UserService service;
+  @MockitoBean(name = "authorizationService") AuthorizationService authorizationService;
 
   UserDTO user = UserDTO.builder().id(UUID.randomUUID().toString()).build();
 
   private MockHttpSession emulateLoginUser(boolean isAdmin) {
-    when(service.checkUserIsAdmin()).thenReturn(isAdmin);
+    when(authorizationService.checkUserIsAdmin()).thenReturn(isAdmin);
 
     MockHttpSession session = new MockHttpSession();
     UserEntity userEntity = UserEntity.builder().isAdmin(isAdmin).build();

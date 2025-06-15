@@ -29,7 +29,7 @@ import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
 import com.nahuelgg.inventory_app.users.services.AccountService;
-import com.nahuelgg.inventory_app.users.services.UserService;
+import com.nahuelgg.inventory_app.users.services.AuthorizationService;
 import com.nahuelgg.inventory_app.users.utilities.Constants;
 
 @WebMvcTest(AccountController.class)
@@ -40,7 +40,7 @@ public class Test_AccountController {
   @Autowired ObjectMapper objectMapper;
 
   @MockitoBean AccountService service;
-  @MockitoBean(name = "userService_Impl") UserService userService;
+  @MockitoBean(name = "authorizationService") AuthorizationService authorizationService;
 
   AccountDTO acc = AccountDTO.builder()
     .id(UUID.randomUUID().toString())
@@ -49,7 +49,7 @@ public class Test_AccountController {
   .build();
 
   private MockHttpSession emulateLoginUser(boolean isAdmin) {
-    when(userService.checkUserIsAdmin()).thenReturn(isAdmin);
+    when(authorizationService.checkUserIsAdmin()).thenReturn(isAdmin);
 
     MockHttpSession session = new MockHttpSession();
     UserEntity userEntity = UserEntity.builder().isAdmin(isAdmin).build();

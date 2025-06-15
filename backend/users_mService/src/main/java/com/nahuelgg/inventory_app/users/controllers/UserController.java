@@ -22,14 +22,13 @@ import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.services.UserService;
 import com.nahuelgg.inventory_app.users.utilities.Constants;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping(Constants.endpointPrefix + "/user")
+@RequiredArgsConstructor
 public class UserController {
   private final UserService service;
-
-  public UserController(UserService service) {
-    this.service = service;
-  }
 
   @GetMapping("/{id}")
   public ResponseEntity<ResponseDTO> getById(@PathVariable String id) {
@@ -40,7 +39,7 @@ public class UserController {
   }
 
   @PutMapping("/edit")
-  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> edit(@RequestBody UserDTO user) {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.edit(user)),
@@ -49,7 +48,7 @@ public class UserController {
   }
 
   @PatchMapping("/add-perms")
-  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> assignNewPerms(@RequestBody PermissionsForInventoryDTO perm, @RequestParam String id) throws JsonProcessingException {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.assignNewPerms(perm, UUID.fromString(id))),
@@ -58,7 +57,7 @@ public class UserController {
   }
 
   @DeleteMapping("/{id}")
-  @PreAuthorize("@userService_Impl.checkUserIsAdmin()")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> delete(@PathVariable String id) {
     service.delete(UUID.fromString(id));
     return new ResponseEntity<>(
