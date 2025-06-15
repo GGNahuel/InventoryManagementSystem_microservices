@@ -14,6 +14,7 @@ import com.nahuelgg.inventory_app.inventories.dtos.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductInputDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductToCopyDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO;
+import com.nahuelgg.inventory_app.inventories.enums.Permissions;
 import com.nahuelgg.inventory_app.inventories.services.AuthorizationService;
 import com.nahuelgg.inventory_app.inventories.services.InventoryService;
 
@@ -103,7 +104,7 @@ public class InventoryController {
   // Product mutations
   @MutationMapping
   public ProductInInvDTO addProduct(@Argument ProductInputDTO product, @Argument String invId) {
-    if (!authorizationService.checkUserHasPerm("addProducts", invId))
+    if (!authorizationService.checkUserHasPerm(Permissions.addProducts, invId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
   
     return service.addProduct(product, UUID.fromString(invId));
@@ -111,7 +112,7 @@ public class InventoryController {
 
   @MutationMapping
   public boolean copyProducts(@Argument List<ProductToCopyDTO> products, @Argument String idTo) {
-    if (!authorizationService.checkUserHasPerm("addProducts", idTo))
+    if (!authorizationService.checkUserHasPerm(Permissions.addProducts, idTo))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
   
     return service.copyProducts(products, UUID.fromString(idTo));
@@ -119,7 +120,7 @@ public class InventoryController {
 
   @MutationMapping
   public boolean editStockOfProduct(@Argument int relativeNewStock, @Argument String productRefId, @Argument String invId) {
-    if (!authorizationService.checkUserHasPerm("editInventory", invId))
+    if (!authorizationService.checkUserHasPerm(Permissions.editInventory, invId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
 
     return service.editStockOfProduct(relativeNewStock, UUID.fromString(productRefId), UUID.fromString(invId));

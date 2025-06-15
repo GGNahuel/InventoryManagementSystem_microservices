@@ -1,5 +1,7 @@
 package com.nahuelgg.inventory_app.products.services;
 
+import java.util.List;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,9 @@ public class AuthorizationService {
   }
 
   public boolean checkUserHasPerm(String perm, String invId) {
+    List<String> perms = List.of(Permissions.values()).stream().map(p -> p.toString()).toList();
+    if (!perms.contains(perm)) throw new RuntimeException("Se ha ingresado un permiso inexistente al método: " + perm);
+
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !(authentication.getPrincipal() instanceof ContextAuthenticationPrincipal)) return false;
     

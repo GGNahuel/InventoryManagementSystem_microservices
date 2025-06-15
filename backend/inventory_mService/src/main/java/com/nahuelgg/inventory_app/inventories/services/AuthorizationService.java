@@ -19,7 +19,7 @@ public class AuthorizationService {
     return auth.getUser().isAdmin();
   }
 
-  public boolean checkUserHasPerm(String perm, String invId) {
+  public boolean checkUserHasPerm(Permissions perm, String invId) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !(authentication.getPrincipal() instanceof ContextAuthenticationPrincipal)) return false;
     
@@ -27,7 +27,7 @@ public class AuthorizationService {
     if (auth.getUser() == null) return false;
 
     return auth.getUser().getPerms().stream().anyMatch(
-      permDto -> permDto.getInventoryReferenceId() == invId && permDto.getPerms().contains(Permissions.valueOf(perm))
+      permDto -> permDto.getInventoryReferenceId() == invId && permDto.getPerms().contains(perm)
     );
   }
 }
