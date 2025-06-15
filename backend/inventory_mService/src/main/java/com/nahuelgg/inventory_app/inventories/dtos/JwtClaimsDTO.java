@@ -18,5 +18,3 @@ public class JwtClaimsDTO {
   private boolean isAdmin;
   private List<InventoryPermsDTO> userPerms;
 }
-
-// TODO: hacer enum de permisos

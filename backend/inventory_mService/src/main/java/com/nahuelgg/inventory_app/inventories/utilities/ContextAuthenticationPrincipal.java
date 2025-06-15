@@ -2,6 +2,8 @@ package com.nahuelgg.inventory_app.inventories.utilities;
 
 import java.util.List;
 
+import com.nahuelgg.inventory_app.inventories.enums.Permissions;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,6 +33,6 @@ public class ContextAuthenticationPrincipal {
   @AllArgsConstructor @Data
   public static class PermsForInv {
     private String inventoryReferenceId;
-    private List<String> perms;
+    private List<Permissions> perms;
   }
 }

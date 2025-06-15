@@ -2,6 +2,8 @@ package com.nahuelgg.inventory_app.inventories.dtos;
 
 import java.util.List;
 
+import com.nahuelgg.inventory_app.inventories.enums.Permissions;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +20,7 @@ public class UserFromUsersMSDTO {
   @Data @AllArgsConstructor
   public static class InventoryPermsDTO {
     private String id;
-    private List<String> permissions;
+    private List<Permissions> permissions;
     private String idOfInventoryReferenced;
   }
 }

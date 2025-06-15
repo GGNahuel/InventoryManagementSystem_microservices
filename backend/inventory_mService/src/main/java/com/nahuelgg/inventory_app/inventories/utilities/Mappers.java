@@ -2,6 +2,7 @@ package com.nahuelgg.inventory_app.inventories.utilities;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.nahuelgg.inventory_app.inventories.dtos.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductFromProductsMSDTO;
@@ -42,7 +43,7 @@ public class Mappers {
     for (int i = 0; i < products.size(); i++) {
       ProductFromProductsMSDTO productReference = products.get(i);
       ProductInInvEntity productInInvEntity = inv.getProducts().stream().filter(
-        p -> p.getReferenceId().equals(productReference.getId())
+        p -> p.getReferenceId().equals(UUID.fromString(productReference.getId()))
       ).findFirst().orElse(null);
 
       if (productInInvEntity != null) productsMapped.add(mapProductsFromMSToDTO(productReference, productInInvEntity));

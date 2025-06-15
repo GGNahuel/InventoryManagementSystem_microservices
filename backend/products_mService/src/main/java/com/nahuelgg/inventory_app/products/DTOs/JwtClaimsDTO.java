@@ -2,6 +2,8 @@ package com.nahuelgg.inventory_app.products.dtos;
 
 import java.util.List;
 
+import com.nahuelgg.inventory_app.products.enums.Permissions;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,9 +21,7 @@ public class JwtClaimsDTO {
   @Data @Builder @AllArgsConstructor @NoArgsConstructor
   public static class PermissionsForInventoryDTO {
     private String id;
-    private List<String> permissions;
+    private List<Permissions> permissions;
     private String idOfInventoryReferenced;
   }
 }
-
-// TODO: hacer enum de permisos
