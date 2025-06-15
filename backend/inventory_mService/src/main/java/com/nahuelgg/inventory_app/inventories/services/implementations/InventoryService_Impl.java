@@ -170,7 +170,7 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public ProductInInvDTO addProduct(ProductInputDTO productInput, UUID invId) {
-    String baseUrl = "http://api-products:8081/product/";
+    String baseUrl = "http://api-products:8081/product?invId=" + invId.toString();
     ProductFromProductsMSDTO productCreated = (ProductFromProductsMSDTO) restTemplate.postForObject(
       baseUrl, 
       mappers.mapProductInput(productInput), 

@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,21 +51,24 @@ public class ProductController {
   }
 
   @PostMapping("")
-  public ResponseEntity<ResponseDTO> create(@RequestBody ProductDTO product) {
+  @PreAuthorize("@authorizationService.checkUserHasPerms('addProducts', #invId)")
+  public ResponseEntity<ResponseDTO> create(@RequestBody ProductDTO product, @RequestParam String invId) {
     ResponseDTO response = new ResponseDTO(201, null, service.create(product));
-
+    
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
-
+  
   @PutMapping("/edit")
-  public ResponseEntity<ResponseDTO> update(@RequestBody ProductDTO product) {
+  @PreAuthorize("@authorizationService.checkUserHasPerms('editProducts', #invId)")
+  public ResponseEntity<ResponseDTO> update(@RequestBody ProductDTO product, @RequestParam String invId) {
     ResponseDTO response = new ResponseDTO(200, null, service.update(product));
-
+    
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
-
+  
   @DeleteMapping("")
-  public ResponseEntity<ResponseDTO> delete(@RequestParam String id) {
+  @PreAuthorize("@authorizationService.checkUserHasPerms('editInventories', #invId)")
+  public ResponseEntity<ResponseDTO> delete(@RequestParam String id, @RequestParam String invId) {
     service.delete(UUID.fromString(id));
     ResponseDTO response = new ResponseDTO(200, null, "Producto eliminado con éxito");
 
@@ -72,6 +76,7 @@ public class ProductController {
   }
 
   @DeleteMapping("/delete-by-account")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> deleteByAccountId(@RequestParam String id) {
     service.deleteByAccountId(UUID.fromString(id));
 
@@ -82,6 +87,7 @@ public class ProductController {
   }
 
   @DeleteMapping("/delete-by-ids")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> deleteByIds(@RequestParam List<String> ids) {
     service.deleteByIds(ids.stream().map(id -> UUID.fromString(id)).toList());
 
