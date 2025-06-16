@@ -4,14 +4,13 @@ import static com.nahuelgg.inventory_app.users.utilities.Validations.checkFields
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.graphql.client.HttpGraphQlClient;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
@@ -44,7 +43,7 @@ public class AccountService_Impl implements AccountService {
   private final EntityMappers entityMappers = new EntityMappers();
   private final RestTemplate restTemplate;
   private final BCryptPasswordEncoder encoder;
-  private final WebClient webClient;
+  private final HttpGraphQlClient client;
 
   @Override @Transactional(readOnly = true)
   public List<AccountDTO> getAll() {
@@ -184,21 +183,15 @@ public class AccountService_Impl implements AccountService {
 
     boolean accountWithIdExists = repository.findById(accountId).isPresent();
     if (accountWithIdExists) {
-      Map<String, String> requestBody = Map.of("query", """
+      client.document("""
         mutation {
           deleteByAccountId(
-            id: """ + accountId.toString() + """
+            id: %s
           )
         }
-      """);
-      webClient.post()
-        .uri("/")
-        .bodyValue(requestBody)
-        .retrieve()
-        .bodyToMono(Boolean.class)
-      .block();
+      """.formatted(accountId.toString())).retrieve("deleteByAccountId").toEntity(Boolean.class);
 
-      restTemplate.delete("http://api-products/product/delete_by_account?id=" + accountId.toString());
+      restTemplate.delete("http://api-products:8081/product/delete_by_account?id=" + accountId.toString());
 
       repository.deleteById(accountId);
     }

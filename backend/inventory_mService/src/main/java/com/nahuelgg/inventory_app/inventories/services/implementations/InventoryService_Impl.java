@@ -235,7 +235,7 @@ public class InventoryService_Impl implements InventoryService {
       () -> new RuntimeException("")
     );
     
-    String baseUrlToUsers = "http://api-users/account/remove_inventory";
+    String baseUrlToUsers = "http://api-users:8082/account/remove_inventory";
     String completeUrlToUsers = UriComponentsBuilder.fromUriString(baseUrlToUsers)
       .queryParam("accountId", inv.getAccountId().toString()) // esto lo tendría que extraer del JWT
       .queryParam("invId", inv.getId().toString())
@@ -252,7 +252,7 @@ public class InventoryService_Impl implements InventoryService {
       pInInv -> pInInv.getReferenceId()
     ).toList();
     
-    String baseUrlToProducts = "http://api-products/delete_by_ids";
+    String baseUrlToProducts = "http://api-products:8081/delete_by_ids";
     String completeUrlToProducts = UriComponentsBuilder.fromUriString(baseUrlToProducts)
       .queryParam("ids", refIdsToDelete.toArray())
     .toUriString();

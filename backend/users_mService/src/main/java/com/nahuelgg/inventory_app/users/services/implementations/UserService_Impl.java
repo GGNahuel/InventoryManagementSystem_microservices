@@ -6,11 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.graphql.client.HttpGraphQlClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,20 +25,17 @@ import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class UserService_Impl implements UserService {
   private final UserRepository repository;
   private final PermissionsForInventoryRepository permsRepository;
   private final DTOMappers dtoMappers;
   private final EntityMappers entityMappers = new EntityMappers();
   private final ObjectMapper objectMapper;
-
-  public UserService_Impl(UserRepository repository, PermissionsForInventoryRepository permsRepository, DTOMappers dtoMappers, ObjectMapper objMapper) {
-    this.repository = repository;
-    this.permsRepository = permsRepository;
-    this.dtoMappers = dtoMappers;
-    this.objectMapper = objMapper;
-  }
+  private final HttpGraphQlClient client;
 
   @Override @Transactional(readOnly = true)
   public UserDTO getById(UUID id) {
@@ -90,23 +85,14 @@ public class UserService_Impl implements UserService {
     perms.add(newPerm);
     user.setInventoryPerms(perms);
 
-    String userDTOtoString = objectMapper.writeValueAsString(entityMappers.mapUser(user));
-    Map<String, String> requestBody = Map.of("query", """
-      mutation {
-        addUser(
-          user: """ + userDTOtoString + """
-          , invId: """ + permission.getIdOfInventoryReferenced() + """
-        )
-      }
-    """);
-    WebClient.create("http://api-inventory/graphql")
-      .post()
-      .uri("/")
-      .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-      .bodyValue(requestBody)
-      .retrieve()
-      .bodyToMono(Boolean.class)
-    .block();
+    client.document("""
+      mutation ($user: UserInputFromUSERS_MS!, $invId: ID!) {
+        addUser(user: $user, invId: $invId)
+      }""").variables(Map.of(
+        "user", objectMapper.writeValueAsString(user),
+        "invId", permission.getIdOfInventoryReferenced()
+      )
+    ).retrieve("addUser").toEntity(Boolean.class);
 
     return entityMappers.mapUser(repository.save(user));
   }
@@ -118,23 +104,16 @@ public class UserService_Impl implements UserService {
     UserEntity user = repository.findById(id).orElseThrow(
       () -> new ResourceNotFoundException("usuario", "id", id.toString())
     );
-    
-    Map<String, String> requestBody = Map.of("query", """
+
+    client.document("""
       mutation {
         removeUser(
-          userId: """ + id.toString() + """
-          , accountId: """ + user.getAssociatedAccount().getId().toString() + """
+          userId: %s, accountId: %s
         )
       }
-    """);
-    WebClient.create("http://api-inventory/graphql")
-      .post()
-      .uri("/")
-      .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-      .bodyValue(requestBody)
-      .retrieve()
-      .bodyToMono(Boolean.class)
-    .block();
+    """.formatted(
+      id.toString(), user.getAssociatedAccount().getId().toString()
+    )).retrieve("removeUser").toEntity(Boolean.class);
 
     repository.deleteById(id);
   }
