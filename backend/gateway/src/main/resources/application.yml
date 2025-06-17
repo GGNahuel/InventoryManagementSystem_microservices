@@ -8,26 +8,26 @@ spring:
         - id: users-service
           uri: http://api-users:8082
           predicates:
-            - PATH=/account/id/**
-            - PATH=/account/register
-            - PATH=/account/add-user
-            - PATH=/account/delete
-            - PATH=/logincheck
-            - PATH=/user/**
+            - Path=/account/id/**
+            - Path=/account/register
+            - Path=/account/add-user
+            - Path=/account/delete
+            - Path=/logincheck
+            - Path=/user/**
           filters:
             - AuthenticationFilter
 
         - id: inventories-service
           uri: http://api-inventories:8083
           predicates:
-            - PATH=/graphql
+            - Path=/graphql
           filters:
             - AuthenticationFilter
 
         - id: products-service
           uri: http://api-products:8081
           predicates:
-            - PATH=/product/edit
-            - PATH=/category/**
+            - Path=/product/edit
+            - Path=/category/**
           filters:
             - AuthenticationFilter

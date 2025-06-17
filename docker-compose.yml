@@ -10,6 +10,8 @@ services:
       - ./backend/gateway:/backend/gateway
     networks:
       - inventoryApp_network
+    depends_on:
+     -  mysql_database
 
   api_products:
     build: ./backend/products_mService
@@ -58,6 +60,8 @@ services:
     container_name: database
     ports:
       - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     env_file:
       - .env
     volumes:

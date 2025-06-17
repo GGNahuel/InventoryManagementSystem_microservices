@@ -1,6 +1,6 @@
 FROM openjdk:17-jdk-slim
 
-WORKDIR /backend/users
+WORKDIR /backend/gateway
 
 COPY ./ .
 
