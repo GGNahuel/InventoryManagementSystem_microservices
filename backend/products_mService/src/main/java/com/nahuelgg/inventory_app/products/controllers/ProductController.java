@@ -29,6 +29,11 @@ public class ProductController {
     this.service = service;
   }
 
+  @GetMapping("")
+  public void exceptionTest() {
+    service.getByIds(List.of());
+  }
+
   @GetMapping("/ids")
   public ResponseEntity<ResponseDTO> getByIds(@RequestParam List<String> list) {
     List<UUID> uuidList = list.stream().map(string -> UUID.fromString(string)).toList();

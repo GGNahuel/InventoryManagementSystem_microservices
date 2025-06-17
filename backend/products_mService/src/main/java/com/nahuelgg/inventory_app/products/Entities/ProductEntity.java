@@ -7,9 +7,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,11 +27,5 @@ public class ProductEntity {
   private UUID accountId;
   @Column(nullable = false)
   private Double unitPrice;
-
-  @ManyToMany @JoinTable(
-    name = "product_categories", 
-    joinColumns = @JoinColumn(referencedColumnName = "id"), // id de productos
-    inverseJoinColumns = @JoinColumn(referencedColumnName = "id") // ide de categorías
-  )
-  private List<CategoryEntity> categories;
+  private List<String> categories;
 }

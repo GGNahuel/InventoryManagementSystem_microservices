@@ -1,6 +1,6 @@
 package com.nahuelgg.inventory_app.products.services.implementations;
 
-import static com.nahuelgg.inventory_app.products.utilities.Validations.*;
+import static com.nahuelgg.inventory_app.products.utilities.Validations.checkFieldsHasContent;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,20 +11,16 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nahuelgg.inventory_app.products.dtos.ProductDTO;
 import com.nahuelgg.inventory_app.products.entities.ProductEntity;
 import com.nahuelgg.inventory_app.products.exceptions.ResourceNotFoundException;
-import com.nahuelgg.inventory_app.products.repositories.CategoryRepository;
 import com.nahuelgg.inventory_app.products.repositories.ProductRepository;
 import com.nahuelgg.inventory_app.products.services.ProductService;
 import com.nahuelgg.inventory_app.products.utilities.Validations.Field;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ProductService_Impl implements ProductService {
   private final ProductRepository repository;
-  private final CategoryRepository categoryRepository;
-
-  public ProductService_Impl(ProductRepository repository, CategoryRepository categoryRepository) {
-    this.repository = repository;
-    this.categoryRepository = categoryRepository;
-  };
 
   // MAPPERS
   private ProductDTO mapEntityToDTO(ProductEntity p) {
@@ -35,9 +31,7 @@ public class ProductService_Impl implements ProductService {
       .model(p.getModel())
       .description(p.getDescription())
       .unitPrice(p.getUnitPrice())
-      .categories(p.getCategories().stream().map(
-        category -> category.getName()
-      ).toList())
+      .categories(p.getCategories())
       .accountId(p.getAccountId().toString())
     .build();
   }
@@ -50,11 +44,7 @@ public class ProductService_Impl implements ProductService {
       .model(p.getModel())
       .description(p.getDescription())
       .unitPrice(p.getUnitPrice())
-      .categories(p.getCategories().stream().map(
-        name -> categoryRepository.findByName(name).orElseThrow(
-          () -> new ResourceNotFoundException("categoría", "nombre", name)
-        )
-      ).toList())
+      .categories(p.getCategories())
       .accountId(UUID.fromString(p.getAccountId()))
     .build();
   }

@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,26 +20,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.nahuelgg.inventory_app.products.dtos.ProductDTO;
-import com.nahuelgg.inventory_app.products.entities.CategoryEntity;
 import com.nahuelgg.inventory_app.products.entities.ProductEntity;
 import com.nahuelgg.inventory_app.products.exceptions.EmptyFieldException;
 import com.nahuelgg.inventory_app.products.exceptions.ResourceNotFoundException;
-import com.nahuelgg.inventory_app.products.repositories.CategoryRepository;
 import com.nahuelgg.inventory_app.products.repositories.ProductRepository;
 import com.nahuelgg.inventory_app.products.services.implementations.ProductService_Impl;
 
 @ExtendWith(MockitoExtension.class)
 public class Test_ProductService {
   @Mock ProductRepository repository;
-  @Mock CategoryRepository catRepository;
 
   @InjectMocks ProductService_Impl service;
 
   UUID acc1ID = UUID.randomUUID();
   UUID acc2ID = UUID.randomUUID();
-
-  CategoryEntity c1 = CategoryEntity.builder().id(UUID.randomUUID()).name("catA").build();
-  CategoryEntity c2 = CategoryEntity.builder().id(UUID.randomUUID()).name("catB").build();
 
   ProductEntity pr1, pr2, pr3;
   ProductDTO prDTO1, prDTO2, prDTO3;
@@ -52,7 +45,7 @@ public class Test_ProductService {
       .name("Ventilador")
       .brand("Marca 1")
       .unitPrice(80.0)
-      .categories(List.of(c1))
+      .categories(List.of("cat1"))
       .accountId(acc1ID)
     .build();
     pr2 = ProductEntity.builder()
@@ -60,7 +53,7 @@ public class Test_ProductService {
       .name("Ventilador de techo")
       .brand("Marca 2")
       .unitPrice(115.0)
-      .categories(List.of(c1))
+      .categories(List.of("cat1"))
       .accountId(acc1ID)
     .build();
     pr3 = ProductEntity.builder()
@@ -68,7 +61,7 @@ public class Test_ProductService {
       .name("Abrigo")
       .brand("Marca 3")
       .unitPrice(25.0)
-      .categories(List.of(c2))
+      .categories(List.of("cat2"))
       .accountId(acc2ID)
     .build();
 
@@ -77,7 +70,7 @@ public class Test_ProductService {
       .name("Ventilador")
       .brand("Marca 1")
       .unitPrice(80.0)
-      .categories(List.of(c1.getName()))
+      .categories(List.of("cat1"))
       .accountId(acc1ID.toString())
     .build();
     prDTO2 = ProductDTO.builder()
@@ -85,7 +78,7 @@ public class Test_ProductService {
       .name("Ventilador de techo")
       .brand("Marca 2")
       .unitPrice(115.0)
-      .categories(List.of(c1.getName()))
+      .categories(List.of("cat1"))
       .accountId(acc1ID.toString())
     .build();
     prDTO3 = ProductDTO.builder()
@@ -93,7 +86,7 @@ public class Test_ProductService {
       .name("Abrigo")
       .brand("Marca 3")
       .unitPrice(25.0)
-      .categories(List.of(c2.getName()))
+      .categories(List.of("cat2"))
       .accountId(acc2ID.toString())
     .build();
   }
@@ -137,7 +130,6 @@ public class Test_ProductService {
   @Test
   void create() {
     when(repository.save(any(ProductEntity.class))).thenReturn(pr1);
-    when(catRepository.findByName(anyString())).thenReturn(Optional.of(c1));
 
     assertEquals(prDTO1, service.create(prDTO1));
   }
@@ -160,7 +152,6 @@ public class Test_ProductService {
   void update() {
     when(repository.findById(UUID.fromString(prDTO1.getId()))).thenReturn(Optional.of(pr1));
     when(repository.save(any(ProductEntity.class))).thenReturn(pr1);
-    when(catRepository.findByName("catA")).thenReturn(Optional.of(c1));
 
     assertEquals(prDTO1, service.update(prDTO1));
   }

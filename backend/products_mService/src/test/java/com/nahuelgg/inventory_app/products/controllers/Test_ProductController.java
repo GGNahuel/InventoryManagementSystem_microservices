@@ -26,7 +26,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.products.dtos.ProductDTO;
 import com.nahuelgg.inventory_app.products.dtos.ResponseDTO;
-import com.nahuelgg.inventory_app.products.entities.CategoryEntity;
 import com.nahuelgg.inventory_app.products.entities.ProductEntity;
 import com.nahuelgg.inventory_app.products.services.ProductService;
 
@@ -38,7 +37,6 @@ public class Test_ProductController {
   @MockitoBean ProductService service;
 
   UUID acc1ID = UUID.randomUUID();
-  CategoryEntity c1 = CategoryEntity.builder().id(UUID.randomUUID()).name("catA").build();
   ProductEntity pr1;
   ProductDTO prDTO1;
 
@@ -49,7 +47,7 @@ public class Test_ProductController {
       .name("Ventilador")
       .brand("Marca 1")
       .unitPrice(80.0)
-      .categories(List.of(c1))
+      .categories(List.of("cat1"))
       .accountId(acc1ID)
     .build();
 
@@ -58,7 +56,7 @@ public class Test_ProductController {
       .name("Ventilador")
       .brand("Marca 1")
       .unitPrice(80.0)
-      .categories(List.of(c1.getName()))
+      .categories(List.of("cat1"))
       .accountId(acc1ID.toString())
     .build();
   }
@@ -86,7 +84,7 @@ public class Test_ProductController {
     String uri = UriComponentsBuilder.fromUriString("/product/search")
       .queryParam("brand", "Marca 1")
       .queryParam("name", "Ventilador")
-      .queryParam("categoryNames", "catA")
+      .queryParam("categoryNames", "cat1")
       .queryParam("accountId", acc1ID.toString())
       .toUriString();
 
