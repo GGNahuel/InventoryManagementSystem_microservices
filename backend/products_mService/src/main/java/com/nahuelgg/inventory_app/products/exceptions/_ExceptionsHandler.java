@@ -2,6 +2,7 @@ package com.nahuelgg.inventory_app.products.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,7 +16,7 @@ import com.nahuelgg.inventory_app.products.dtos.ResponseDTO;
 @RestControllerAdvice
 public class _ExceptionsHandler {
   private ResponseDTO buildResponseDTO(Integer status, Exception ex, ErrorDTO.Type type, String specialMessage) {
-    ErrorDTO errorDTO = new ErrorDTO(ex.getMessage(), ex.getStackTrace(), type);
+    ErrorDTO errorDTO = new ErrorDTO(ex.getMessage(), ex.getCause() != null ? ex.getCause().toString() : null, type, ex.getClass().toString());
     ResponseDTO response = new ResponseDTO(
       status,
       errorDTO,
@@ -65,6 +66,15 @@ public class _ExceptionsHandler {
     return new ResponseEntity<>(
       buildResponseDTO(400, ex, null, "Falta el parámetro: " + ex.getParameterName()),
       HttpStatus.BAD_REQUEST
+    );
+  }
+
+  // AUTHORIZATION EXCEPTIONS
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  public ResponseEntity<ResponseDTO> authorizationDenied(AuthorizationDeniedException ex) {
+    return new ResponseEntity<>(
+      buildResponseDTO(403, ex, ErrorDTO.Type.critical, "No tiene los permisos para acceder a esta acción/recurso."),
+      HttpStatus.FORBIDDEN
     );
   }
 
