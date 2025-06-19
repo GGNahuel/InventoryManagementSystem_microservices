@@ -26,12 +26,12 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class JwtService {
-  private final ObjectMapper objectMapper;
+  protected final ObjectMapper objectMapper;
 
   @Value("${JWT_KEY}")
   private String SECRET_KEY;
   
-  private Key getSignInKey() {
+  protected Key getSignInKey() {
     byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
     return Keys.hmacShaKeyFor(keyBytes);
   }
