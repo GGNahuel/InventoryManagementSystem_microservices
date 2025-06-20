@@ -55,7 +55,6 @@ public class JwtRequestFilterConfig  extends OncePerRequestFilter {
       ).toList() : null;
 
       if (accountUsername != null && !jwtService.isTokenExpired(token)) {
-        System.out.println("no expired");
         ContextAuthenticationPrincipal newAuthData = ContextAuthenticationPrincipal.builder()
           .account(new AccountSigned(accountUsername, accountId))
           .user(new UserSigned(userName, userRole, isAdmin, userPerms))

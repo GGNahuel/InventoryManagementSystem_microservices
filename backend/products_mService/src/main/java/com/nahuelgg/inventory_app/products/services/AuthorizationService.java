@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.nahuelgg.inventory_app.products.enums.Permissions;
 import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal;
+import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal.PermsForInv;
 
 @Service
 public class AuthorizationService {
@@ -30,9 +31,10 @@ public class AuthorizationService {
     
     ContextAuthenticationPrincipal auth = (ContextAuthenticationPrincipal) authentication.getPrincipal();
     if (auth.getUser() == null) return false;
+    if (auth.getUser().isAdmin()) return true;
+    if (auth.getUser().getPerms() == null) return false;
 
-    return auth.getUser().getPerms().stream().anyMatch(
-      permDto -> permDto.getInventoryReferenceId() == invId && permDto.getPerms().contains(Permissions.valueOf(perm))
-    );
+    PermsForInv permObject = auth.getUser().getPerms().stream().filter(permDto -> permDto.getInventoryReferenceId().equals(invId)).findFirst().orElse(null);
+    return permObject != null && permObject.getPerms().contains(Permissions.valueOf(perm));
   }
 }

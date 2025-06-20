@@ -56,7 +56,7 @@ public class ProductController {
   }
 
   @PostMapping("")
-  @PreAuthorize("@authorizationService.checkUserHasPerms('addProducts', #invId)")
+  @PreAuthorize("@authorizationService.checkUserHasPerm('addProducts', #invId)")
   public ResponseEntity<ResponseDTO> create(@RequestBody ProductDTO product, @RequestParam String invId) {
     ResponseDTO response = new ResponseDTO(201, null, service.create(product));
     
@@ -64,7 +64,7 @@ public class ProductController {
   }
   
   @PutMapping("/edit")
-  @PreAuthorize("@authorizationService.checkUserHasPerms('editProducts', #invId)")
+  @PreAuthorize("@authorizationService.checkUserHasPerm('editProducts', #invId)")
   public ResponseEntity<ResponseDTO> update(@RequestBody ProductDTO product, @RequestParam String invId) {
     ResponseDTO response = new ResponseDTO(200, null, service.update(product));
     
@@ -72,7 +72,7 @@ public class ProductController {
   }
   
   @DeleteMapping("")
-  @PreAuthorize("@authorizationService.checkUserHasPerms('editInventory', #invId)")
+  @PreAuthorize("@authorizationService.checkUserHasPerm('deleteProducts', #invId)")
   public ResponseEntity<ResponseDTO> delete(@RequestParam String id, @RequestParam String invId) {
     service.delete(UUID.fromString(id));
     ResponseDTO response = new ResponseDTO(200, null, "Producto eliminado con éxito");
