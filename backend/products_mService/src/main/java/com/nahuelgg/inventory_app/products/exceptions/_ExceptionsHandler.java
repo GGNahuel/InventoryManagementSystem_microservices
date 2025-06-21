@@ -2,6 +2,7 @@ package com.nahuelgg.inventory_app.products.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.nahuelgg.inventory_app.products.dtos.ErrorDTO;
 import com.nahuelgg.inventory_app.products.dtos.ResponseDTO;
 
@@ -37,18 +37,19 @@ public class _ExceptionsHandler {
   }
 
   // INPUTS IN CONTROLLERS JAVA EXCEPTIONS
-  @ExceptionHandler(UnrecognizedPropertyException.class)
-  public ResponseEntity<ResponseDTO> unknownProperty(UnrecognizedPropertyException ex) {
-    return new ResponseEntity<>(
-      buildResponseDTO(400, ex, null, "Campo no reconocido: " + ex.getPropertyName()),
-      HttpStatus.BAD_REQUEST
-    );
-  }
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<ResponseDTO> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+    Throwable cause = ex.getCause();
 
-  @ExceptionHandler(MismatchedInputException.class)
-  public ResponseEntity<ResponseDTO> mismatchedType(MismatchedInputException ex) {
+    if (cause instanceof MismatchedInputException) {
+      return new ResponseEntity<>(
+        buildResponseDTO(400, (Exception) cause, null, "Error de tipo en el body: " + cause.getMessage()),
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
     return new ResponseEntity<>(
-      buildResponseDTO(400, ex, null, "Error de tipo en el body: " + ex.getOriginalMessage()),
+      buildResponseDTO(400, ex, null, "Error en el cuerpo de la solicitud"),
       HttpStatus.BAD_REQUEST
     );
   }
