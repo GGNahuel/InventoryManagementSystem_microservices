@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class JwtService {
-  protected final ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
   @Value("${JWT_KEY}")
   private String SECRET_KEY;
@@ -61,7 +61,7 @@ public class JwtService {
       .accountId(claims.get("accountId", String.class))
       .userName(claims.get("userName", String.class))
       .userRole(claims.get("userRole", String.class))
-      .isAdmin(claims.get("isAdmin", boolean.class))
+      .isAdmin(claims.get("isAdmin", Boolean.class))
       .userPerms(convertedPerms)
     .build();
   }
