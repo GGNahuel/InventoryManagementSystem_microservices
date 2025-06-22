@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -21,9 +22,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.graphql.client.GraphQlClient;
+import org.springframework.graphql.client.HttpGraphQlClient;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
@@ -43,6 +45,8 @@ import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.implementations.AccountService_Impl;
 import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 
+import reactor.core.publisher.Mono;
+
 @ExtendWith(MockitoExtension.class)
 public class Test_AccountService {
   @Mock AccountRepository repository;
@@ -50,7 +54,7 @@ public class Test_AccountService {
   @Mock InventoryRefRepository invRefRepository;
   @Mock PermissionsForInventoryRepository permsRepository;
   @Mock RestTemplate restTemplate;
-  @Mock WebClient webClient;
+  @Mock HttpGraphQlClient graphQLClient;
   @Mock BCryptPasswordEncoder encoder;
   @Mock DTOMappers dtoMappers;
 
@@ -310,32 +314,38 @@ public class Test_AccountService {
 
   @Test
   void delete() {
-    /* averiguar cómo se testean las llamadas con webClient transformadas a comunicación sincróna
+    String accId = accDTO.getId();
+    String graphQlQuery = """
+      mutation {
+        deleteByAccountId(
+          id: "%s"
+        )
+      }
+    """.formatted(accId);
+
+    GraphQlClient.RequestSpec requestSpec = mock(GraphQlClient.RequestSpec.class);
+    GraphQlClient.RetrieveSpec retrieveSpec = mock(GraphQlClient.RetrieveSpec.class);
+
     when(repository.findById(acc.getId())).thenReturn(Optional.of(acc));
-    when(restTemplate.exchange(
-      eq("http://api-products/product/delete_by_account?id=" + acc.getId()),
-      eq(HttpMethod.DELETE),
-      any(),
-      eq(Void.class)
-    )).thenReturn(ResponseEntity.ok().build());
-
-    // request to inventories microservices
-    when(webClient.post()).thenReturn(requestBodyUriSpec);
-    when(requestBodyUriSpec.uri("/")).thenReturn(requestBodySpec);
-    when(requestBodySpec.bodyValue(any())).thenReturn(responseSpec);
-    when(responseSpec.retrieve()).thenReturn(responseSpec);
-    when(responseSpec.bodyToMono(Boolean.class)).thenReturn(Mono.just(true));
-
+    when(graphQLClient.document(graphQlQuery)).thenReturn(requestSpec);
+    when(requestSpec.retrieve("deleteByAccountId")).thenReturn(retrieveSpec);
+    when(retrieveSpec.toEntity(Boolean.class)).thenReturn(Mono.just(true));
+    
     service.delete(acc.getId());
 
-    verify(repository).deleteById(acc.getId()); */
+    verify(repository).findById(acc.getId());
+    verify(graphQLClient).document(graphQlQuery);
+    verify(restTemplate).delete("http://api-products:8081/product/delete_by_account?id=" + accId);
   }
 
   @Test
   void delete_doesNothingIfAccNotFound() {
     when(repository.findById(acc.getId())).thenReturn(Optional.empty());
     service.delete(acc.getId());
+
     verify(repository, never()).deleteById(acc.getId());
+    verify(graphQLClient, never()).document(anyString());
+    verify(restTemplate, never()).delete("http://api-products:8081/product/delete_by_account?id=" + acc.getId());
   }
 
   @Test

@@ -183,13 +183,16 @@ public class AccountService_Impl implements AccountService {
 
     boolean accountWithIdExists = repository.findById(accountId).isPresent();
     if (accountWithIdExists) {
-      client.document("""
+      boolean inventoryRequestWasSuccess = client.document("""
         mutation {
           deleteByAccountId(
-            id: %s
+            id: "%s"
           )
         }
-      """.formatted(accountId.toString())).retrieve("deleteByAccountId").toEntity(Boolean.class);
+      """.formatted(accountId.toString())).retrieve("deleteByAccountId").toEntity(Boolean.class).block();
+
+      if (!inventoryRequestWasSuccess) 
+        throw new RuntimeException("El borrado de inventarios asociados no se ha podido realizar, operación cancelada");
 
       restTemplate.delete("http://api-products:8081/product/delete_by_account?id=" + accountId.toString());
 
