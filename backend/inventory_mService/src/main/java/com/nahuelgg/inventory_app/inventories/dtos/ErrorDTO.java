@@ -13,6 +13,7 @@ public class ErrorDTO {
   }
 
   private String message;
-  private StackTraceElement[] trackTrace;
+  private String cause;
   private Type type; 
+  private String exClass;
 }
