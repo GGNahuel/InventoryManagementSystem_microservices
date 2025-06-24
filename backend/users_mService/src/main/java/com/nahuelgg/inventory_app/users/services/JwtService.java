@@ -69,7 +69,7 @@ public class JwtService {
       .accountId(claims.get("accountId", String.class))
       .userName(claims.get("userName", String.class))
       .userRole(claims.get("userRole", String.class))
-      .isAdmin(claims.get("isAdmin", boolean.class))
+      .isAdmin(claims.get("isAdmin", Boolean.class))
       .userPerms(convertedPerms)
     .build();
   }
@@ -128,7 +128,7 @@ public class JwtService {
 
   public String renewToken(String token, JwtClaimsDTO info) {
     if (!canTokenBeRenewed(token)) 
-      throw new IllegalArgumentException("The JWT couldn't be renewed");
+      throw new IllegalArgumentException("El token no puede ser renovado");
 
     return generateToken(info, getClaim(token, claim -> claim.getSubject()));
   }
