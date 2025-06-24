@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,11 +57,11 @@ public class Test_AccountController {
 
   String token = "testToken";
 
-  private void configJwtMock(String userName, String userRole, boolean isAdmin, List<PermissionsForInventoryDTO> userPerms) {
+  private void configJwtMock(String userName, String userRole, boolean isAdmin, List<PermissionsForInventoryDTO> userPerms, String accUsername) {
     when(jwtService.getClaim(eq(token), any())).thenAnswer(inv -> {
       Function<Claims, ?> claimGetter = inv.getArgument(1);
       Claims claims = Jwts.claims();
-      claims.setSubject(acc.getUsername());
+      claims.setSubject(accUsername);
       claims.put("accountId", acc.getId());
       claims.put("userName", userName);
       claims.put("userRole", userRole);
@@ -90,7 +91,7 @@ public class Test_AccountController {
   void getAll_successIfAuthenticated() {
     List<AccountDTO> expected = List.of(acc);
     when(service.getAll()).thenReturn(expected);
-    configJwtMock(null, null, false, null);
+    configJwtMock(null, null, false, null, acc.getUsername());
 
     ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
     List<AccountDTO> actual = objectMapper.convertValue(
@@ -102,11 +103,17 @@ public class Test_AccountController {
     assertIterableEquals(expected, actual);
   }
 
+  @Test
+  void getAll_denied() {
+    configJwtMock(null, null, false, null, null);
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
+  }
 
   @Test
   void getById() {
     when(service.getById(UUID.fromString(acc.getId()))).thenReturn(acc);
-    configJwtMock(null, null, false, null);
+    configJwtMock(null, null, false, null, acc.getUsername());
 
     HttpEntity<String> httpEntity = new HttpEntity<>(generateHeaderWithToken());
     ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account/id/" + acc.getId(), HttpMethod.GET, httpEntity, ResponseDTO.class);
@@ -114,6 +121,13 @@ public class Test_AccountController {
 
     AccountDTO actual = objectMapper.convertValue(response.getBody().getData(), AccountDTO.class);
     assertEquals(acc, actual);
+  }
+
+  @Test
+  void getById_denied() {
+    configJwtMock(null, null, false, null, null);
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account/id/" + acc.getId(), HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
   }
 
   @Test
@@ -138,10 +152,10 @@ public class Test_AccountController {
   }
 
   @Test
-  void addUser() {
+  void addUser_success() {
     UserDTO user = UserDTO.builder().name("user").build();
     when(service.addUser(user, UUID.fromString(acc.getId()), "123", "123")).thenReturn(user);
-    configJwtMock("admin", "admin", true, null);
+    configJwtMock("admin", "admin", true, null, acc.getUsername());
     
     String url = UriComponentsBuilder.fromUriString("/account/add-user")
       .queryParam("accountId", acc.getId())
@@ -158,9 +172,26 @@ public class Test_AccountController {
   }
 
   @Test
-  void assignInventory() throws Exception {
+  void addUser_deniedIfNotAdmin() {
+    configJwtMock("user", "role", false, null, acc.getUsername());
+    UserDTO user = UserDTO.builder().name("user").build();
+    String url = UriComponentsBuilder.fromUriString("/account/add-user")
+      .queryParam("accountId", acc.getId())
+      .queryParam("password", "123")
+      .queryParam("passwordRepeated", "123")
+    .toUriString();
+    HttpEntity<UserDTO> httpEntity = new HttpEntity<UserDTO>(user, generateHeaderWithToken());
+
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.POST, httpEntity, ResponseDTO.class);
+    assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
+
+    verify(service, never()).addUser(any(), any(), any(), any());
+  }
+
+  @Test
+  void assignInventory_success() {
     UUID invId = UUID.randomUUID();
-    configJwtMock("admin", "admin", true, null);
+    configJwtMock("admin", "admin", true, null, acc.getUsername());
 
     String url = UriComponentsBuilder.fromUriString("/account/add-inventory")
       .queryParam("accountId", acc.getId())
@@ -174,9 +205,25 @@ public class Test_AccountController {
   }
 
   @Test
-  void removeInventoryAssigned() throws Exception {
+  void assignInventory_deniedIfNotAdmin() {
     UUID invId = UUID.randomUUID();
-    configJwtMock("user", "role", true, null);
+    configJwtMock("user", "role", false, null, acc.getUsername());
+
+    String url = UriComponentsBuilder.fromUriString("/account/add-inventory")
+      .queryParam("accountId", acc.getId())
+      .queryParam("invId", invId.toString())
+    .toUriString();
+
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.PATCH, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    assertEquals(HttpStatusCode.valueOf(0), response.getStatusCode());
+
+    verify(service, never()).assignInventory(any(), any());
+  }
+
+  @Test
+  void removeInventoryAssigned() {
+    UUID invId = UUID.randomUUID();
+    configJwtMock("user", "role", true, null, acc.getUsername());
 
     String url = UriComponentsBuilder.fromUriString("/account/remove-inventory")
       .queryParam("accountId", acc.getId())
@@ -189,15 +236,43 @@ public class Test_AccountController {
   }
 
   @Test
-  void delete() throws Exception {
-    configJwtMock("user", "role", true, null);
+  void removeInventoryAssigned_deniedIfNotAdmin() {
+    UUID invId = UUID.randomUUID();
+    configJwtMock("user", "role", false, null, acc.getUsername());
+
+    String url = UriComponentsBuilder.fromUriString("/account/remove-inventory")
+      .queryParam("accountId", acc.getId())
+      .queryParam("invId", invId.toString())
+    .toUriString();
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.PATCH, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
+
+    verify(service, never()).removeInventoryAssigned(any(), any());
+  }
+
+  @Test
+  void delete() {
+    configJwtMock("user", "role", true, null, acc.getUsername());
 
     String url = UriComponentsBuilder.fromUriString("/account/delete")
       .queryParam("id", acc.getId())
     .toUriString();
     ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
-
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+
     verify(service).delete(UUID.fromString(acc.getId()));
+  }
+
+  @Test
+  void delete_deniedIfNotAdmin() {
+    configJwtMock("user", "role", false, null, acc.getUsername());
+
+    String url = UriComponentsBuilder.fromUriString("/account/delete")
+      .queryParam("id", acc.getId())
+    .toUriString();
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
+
+    verify(service, never()).delete(any());
   }
 }

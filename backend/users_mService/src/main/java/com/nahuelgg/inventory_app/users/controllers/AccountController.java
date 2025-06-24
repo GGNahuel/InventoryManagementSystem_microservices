@@ -55,6 +55,7 @@ public class AccountController {
     );
   }
 
+  // TODO: agregar validación en todos los endpoints que afecten a una cuenta, en la que se fije si el id de la cuenta pasada coincide con la del token
   @PostMapping("/add-user")
   @PreAuthorize("@authorizationService.checkUserIsAdmin()")
   public ResponseEntity<ResponseDTO> addUser(
