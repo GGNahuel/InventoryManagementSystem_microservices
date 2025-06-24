@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -268,7 +267,9 @@ public class Test_AccountService {
     AccountDTO result = service.assignInventory(acc.getId(), inventoryId);
 
     assertEquals(expected, result);
-    verify(repository, times(1)).save(any());
+    verify(repository).findById(acc.getId());
+    verify(invRefRepository).save(any());
+    verify(repository).save(any());
   }
 
   @Test
