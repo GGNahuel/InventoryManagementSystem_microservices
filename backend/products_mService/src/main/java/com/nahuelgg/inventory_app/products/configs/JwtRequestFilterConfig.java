@@ -54,7 +54,13 @@ public class JwtRequestFilterConfig  extends OncePerRequestFilter {
         permDto -> new PermsForInv(permDto.getIdOfInventoryReferenced(), permDto.getPermissions())
       ).toList() : null;
 
-      if (accountUsername != null && !jwtService.isTokenExpired(token)) {
+      if (jwtService.isTokenExpired(token)) {
+        SecurityContextHolder.clearContext();
+        filterChain.doFilter(request, response);
+        return;
+      }
+
+      if (accountUsername != null) {
         ContextAuthenticationPrincipal newAuthData = ContextAuthenticationPrincipal.builder()
           .account(new AccountSigned(accountUsername, accountId))
           .user(new UserSigned(userName, userRole, isAdmin, userPerms))
