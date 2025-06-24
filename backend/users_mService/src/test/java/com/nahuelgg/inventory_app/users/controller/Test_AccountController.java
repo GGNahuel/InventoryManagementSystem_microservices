@@ -14,7 +14,6 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -33,7 +32,6 @@ import com.nahuelgg.inventory_app.users.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
-import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
 import com.nahuelgg.inventory_app.users.services.AccountService;
 import com.nahuelgg.inventory_app.users.services.JwtService;
 
@@ -44,7 +42,6 @@ import io.jsonwebtoken.Jwts;
 public class Test_AccountController {
   @Autowired TestRestTemplate restTemplate;
   @Autowired ObjectMapper objectMapper;
-  @Mock AccountRepository repository;
 
   @MockitoBean AccountService service;
   @MockitoBean JwtService jwtService;
