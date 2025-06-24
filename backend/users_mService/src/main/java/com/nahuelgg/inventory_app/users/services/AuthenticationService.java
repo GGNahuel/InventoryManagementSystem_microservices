@@ -8,7 +8,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +51,10 @@ public class AuthenticationService {
     
     authenticationManager.authenticate(
       new UsernamePasswordAuthenticationToken(
-        username,
+        ContextAuthenticationPrincipal.builder()
+          .account(new AccountSigned(username, info.getPassword()))
+          .user(null)
+        .build(),
         info.getPassword()
       )
     );
@@ -77,7 +79,10 @@ public class AuthenticationService {
     throw new RuntimeException("El tipo de datos enviados no pertenece al login de usuario");
 
     Authentication currentAuthInContext = SecurityContextHolder.getContext().getAuthentication();
-    UserDetails currentAccountLogged = (UserDetails) currentAuthInContext.getPrincipal();
+    if (currentAuthInContext == null)
+      throw new RuntimeException("Necesita iniciar sesión como cuenta antes de como usuario");
+
+    ContextAuthenticationPrincipal currentAccountLogged = (ContextAuthenticationPrincipal) currentAuthInContext.getPrincipal();
 
     UserEntity userToAuthenticate = userRepository.findByNameAndAccountUsername(username, currentAccountLogged.getUsername()).orElseThrow(
       () -> new ResourceNotFoundException(
