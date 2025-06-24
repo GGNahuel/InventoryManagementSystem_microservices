@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
   private final UserService service;
 
-  @GetMapping("/{id}")
+  @GetMapping("/id/{id}")
   public ResponseEntity<ResponseDTO> getById(@PathVariable String id) {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.getById(UUID.fromString(id))),
