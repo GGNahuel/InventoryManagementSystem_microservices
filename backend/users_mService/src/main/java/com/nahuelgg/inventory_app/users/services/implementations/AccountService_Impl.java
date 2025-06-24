@@ -194,7 +194,7 @@ public class AccountService_Impl implements AccountService {
       if (!inventoryRequestWasSuccess) 
         throw new RuntimeException("El borrado de inventarios asociados no se ha podido realizar, operación cancelada");
 
-      restTemplate.delete("http://api-products:8081/product/delete_by_account?id=" + accountId.toString());
+      restTemplate.delete("http://api-products:8081/product/delete-by-account?id=" + accountId.toString());
 
       repository.deleteById(accountId);
     }

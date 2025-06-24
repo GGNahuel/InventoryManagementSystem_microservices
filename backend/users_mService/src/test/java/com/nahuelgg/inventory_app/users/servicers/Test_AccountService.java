@@ -336,7 +336,7 @@ public class Test_AccountService {
 
     verify(repository).findById(acc.getId());
     verify(graphQLClient).document(graphQlQuery);
-    verify(restTemplate).delete("http://api-products:8081/product/delete_by_account?id=" + accId);
+    verify(restTemplate).delete("http://api-products:8081/product/delete-by-account?id=" + accId);
   }
 
   @Test
@@ -346,7 +346,7 @@ public class Test_AccountService {
 
     verify(repository, never()).deleteById(acc.getId());
     verify(graphQLClient, never()).document(anyString());
-    verify(restTemplate, never()).delete("http://api-products:8081/product/delete_by_account?id=" + acc.getId());
+    verify(restTemplate, never()).delete("http://api-products:8081/product/delete-by-account?id=" + acc.getId());
   }
 
   @Test
