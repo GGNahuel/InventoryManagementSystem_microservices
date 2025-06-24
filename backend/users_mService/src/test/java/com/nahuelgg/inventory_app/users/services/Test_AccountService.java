@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.users.servicers;
+package com.nahuelgg.inventory_app.users.services;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
