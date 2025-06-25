@@ -88,9 +88,9 @@ public class AuthenticationService {
       () -> new ResourceNotFoundException(
         "usuario", "nombre", username + " en la cuenta " + currentAccountLogged.getUsername())
     );
-    List<PermissionsForInventoryDTO> permsDto = userToAuthenticate.getInventoryPerms().stream().map(
+    List<PermissionsForInventoryDTO> permsDto = userToAuthenticate.getInventoryPerms() != null ? userToAuthenticate.getInventoryPerms().stream().map(
       invPermEntity -> entityMappers.mapPerms(invPermEntity)
-    ).toList();
+    ).toList() : null;
 
     ContextAuthenticationPrincipal loggedAccountAndUser = ContextAuthenticationPrincipal.builder()
       .account(new AccountSigned(currentAccountLogged.getUsername(), currentAccountLogged.getPassword()))
@@ -98,9 +98,9 @@ public class AuthenticationService {
         username, 
         userToAuthenticate.getRole(), 
         userToAuthenticate.getIsAdmin(), 
-        permsDto.stream().map(
+        permsDto != null ? permsDto.stream().map(
           invPermDto -> new PermsForInv(invPermDto.getIdOfInventoryReferenced(), invPermDto.getPermissions())
-        ).toList()
+        ).toList() : null
       ))
     .build();
 
@@ -116,8 +116,16 @@ public class AuthenticationService {
     .build(), currentAccountLogged.getUsername()));
   }
 
-  public void logout() {
+  public TokenDTO logout() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !(auth.getPrincipal() instanceof ContextAuthenticationPrincipal)) {
+      throw new RuntimeException("No hay cuenta en sesión para cerrar");
+    }
+
     SecurityContextHolder.clearContext();
+
+    String logoutToken = jwtService.generateEmptyToken();
+    return new TokenDTO(logoutToken);
   }
 
   public TokenDTO logoutAsUser() {
