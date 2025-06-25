@@ -48,6 +48,10 @@ public class AuthenticationService {
     
     if (!info.isAccountLogin())
     throw new RuntimeException("El tipo de datos enviados no pertenece al login de cuenta");
+
+    Authentication currentAuthInContext = SecurityContextHolder.getContext().getAuthentication();
+    if (currentAuthInContext != null)
+      throw new RuntimeException("Ya hay una sesión iniciada para la cuenta");
     
     authenticationManager.authenticate(
       new UsernamePasswordAuthenticationToken(
@@ -83,6 +87,8 @@ public class AuthenticationService {
       throw new RuntimeException("Necesita iniciar sesión como cuenta antes de como usuario");
 
     ContextAuthenticationPrincipal currentAccountLogged = (ContextAuthenticationPrincipal) currentAuthInContext.getPrincipal();
+    if (currentAccountLogged.getUser().getName() != null)
+      throw new RuntimeException("Ya hay un usuario en sesión");
 
     UserEntity userToAuthenticate = userRepository.findByNameAndAccountUsername(username, currentAccountLogged.getUsername()).orElseThrow(
       () -> new ResourceNotFoundException(

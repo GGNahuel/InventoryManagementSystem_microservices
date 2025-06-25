@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +32,8 @@ import com.nahuelgg.inventory_app.users.entities.UserEntity;
 import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal;
+import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.AccountSigned;
+import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.UserSigned;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +60,14 @@ public class Test_AuthenticationService {
   void clear() {
     SecurityContextHolder.clearContext();
   }
+  
+  @Test
+  void logins_deniedWhenInvalidLoginType() {
+    LoginDTO loginToAcc = new LoginDTO(username, password, false);
+    LoginDTO loginToUser = new LoginDTO(username, password, true);
+    assertThrows(RuntimeException.class, () -> authenticationService.login(loginToAcc));
+    assertThrows(RuntimeException.class, () -> authenticationService.login(loginToUser));
+  }
 
   @Test
   void loginAccount_success() {
@@ -77,18 +88,22 @@ public class Test_AuthenticationService {
   }
 
   @Test
-  void login_invalidLoginType_shouldThrow() {
-    LoginDTO loginToAcc = new LoginDTO(username, password, false);
-    LoginDTO loginToUser = new LoginDTO(username, password, true);
-    assertThrows(RuntimeException.class, () -> authenticationService.login(loginToAcc));
-    assertThrows(RuntimeException.class, () -> authenticationService.login(loginToUser));
+  void loginAccount_deniedIfAccountIsAlreadyLogged() {
+    LoginDTO login = new LoginDTO(username, password, true);
+
+    SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(username, password));
+    assertThrows(RuntimeException.class, () -> authenticationService.login(login));
+
+    verify(authenticationManager, never()).authenticate(any());
+    verify(accountRepository, never()).findByUsername(username);
+    verify(jwtService, never()).generateToken(any(), any());
   }
 
   @Test
   void loginAsUser_success() {
     LoginDTO login = new LoginDTO("subUser", password, false);
     ContextAuthenticationPrincipal currentAuth = ContextAuthenticationPrincipal.builder()
-      .account(new ContextAuthenticationPrincipal.AccountSigned(username, password))
+      .account(new AccountSigned(username, password))
     .build();
 
     UserEntity userEntity = UserEntity.builder()
@@ -110,6 +125,24 @@ public class Test_AuthenticationService {
 
     assertEquals(token, result.getToken());
     verify(userRepository).findByNameAndAccountUsername("subUser", username);
+  }
+
+  @Test
+  void loginAsUser_deniedIfUserIsAlreadyLogged() {
+    LoginDTO login = new LoginDTO("subUser", password, false);
+    ContextAuthenticationPrincipal currentAuth = ContextAuthenticationPrincipal.builder()
+      .account(new AccountSigned(username, password))
+      .user(new UserSigned("name", "role", false, List.of()))
+    .build();
+
+    SecurityContextHolder.getContext().setAuthentication(
+      new UsernamePasswordAuthenticationToken(currentAuth, null)
+    );
+
+    assertThrows(RuntimeException.class, () -> authenticationService.loginAsUser(login));
+
+    verify(userRepository, never()).findByNameAndAccountUsername(any(), any());
+    verify(jwtService, never()).generateToken(any(), any());
   }
 
   @Test
