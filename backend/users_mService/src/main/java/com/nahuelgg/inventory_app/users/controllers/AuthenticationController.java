@@ -30,14 +30,12 @@ public class AuthenticationController {
   }
 
   @PostMapping("/logout/account")
-  public ResponseEntity<String> logout() {
-    authenticationService.logout();
-    return new ResponseEntity<>("Cierre de sesión exitoso", HttpStatus.OK);
+  public ResponseEntity<TokenDTO> logout() {
+    return new ResponseEntity<>(authenticationService.logout(), HttpStatus.OK);
   }
 
   @PostMapping("/logout/user")
-  public ResponseEntity<String> logoutAsUser() {
-    authenticationService.logoutAsUser();
-    return new ResponseEntity<>("Cierre de sesión exitoso", HttpStatus.OK);
+  public ResponseEntity<TokenDTO> logoutAsUser() {
+    return new ResponseEntity<>(authenticationService.logoutAsUser(), HttpStatus.OK);
   }
 }
