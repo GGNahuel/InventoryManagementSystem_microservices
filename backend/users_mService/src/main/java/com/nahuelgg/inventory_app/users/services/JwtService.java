@@ -85,7 +85,7 @@ public class JwtService {
 
     String userPerms = null;
     try {
-      userPerms = info.getUserPerms() != null ? objectMapper.writeValueAsString(info.getUserPerms()) : null;
+      userPerms = info.getUserPerms() != null ? objectMapper.writeValueAsString(info.getUserPerms()) : "[]";
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e.getMessage());
     }
@@ -105,22 +105,41 @@ public class JwtService {
     .compact();
   }
 
+  public String generateEmptyToken() {
+    Map<String, Object> extraClaims = new HashMap<>();
+    extraClaims.put("userName", null);
+    extraClaims.put("userRole", null);
+    extraClaims.put("isAdmin", null);
+    extraClaims.put("userPerms", null);
+
+    return Jwts.builder()
+      .setClaims(extraClaims)
+      .setSubject(null)
+      .setIssuedAt(new Date(System.currentTimeMillis()))
+      .setExpiration(null)
+      .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+    .compact();
+  }
+
   public boolean isTokenValid(String token, String accountUsername) {
     final String username = getClaim(token, claims -> claims.getSubject());
     return (username.equals(accountUsername));
   }
 
   public boolean isTokenExpired(String token) {
-    return getClaim(token, claims -> claims.getExpiration()).before(new Date());
+    Date expirationDate = getClaim(token, claims -> claims.getExpiration());
+    if (expirationDate == null) throw new RuntimeException("El token no tiene límite de expiración o es un token vacío");
+    return expirationDate.before(new Date());
   }
 
   public boolean canTokenBeRenewed(String token) {
     try {
       Claims claims = getAllClaims(token);
-      Date expiration = claims.getExpiration();
+      Date expirationDate = claims.getExpiration();
+      if (expirationDate == null) throw new RuntimeException("El token no tiene límite de expiración o es un token vacío");
       long currentTime = System.currentTimeMillis();
 
-      return expiration.before(new Date(currentTime)) && expiration.getTime() + REFRESH_WINDOW > currentTime;
+      return expirationDate.before(new Date(currentTime)) && expirationDate.getTime() + REFRESH_WINDOW > currentTime;
     } catch (Exception e) {
       return false;
     }
