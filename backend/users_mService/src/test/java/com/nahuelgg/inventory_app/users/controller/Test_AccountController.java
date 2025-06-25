@@ -212,7 +212,7 @@ public class Test_AccountController {
     .toUriString();
 
     ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.PATCH, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
-    assertEquals(HttpStatusCode.valueOf(0), response.getStatusCode());
+    assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
 
     verify(service, never()).assignInventory(any(), any());
   }
