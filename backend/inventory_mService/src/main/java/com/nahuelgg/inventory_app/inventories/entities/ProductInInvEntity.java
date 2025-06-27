@@ -25,4 +25,14 @@ public class ProductInInvEntity {
   private Boolean isAvailable;
   @ManyToOne @JoinColumn(nullable = false)
   private InventoryEntity inventory;
+
+  @Override
+  public String toString() {
+    return String.format(
+      "ProductInInvEntity(id: %s, referenceId: %s, stock: %s, isAvailable: %s, inventoryId: %s)",
+      this.id.toString(), this.referenceId.toString(), 
+      this.stock != null ? this.stock.toString() : "null", this.isAvailable != null ? this.isAvailable.toString() : "null", 
+      this.inventory.getId().toString()
+    );
+  }
 }

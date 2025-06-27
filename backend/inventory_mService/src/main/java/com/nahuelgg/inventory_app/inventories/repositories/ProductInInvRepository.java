@@ -12,12 +12,17 @@ import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
 
 @Repository
 public interface ProductInInvRepository extends JpaRepository<ProductInInvEntity, UUID> {
-  @Query("select p from ProductInInvEntity p where p.isAvailable = ?1 and p.inventory.id = ?2")
-  List<ProductInInvEntity> findByIsAvailableAndInvId(Boolean isAvailable, UUID invId);
-
-  @Query("select p from ProductInInvEntity p where p.referenceId = ?1 and  p.inventory.id = ?2")
+  @Query("select p from ProductInInvEntity p join p.inventory i where p.referenceId = ?1 and i.id = ?2")
   Optional<ProductInInvEntity> findByReferenceIdAndInventoryId(UUID referenceId, UUID inventoryId);
 
-  @Query("select p from ProductInInvEntity p where p.referenceId in ?1 and p.inventory.id not in ?2")
-  List<ProductInInvEntity> findThoseWichAreNotInOthersInvs(List<UUID> referenceIds, List<UUID> inventoryIds);
+  @Query("""
+    select p.referenceId from ProductInInvEntity p where 
+    p.inventory.id = ?1 and
+    p.referenceId in (
+      select p2.referenceId from ProductInInvEntity p2
+      group by p2.referenceId
+      having count(p2.referenceId) = 1
+    )
+  """)
+  List<UUID> findReferenceIdsExclusiveToInventory(UUID idOfInventoryToDelete);
 }
