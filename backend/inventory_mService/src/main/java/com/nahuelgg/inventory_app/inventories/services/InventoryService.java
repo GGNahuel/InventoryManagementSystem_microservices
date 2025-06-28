@@ -12,7 +12,6 @@ import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO;
 public interface InventoryService {
   InventoryDTO getById(UUID id);
   List<InventoryDTO> getByAccount(UUID accountID);
-  InventoryDTO getByNameAndAccount(String invName, UUID accountId);
   List<InventoryDTO> searchProductsInInventories(
     String name, String brand, String model, List<String> categories, UUID accountId);
   

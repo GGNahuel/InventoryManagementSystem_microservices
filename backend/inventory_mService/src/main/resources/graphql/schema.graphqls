@@ -1,7 +1,6 @@
 type Query {
   getById(id: ID!): Inventory
   getByAccount(accountId: ID!): [Inventory]
-  getByNameAndAccount(invName: String!, accountId: ID!): Inventory
   searchProductsInInventories(
     name: String, 
     brand: String, 

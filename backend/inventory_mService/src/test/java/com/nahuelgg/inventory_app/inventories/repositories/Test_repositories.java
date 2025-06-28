@@ -99,13 +99,6 @@ public class Test_repositories {
   }
 
   @Test
-  void invRepository_findByNameAndAccount() {
-    assertEquals(Optional.of(inv1), inventoryRepository.findByNameAndAccountId("inventory_A", accId1));
-    assertEquals(Optional.of(inv3), inventoryRepository.findByNameAndAccountId("inventory_A", accId2));
-    assertEquals(Optional.empty(), inventoryRepository.findByNameAndAccountId("inventory_B", accId2));
-  }
-
-  @Test
   void invRepository_findByAccountId() {
     assertIterableEquals(List.of(inv1, inv2), inventoryRepository.findByAccountId(accId1));
     assertIterableEquals(List.of(), inventoryRepository.findByAccountId(pRefId1));

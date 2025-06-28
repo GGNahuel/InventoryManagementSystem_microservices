@@ -38,11 +38,6 @@ public class InventoryController {
   }
 
   @QueryMapping
-  public InventoryDTO getByNameAndAccount(@Argument String invName, @Argument String accountID) {
-    return service.getByNameAndAccount(invName, UUID.fromString(accountID));
-  }
-
-  @QueryMapping
   public List<InventoryDTO> searchProductsInInventories(
     @Argument String name, @Argument String brand, @Argument String model, @Argument List<String> categories, @Argument String accountId
   ) {
