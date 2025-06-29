@@ -17,7 +17,7 @@ public class UserFromUsersMSDTO {
   private String role;
   private List<InventoryPermsDTO> inventoryPerms;
 
-  @Data @AllArgsConstructor
+  @Data @Builder @AllArgsConstructor
   public static class InventoryPermsDTO {
     private String id;
     private List<Permissions> permissions;
