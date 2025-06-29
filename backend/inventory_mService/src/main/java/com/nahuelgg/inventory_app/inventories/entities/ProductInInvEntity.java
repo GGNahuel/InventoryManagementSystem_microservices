@@ -14,7 +14,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Data @Builder
+@Data @Builder(toBuilder = true)
 @NoArgsConstructor @AllArgsConstructor
 public class ProductInInvEntity {
   @Id @GeneratedValue
@@ -30,7 +30,7 @@ public class ProductInInvEntity {
   public String toString() {
     return String.format(
       "ProductInInvEntity(id: %s, referenceId: %s, stock: %s, isAvailable: %s, inventoryId: %s)",
-      this.id.toString(), this.referenceId.toString(), 
+      this.id != null ? this.id.toString() : "null", this.referenceId.toString(), 
       this.stock != null ? this.stock.toString() : "null", this.isAvailable != null ? this.isAvailable.toString() : "null", 
       this.inventory.getId().toString()
     );

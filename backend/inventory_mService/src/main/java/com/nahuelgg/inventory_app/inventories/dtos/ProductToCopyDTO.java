@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data @AllArgsConstructor
 public class ProductToCopyDTO {
-  private String id;
+  private String refId;
   private Integer stock;
 }

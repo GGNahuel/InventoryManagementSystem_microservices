@@ -18,7 +18,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Data @Builder
+@Data @Builder(toBuilder = true)
 @NoArgsConstructor @AllArgsConstructor
 public class InventoryEntity {
   @Id @GeneratedValue

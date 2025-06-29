@@ -68,7 +68,7 @@ public class InventoryService_Impl implements InventoryService {
       HttpEntity<Object> entity = optionalBody != null ? new HttpEntity<Object>(optionalBody, setTokenInHeader()) : new HttpEntity<>(setTokenInHeader());
 
       response = restTemplate.exchange(url, method, entity, ResponseDTO.class);
-      if (response.getStatusCode() != HttpStatusCode.valueOf(200))
+      if (response.getStatusCode() != HttpStatusCode.valueOf(200) && response.getStatusCode() != HttpStatusCode.valueOf(201))
         throw new RuntimeException(response.getBody().getError().toString());
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -216,17 +216,18 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public ProductInInvDTO addProduct(ProductInputDTO productInput, UUID invId) {
-    // TODO: (optional) agregar validación de si ese producto ya está creado y agregado al inventario, necesitaría un cambio en la DB de products
+    // TODO: (optional) agregar validación de si ese producto ya está creado y agregado al inventario, necesitaría un cambio en la DB de products?
+    InventoryEntity inv = repository.findById(invId).orElseThrow(
+      () -> new RuntimeException("Inv not found")
+    );
+      
     String baseUrl = "http://api-products:8081/product?invId=" + invId.toString();
     ProductFromProductsMSDTO productCreated = (ProductFromProductsMSDTO) makeRestRequest(baseUrl, HttpMethod.POST, mappers.mapProductInput(productInput)).getData();
-    
-    InventoryEntity inv = repository.findById(invId).orElseThrow(
-      () -> new RuntimeException("")
-    );
 
+    int checkedStock = productInput.getStock() != null ? productInput.getStock() : 0;
     ProductInInvEntity newProductInv = productInvRepository.save(ProductInInvEntity.builder()
       .referenceId(UUID.fromString(productCreated.getId()))
-      .stock(productInput.getStock())
+      .stock(checkedStock)
       .isAvailable(productInput.getStock() > 0)
       .inventory(inv)
     .build());
@@ -234,6 +235,8 @@ public class InventoryService_Impl implements InventoryService {
     newListProductInInv.add(newProductInv);
 
     inv.setProducts(newListProductInInv);
+    System.out.println(inv.toString() + "_______");
+    System.out.println(newListProductInInv.toString());
     repository.save(inv);
     return mappers.mapProductsFromMSToDTO(productCreated, newProductInv);
   }
@@ -246,15 +249,16 @@ public class InventoryService_Impl implements InventoryService {
 
     List<ProductInInvEntity> newList = invTo.getProducts();
     for (ProductToCopyDTO p : products) {
-      if (!newList.stream().filter(pInv -> p.getId().equals(pInv.getReferenceId().toString())).findFirst().isPresent()) {
-        newList.add(productInvRepository.save(ProductInInvEntity.builder()
-          .referenceId(UUID.fromString(p.getId()))
+      if (!newList.stream().filter(pInv -> p.getRefId().equals(pInv.getReferenceId().toString())).findFirst().isPresent()) {
+        newList.add(ProductInInvEntity.builder()
+          .referenceId(UUID.fromString(p.getRefId()))
           .stock(p.getStock())
           .isAvailable(p.getStock() > 0)
           .inventory(invTo)
-        .build()));
+        .build());
       }
     }
+    productInvRepository.saveAll(newList);
 
     invTo.setProducts(newList);
     repository.save(invTo);
@@ -267,8 +271,10 @@ public class InventoryService_Impl implements InventoryService {
       () -> new RuntimeException("")
     );
     int newStock = p.getStock() + relativeNewStock;
-    p.setStock(newStock);
+    p.setStock(newStock < 0 ? 0 : newStock);
     p.setIsAvailable(newStock > 0);
+
+    productInvRepository.save(p);
     return true;
   }
 
@@ -283,14 +289,15 @@ public class InventoryService_Impl implements InventoryService {
       .queryParam("accountId", inv.getAccountId().toString()) // esto lo tendría que extraer del JWT
       .queryParam("invId", inv.getId().toString())
     .toUriString();
-    restTemplate.delete(completeUrlToUsers);
+    //restTemplate.exchange(completeUrlToUsers, HttpMethod.DELETE, new HttpEntity<>(setTokenInHeader()),)
+    makeRestRequest(completeUrlToUsers, HttpMethod.DELETE, null);
     
     List<UUID> refIdsToDelete = productInvRepository.findReferenceIdsExclusiveToInventory(id);
     String baseUrlToProducts = "http://api-products:8081/delete-by-ids";
     String completeUrlToProducts = UriComponentsBuilder.fromUriString(baseUrlToProducts)
       .queryParam("ids", refIdsToDelete.toArray())
     .toUriString();
-    restTemplate.delete(completeUrlToProducts);
+    makeRestRequest(completeUrlToProducts, HttpMethod.DELETE, null);
     
     repository.deleteById(id);
     return true;
