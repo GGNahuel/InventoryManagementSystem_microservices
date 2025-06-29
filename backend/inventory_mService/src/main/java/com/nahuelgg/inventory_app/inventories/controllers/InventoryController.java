@@ -13,7 +13,6 @@ import com.nahuelgg.inventory_app.inventories.dtos.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductInputDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductToCopyDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO;
 import com.nahuelgg.inventory_app.inventories.enums.Permissions;
 import com.nahuelgg.inventory_app.inventories.services.AuthorizationService;
 import com.nahuelgg.inventory_app.inventories.services.InventoryService;
@@ -81,11 +80,11 @@ public class InventoryController {
 
   // User mutations
   @MutationMapping
-  public boolean addUser(@Argument UserFromUsersMSDTO user, @Argument String invId) {
+  public boolean addUser(@Argument String userId, @Argument String invId) {
     if (!authorizationService.checkUserIsAdmin())
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
   
-    return service.addUser(user, UUID.fromString(invId));
+    return service.addUser(UUID.fromString(userId), UUID.fromString(invId));
   }
 
   @MutationMapping

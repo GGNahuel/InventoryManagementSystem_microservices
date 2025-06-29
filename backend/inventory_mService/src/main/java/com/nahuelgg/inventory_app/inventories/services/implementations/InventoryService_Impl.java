@@ -23,7 +23,6 @@ import com.nahuelgg.inventory_app.inventories.dtos.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductInputDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductToCopyDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ResponseDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
 import com.nahuelgg.inventory_app.inventories.entities.UserReferenceEntity;
@@ -184,13 +183,17 @@ public class InventoryService_Impl implements InventoryService {
   }
 
   @Override @Transactional
-  public boolean addUser(UserFromUsersMSDTO user, UUID invId) {
+  public boolean addUser(UUID userId, UUID invId) {
     InventoryEntity inv = repository.findById(invId).orElseThrow(
       () -> new RuntimeException("")
     );
     List<UserReferenceEntity> userRefs = inv.getUsers();
+
+    if (userRefs.stream().anyMatch(uRefEntity -> uRefEntity.getReferenceId() == userId)) 
+      return false;
+
     userRefs.add(userRefRepository.save(
-      UserReferenceEntity.builder().referenceId(UUID.fromString(user.getId())).build()
+      UserReferenceEntity.builder().referenceId(userId).build()
     ));
     inv.setUsers(userRefs);
 

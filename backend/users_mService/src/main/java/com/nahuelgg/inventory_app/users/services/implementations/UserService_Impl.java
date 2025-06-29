@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
@@ -34,7 +33,6 @@ public class UserService_Impl implements UserService {
   private final PermissionsForInventoryRepository permsRepository;
   private final DTOMappers dtoMappers;
   private final EntityMappers entityMappers = new EntityMappers();
-  private final ObjectMapper objectMapper;
   private final HttpGraphQlClient client;
 
   @Override @Transactional(readOnly = true)
@@ -86,10 +84,10 @@ public class UserService_Impl implements UserService {
     user.setInventoryPerms(perms);
 
     client.document("""
-      mutation ($user: UserInputFromUSERS_MS!, $invId: ID!) {
-        addUser(user: $user, invId: $invId)
+      mutation ($userId: ID!, $invId: ID!) {
+        addUser(userId: $userId, invId: $invId)
       }""").variables(Map.of(
-        "user", objectMapper.writeValueAsString(user),
+        "userId", userId.toString(),
         "invId", permission.getIdOfInventoryReferenced()
       )
     ).retrieve("addUser").toEntity(Boolean.class);

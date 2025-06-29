@@ -16,7 +16,7 @@ type Mutation {
   delete(id: ID!): Boolean
   deleteByAccountId(id: ID!): Boolean
 
-  addUser(user: UserInputFromUSERS_MS!, invId: ID!): Boolean
+  addUser(userId: ID!, invId: ID!): Boolean
   removeUser(userId: ID!, accountId: ID!): Boolean
 
   addProduct(product: ProductInput!, invId: ID!): ProductInInventory
@@ -59,17 +59,4 @@ input ProductInput {
 input ProductToCopyInput {
   id: ID!
   stock: Int!
-}
-
-input UserInputFromUSERS_MS {
-  id: ID!
-  name: String!
-  role: String!
-  inventoryPerms: [PermissionInput]!
-}
-
-input PermissionInput {
-  id: ID!
-  permissions: [String]!
-  idOfInventoryReferenced: ID!
 }

@@ -7,7 +7,6 @@ import com.nahuelgg.inventory_app.inventories.dtos.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductInputDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductToCopyDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO;
 
 public interface InventoryService {
   InventoryDTO getById(UUID id);
@@ -20,7 +19,7 @@ public interface InventoryService {
   boolean delete(UUID id);
   boolean deleteByAccountId(UUID id);
 
-  boolean addUser(UserFromUsersMSDTO user, UUID invId);
+  boolean addUser(UUID userId, UUID invId);
   boolean removeUser(UUID userId, UUID accountId);
   ProductInInvDTO addProduct(ProductInputDTO product, UUID invID);
   boolean copyProducts(List<ProductToCopyDTO> products, UUID idTo);
