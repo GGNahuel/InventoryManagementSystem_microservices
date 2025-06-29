@@ -1,8 +1,10 @@
 package com.nahuelgg.inventory_app.inventories.repositories;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,6 +110,12 @@ public class Test_repositories {
   void invRepository_searchByProductRefId() {
     assertIterableEquals(List.of(inv1, inv2, inv3), inventoryRepository.searchByProductRefId(List.of(pRefId1)));
     assertIterableEquals(List.of(inv1), inventoryRepository.searchByProductRefId(List.of(pRefId2)));
+  }
+
+  @Test
+  void existsByNameAndAccountId_returnsExpected() {
+    assertTrue(inventoryRepository.existsByNameAndAccountId("inventory_A", accId1));
+    assertFalse(inventoryRepository.existsByNameAndAccountId("inventory_B", accId2));
   }
 
   @Test

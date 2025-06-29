@@ -16,4 +16,6 @@ public interface InventoryRepository extends JpaRepository<InventoryEntity, UUID
   @Query("select i from InventoryEntity i join i.products p where p.referenceId in ?1")
   List<InventoryEntity> searchByProductRefId(List<UUID> referenceIds);
   /*group by i having count(distinct p.referenceId) = ?2 */
+
+  boolean existsByNameAndAccountId(String name, UUID accountId);
 }
