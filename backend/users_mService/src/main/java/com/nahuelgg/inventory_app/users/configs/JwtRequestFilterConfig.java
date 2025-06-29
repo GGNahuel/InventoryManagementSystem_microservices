@@ -80,7 +80,7 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
 
       UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
         newAuthData,
-        null,
+        token,
         null
       );
 

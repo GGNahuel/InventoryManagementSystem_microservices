@@ -44,26 +44,32 @@ public class JwtRequestFilterConfig  extends OncePerRequestFilter {
       String accountId = jwtService.getClaim(token, claim -> claim.get("accountId", String.class));
       String userName = jwtService.getClaim(token, claim -> claim.get("userName", String.class));
       String userRole = jwtService.getClaim(token, claim -> claim.get("userRole", String.class));
-      boolean isAdmin = jwtService.getClaim(token, claim -> claim.get("isAdmin", boolean.class));
-      List<PermsForInv> userPerms = objectMapper.convertValue(
+      boolean isAdmin = jwtService.getClaim(token, claim -> claim.get("isAdmin", Boolean.class));
+      List<InventoryPermsDTO> userPermsDTO = objectMapper.convertValue(
         jwtService.getClaim(token, claim -> claim.get("userPerms", List.class)), 
         new TypeReference<List<InventoryPermsDTO>>() {}
-      ).stream().map(
+      );
+
+      List<PermsForInv> userPerms = userPermsDTO != null ? userPermsDTO.stream().map(
         permDto -> new PermsForInv(permDto.getIdOfInventoryReferenced(), permDto.getPermissions())
-      ).toList();
+      ).toList() : null;
 
-      if (accountUsername != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-        if (!jwtService.isTokenExpired(token)) {
-          ContextAuthenticationPrincipal newAuthData = ContextAuthenticationPrincipal.builder()
-            .account(new AccountSigned(accountUsername, accountId))
-            .user(new UserSigned(userName, userRole, isAdmin, userPerms))
-          .build();
+      if (jwtService.isTokenExpired(token)) {
+        SecurityContextHolder.clearContext();
+        filterChain.doFilter(request, response);
+        return;
+      }
 
-          UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
-            newAuthData, null, List.of()
-          );
-          SecurityContextHolder.getContext().setAuthentication(newAuth);
-        }
+      if (accountUsername != null) {
+        ContextAuthenticationPrincipal newAuthData = ContextAuthenticationPrincipal.builder()
+          .account(new AccountSigned(accountUsername, accountId))
+          .user(new UserSigned(userName, userRole, isAdmin, userPerms))
+        .build();
+
+        UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
+          newAuthData, token, List.of()
+        );
+        SecurityContextHolder.getContext().setAuthentication(newAuth);
       }
     } catch (Exception e) {
       SecurityContextHolder.clearContext();

@@ -53,21 +53,21 @@ public class AuthenticationService {
     if (currentAuthInContext != null)
       throw new RuntimeException("Ya hay una sesión iniciada para la cuenta");
     
+    AccountEntity accountToLog = accountRepository.findByUsername(username).orElseThrow(
+      () -> new ResourceNotFoundException("cuenta", "nombre de usuario", username)
+    );
+      
+    String token = jwtService.generateToken(JwtClaimsDTO.builder().accountId(accountToLog.getId().toString()).build(), username);
+
     authenticationManager.authenticate(
       new UsernamePasswordAuthenticationToken(
         ContextAuthenticationPrincipal.builder()
           .account(new AccountSigned(username, info.getPassword()))
           .user(null)
         .build(),
-        info.getPassword()
+        token
       )
     );
-
-    AccountEntity accountToLog = accountRepository.findByUsername(username).orElseThrow(
-      () -> new ResourceNotFoundException("cuenta", "nombre de usuario", username)
-    );
-
-    String token = jwtService.generateToken(JwtClaimsDTO.builder().accountId(accountToLog.getId().toString()).build(), username);
 
     return new TokenDTO(token);
   }
@@ -109,17 +109,19 @@ public class AuthenticationService {
         ).toList() : null
       ))
     .build();
-
-    Authentication newAuthInContext = new UsernamePasswordAuthenticationToken(loggedAccountAndUser, null);
-    SecurityContextHolder.getContext().setAuthentication(newAuthInContext);
-
-    return new TokenDTO(jwtService.generateToken(JwtClaimsDTO.builder()
+    
+    String token = jwtService.generateToken(JwtClaimsDTO.builder()
       .accountId(userToAuthenticate.getAssociatedAccount().getId().toString())
       .userName(username)
       .userRole(userToAuthenticate.getRole())
       .isAdmin(userToAuthenticate.getIsAdmin())
       .userPerms(permsDto)
-    .build(), currentAccountLogged.getUsername()));
+    .build(), currentAccountLogged.getUsername());
+
+    Authentication newAuthInContext = new UsernamePasswordAuthenticationToken(loggedAccountAndUser, token);
+    SecurityContextHolder.getContext().setAuthentication(newAuthInContext);
+    
+    return new TokenDTO(token);
   }
 
   public TokenDTO logout() {
@@ -142,12 +144,21 @@ public class AuthenticationService {
 
     ContextAuthenticationPrincipal currentAuth = (ContextAuthenticationPrincipal) auth.getPrincipal();
     String accountUsername = currentAuth.getUsername();
-    SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(accountUsername, currentAuth.getPassword()));
 
     AccountEntity accountLogged = accountRepository.findByUsername(accountUsername).orElseThrow(
       () -> new ResourceNotFoundException("cuenta", "username", accountUsername)
     );
 
-    return new TokenDTO(jwtService.generateToken(JwtClaimsDTO.builder().accountId(accountLogged.getId().toString()).build(), accountUsername));
+    String token = jwtService.generateToken(JwtClaimsDTO.builder().accountId(accountLogged.getId().toString()).build(), accountUsername);
+
+    SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+      ContextAuthenticationPrincipal.builder()
+          .account(new AccountSigned(currentAuth.getUsername(), currentAuth.getPassword()))
+          .user(null)
+        .build(), 
+      token
+    ));
+
+    return new TokenDTO(token);
   }
 }
