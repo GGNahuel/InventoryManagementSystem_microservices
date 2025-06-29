@@ -61,7 +61,7 @@ public class JwtService {
       .accountId(claims.get("accountId", String.class))
       .userName(claims.get("userName", String.class))
       .userRole(claims.get("userRole", String.class))
-      .isAdmin(claims.get("isAdmin", boolean.class))
+      .isAdmin(claims.get("isAdmin", Boolean.class))
       .userPerms(convertedPerms)
     .build();
   }
