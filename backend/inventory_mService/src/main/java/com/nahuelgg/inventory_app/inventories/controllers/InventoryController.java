@@ -32,7 +32,7 @@ public class InventoryController {
   }
 
   @QueryMapping
-  public List<InventoryDTO> getByAccountId(@Argument String accountId) {
+  public List<InventoryDTO> getByAccount(@Argument String accountId) {
     return service.getByAccount(UUID.fromString(accountId));
   }
 
@@ -53,13 +53,11 @@ public class InventoryController {
   }
 
   @MutationMapping
-  public String edit(@Argument String invId, @Argument String name) {
+  public boolean edit(@Argument String invId, @Argument String name) {
     if (!authorizationService.checkUserIsAdmin())
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
 
-    if (service.edit(UUID.fromString(invId), name))
-      return "Nombre editado con éxito";
-    else return "No se pudo editar";
+    return service.edit(UUID.fromString(invId), name);
   }
 
   @MutationMapping

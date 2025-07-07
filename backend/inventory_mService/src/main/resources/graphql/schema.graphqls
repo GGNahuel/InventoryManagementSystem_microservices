@@ -12,7 +12,7 @@ type Query {
 
 type Mutation {
   create(name: String!, accountId: ID!): Inventory
-  edit(invId: ID!, name: String!): String
+  edit(invId: ID!, name: String!): Boolean
   delete(id: ID!): Boolean
   deleteByAccountId(id: ID!): Boolean
 
@@ -20,8 +20,8 @@ type Mutation {
   removeUser(userId: ID!, accountId: ID!): Boolean
 
   addProduct(product: ProductInput!, invId: ID!): ProductInInventory
-  copyProducts(products: [ProductToCopyInput]!, idTo: ID!): String
-  editStockOfProduct(relativeNewStock: Int!, productRefId: ID!, invId: ID!): String
+  copyProducts(products: [ProductToCopyInput]!, idTo: ID!): Boolean
+  editStockOfProduct(relativeNewStock: Int!, productRefId: ID!, invId: ID!): Boolean
 }
 
 
@@ -52,11 +52,11 @@ input ProductInput {
   model: String
   description: String
   unitPrice: Int!
-  categories: [String]!
+  categories: [String]
   stock: Int!
 }
 
 input ProductToCopyInput {
-  id: ID!
+  refId: ID!
   stock: Int!
 }
