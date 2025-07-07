@@ -12,7 +12,7 @@ spring:
             - Path=/account/register
             - Path=/account/add-user
             - Path=/account/delete
-            - Path=/logincheck
+            - Path=/authenticate/**
             - Path=/user/**
           filters:
             - AuthenticationFilter
@@ -28,6 +28,5 @@ spring:
           uri: http://api-products:8081
           predicates:
             - Path=/product/edit
-            - Path=/category/**
           filters:
             - AuthenticationFilter
