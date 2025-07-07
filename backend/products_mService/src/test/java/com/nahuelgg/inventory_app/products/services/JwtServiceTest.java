@@ -32,7 +32,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 @ExtendWith(MockitoExtension.class)
-public class Test_JwtService {
+public class JwtServiceTest {
   @Mock ObjectMapper objectMapper;
 
   @InjectMocks JwtService jwtService;

@@ -12,7 +12,7 @@ import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.AccountSigned;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.UserSigned;
 
-public class Test_AuthorizationService {
+public class AuthorizationServiceTest {
   AuthorizationService service = new AuthorizationService();
 
   @AfterEach

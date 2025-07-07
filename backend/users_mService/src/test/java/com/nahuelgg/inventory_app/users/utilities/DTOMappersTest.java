@@ -26,7 +26,7 @@ import com.nahuelgg.inventory_app.users.exceptions.ResourceNotFoundException;
 import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class Test_DTOMappers {
+public class DTOMappersTest {
   @Mock InventoryRefRepository inventoryRefRepository;
   @InjectMocks DTOMappers dtoMappers;
 

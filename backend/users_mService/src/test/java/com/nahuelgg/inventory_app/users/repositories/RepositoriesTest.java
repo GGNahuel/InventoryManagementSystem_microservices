@@ -21,14 +21,14 @@ import com.nahuelgg.inventory_app.users.entities.UserEntity;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
-public class Test_Repositories {
+public class RepositoriesTest {
   private final AccountRepository accRepo;
   private final UserRepository userRepo;
   private final InventoryRefRepository invRefRepo;
   private final PermissionsForInventoryRepository permsRepo;
 
   @Autowired
-  public Test_Repositories(AccountRepository accRepo, UserRepository userRepo, InventoryRefRepository invRepo, PermissionsForInventoryRepository permRepo) {
+  public RepositoriesTest(AccountRepository accRepo, UserRepository userRepo, InventoryRefRepository invRepo, PermissionsForInventoryRepository permRepo) {
     this.accRepo = accRepo;
     this.userRepo = userRepo;
     this.invRefRepo = invRepo;

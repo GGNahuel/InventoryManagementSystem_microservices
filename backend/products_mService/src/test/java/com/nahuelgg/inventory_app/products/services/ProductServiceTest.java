@@ -27,7 +27,7 @@ import com.nahuelgg.inventory_app.products.repositories.ProductRepository;
 import com.nahuelgg.inventory_app.products.services.implementations.ProductService_Impl;
 
 @ExtendWith(MockitoExtension.class)
-public class Test_ProductService {
+public class ProductServiceTest {
   @Mock ProductRepository repository;
 
   @InjectMocks ProductService_Impl service;

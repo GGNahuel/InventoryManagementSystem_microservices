@@ -37,7 +37,7 @@ import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 
 @ExtendWith(MockitoExtension.class)
-public class Test_AuthenticationService {
+public class AuthenticationServiceTest {
   @InjectMocks
   private AuthenticationService authenticationService;
 

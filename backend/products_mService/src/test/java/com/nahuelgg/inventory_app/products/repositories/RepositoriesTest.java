@@ -17,11 +17,11 @@ import com.nahuelgg.inventory_app.products.entities.ProductEntity;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
-public class Test_Repositories {
+public class RepositoriesTest {
   private final ProductRepository repository;
 
   @Autowired
-  public Test_Repositories(ProductRepository repository) {
+  public RepositoriesTest(ProductRepository repository) {
     this.repository = repository;
   }
 

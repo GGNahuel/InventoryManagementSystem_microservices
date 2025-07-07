@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.users.controller;
+package com.nahuelgg.inventory_app.users.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
@@ -39,7 +39,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class Test_AccountController {
+public class AccountControllerTest {
   @Autowired TestRestTemplate restTemplate;
   @Autowired ObjectMapper objectMapper;
 

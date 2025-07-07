@@ -14,7 +14,7 @@ import com.nahuelgg.inventory_app.gateway.utilities.JwtUtils;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
-public class TestAuthenticationFilter {
+public class AuthenticationFilterTest {
   @Autowired
   WebTestClient webTestClient;
 

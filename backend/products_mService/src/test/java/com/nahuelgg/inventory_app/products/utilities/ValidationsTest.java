@@ -1,19 +1,18 @@
-package com.nahuelgg.inventory_app.users.utilities;
+package com.nahuelgg.inventory_app.products.utilities;
 
-import static com.nahuelgg.inventory_app.users.utilities.Validations.checkFieldsHasContent;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static com.nahuelgg.inventory_app.products.utilities.Validations.*;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.nahuelgg.inventory_app.users.exceptions.EmptyFieldException;
-import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
+import com.nahuelgg.inventory_app.products.exceptions.EmptyFieldException;
 
-public class Test_Validations {
+public class ValidationsTest {
   @Test
   void checkFieldHasContent() {
     assertDoesNotThrow(() -> checkFieldsHasContent(new Field("name", "value")));

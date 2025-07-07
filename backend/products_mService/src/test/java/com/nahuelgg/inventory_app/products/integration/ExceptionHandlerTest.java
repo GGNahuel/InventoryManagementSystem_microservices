@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.users.controller;
+package com.nahuelgg.inventory_app.products.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -24,30 +25,30 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nahuelgg.inventory_app.users.dtos.JwtClaimsDTO;
-import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
-import com.nahuelgg.inventory_app.users.exceptions.EmptyFieldException;
-import com.nahuelgg.inventory_app.users.exceptions.ResourceNotFoundException;
-import com.nahuelgg.inventory_app.users.services.JwtService;
-import com.nahuelgg.inventory_app.users.services.AccountService;
+import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInventoryDTO;
+import com.nahuelgg.inventory_app.products.dtos.ResponseDTO;
+import com.nahuelgg.inventory_app.products.enums.Permissions;
+import com.nahuelgg.inventory_app.products.exceptions.EmptyFieldException;
+import com.nahuelgg.inventory_app.products.exceptions.ResourceNotFoundException;
+import com.nahuelgg.inventory_app.products.services.JwtService;
+import com.nahuelgg.inventory_app.products.services.ProductService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class Test_ExceptionHandler {
+public class ExceptionHandlerTest {
   @Autowired TestRestTemplate restTemplate;
   @Autowired ObjectMapper objectMapper;
 
   @MockitoBean JwtService jwtService;
-  @MockitoBean AccountService service;
+  @MockitoBean ProductService service;
 
   String token = "abcde";
-  String accId = "12345";
+  String invId = "12345";
   HttpEntity<String> entity;
 
   @BeforeEach
@@ -55,23 +56,18 @@ public class Test_ExceptionHandler {
     when(jwtService.getClaim(eq(token), any())).thenAnswer(inv -> {
       Function<Claims, ?> claimGetter = inv.getArgument(1);
       Claims claims = Jwts.claims();
-      claims.setSubject("accUsername");
-      claims.put("accountId", accId);
-      claims.put("userName", "userName");
-      claims.put("userRole", "userRole");
+      claims.setSubject("accountUsername");
+      claims.put("accountId", UUID.randomUUID().toString());
+      claims.put("userName", null);
+      claims.put("userRole", null);
       claims.put("isAdmin", false);
-      claims.put("userPerms", List.of());
+      claims.put("userPerms", List.of(PermissionsForInventoryDTO.builder()
+        .idOfInventoryReferenced(invId)
+        .permissions(List.of(Permissions.addProducts))
+      .build()));
       return claimGetter.apply(claims);
     });
     when(jwtService.isTokenExpired(token)).thenReturn(false);
-    when(jwtService.isTokenValid(token, "accUsername")).thenReturn(true);
-    when(jwtService.mapTokenClaims(token)).thenReturn(JwtClaimsDTO.builder()
-      .accountId(accId)
-      .userName("userName")
-      .userRole("userRole")
-      .isAdmin(false)
-      .userPerms(List.of())
-    .build());
 
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(token);
@@ -81,66 +77,55 @@ public class Test_ExceptionHandler {
 
   @Test
   void emptyFieldEx() {
-    when(service.getAll()).thenThrow(EmptyFieldException.class);
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account", HttpMethod.GET, entity, ResponseDTO.class);
+    when(service.getByIds(List.of())).thenThrow(EmptyFieldException.class);
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product", HttpMethod.GET, entity, ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(406), response.getStatusCode());
   }
 
   @Test
   void resourceNotFound() {
-    when(service.getAll()).thenThrow(ResourceNotFoundException.class);
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account", HttpMethod.GET, entity, ResponseDTO.class);
+    when(service.getByIds(List.of())).thenThrow(ResourceNotFoundException.class);
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product", HttpMethod.GET, entity, ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(404), response.getStatusCode());
   }
 
   @Test
   void mismatchedType() throws JsonProcessingException {
     Map<String, Object> invalidInput = new HashMap<>();
-    invalidInput.put("inventoryPerms", Map.of("foo", "bar"));
-
-    String url = UriComponentsBuilder.fromUriString("/account/add-user")
-      .queryParam("accountId", accId)
-      .queryParam("password", "123")
-      .queryParam("passwordRepeated", "123")
-    .toUriString();
+    invalidInput.put("categories", Map.of("foo", "bar"));
     
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.setBearerAuth(token);
     HttpEntity<Map<String, Object>> postEntity = new HttpEntity<>(invalidInput, headers);
 
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.POST, postEntity, ResponseDTO.class);
-
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product?invId=" + invId, HttpMethod.POST, postEntity, ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
     assertTrue(response.getBody().getError().getExClass().contains("MismatchedInputException"));
   }
 
   @Test
   void paramTypeMismatch() {
-    when(service.getAll()).thenThrow(MethodArgumentTypeMismatchException.class);
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account", HttpMethod.GET, entity, ResponseDTO.class);
+    when(service.getByIds(List.of())).thenThrow(MethodArgumentTypeMismatchException.class);
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product", HttpMethod.GET, entity, ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
   }
 
   @Test
   void missingParam() {
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account/register", HttpMethod.POST, entity, ResponseDTO.class);
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product/ids", HttpMethod.GET, entity, ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
   }
 
   @Test
   void accessDenied() {
-    String url = UriComponentsBuilder.fromUriString("/account/add-inventory")
-      .queryParam("accountId", accId)
-      .queryParam("invId", "invId-12345")
-    .toUriString();
-    ResponseEntity<ResponseDTO> response = restTemplate.getForEntity(url, ResponseDTO.class);
+    ResponseEntity<ResponseDTO> response = restTemplate.getForEntity("/product", ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
   }
   
   @Test
   void globalException() {
-    when(service.getAll()).thenThrow(RuntimeException.class);
+    when(service.getByIds(List.of())).thenThrow(RuntimeException.class);
     ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product", HttpMethod.GET, entity, ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
   }

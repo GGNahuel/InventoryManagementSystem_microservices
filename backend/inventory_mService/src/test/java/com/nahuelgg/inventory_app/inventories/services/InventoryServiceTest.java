@@ -46,7 +46,7 @@ import com.nahuelgg.inventory_app.inventories.services.implementations.Inventory
 import com.nahuelgg.inventory_app.inventories.utilities.Mappers;
 
 @ExtendWith(MockitoExtension.class)
-public class Test_InventoryService {
+public class InventoryServiceTest {
   @Mock InventoryRepository inventoryRepository;
   @Mock ProductInInvRepository productInInvRepository;
   @Mock UserReferenceRepository userReferenceRepository;

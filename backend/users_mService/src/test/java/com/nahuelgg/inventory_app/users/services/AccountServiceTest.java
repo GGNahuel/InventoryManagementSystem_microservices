@@ -47,7 +47,7 @@ import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
-public class Test_AccountService {
+public class AccountServiceTest {
   @Mock AccountRepository repository;
   @Mock UserRepository userRepository;
   @Mock InventoryRefRepository invRefRepository;
