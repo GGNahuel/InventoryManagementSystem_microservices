@@ -11,7 +11,10 @@ services:
     networks:
       - inventoryApp_network
     depends_on:
-     -  mysql_database
+      - mysql_database
+      - api_products
+      - api_users
+      - api_inventories
 
   api_products:
     build: ./backend/products_mService
