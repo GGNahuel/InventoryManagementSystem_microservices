@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -28,11 +29,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.products.dtos.ProductDTO;
 import com.nahuelgg.inventory_app.products.dtos.ResponseDTO;
-import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.products.entities.ProductEntity;
 import com.nahuelgg.inventory_app.products.enums.Permissions;
 import com.nahuelgg.inventory_app.products.services.JwtService;
@@ -44,7 +43,6 @@ import io.jsonwebtoken.Jwts;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ProductControllerTest {
   @Autowired TestRestTemplate restTemplate;
-  @Autowired ObjectMapper objectMapper;
   
   @MockitoBean ProductService service;
   @MockitoBean JwtService jwtService;
@@ -108,12 +106,15 @@ public class ProductControllerTest {
     String uri = UriComponentsBuilder.fromUriString("/product/ids")
       .queryParam("list", List.of(prDTO1.getId()).toArray())
     .toUriString();
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    ResponseEntity<ResponseDTO<List<ProductDTO>>> response = restTemplate.exchange(
+      uri, HttpMethod.GET, 
+      new HttpEntity<>(generateHeaderWithToken()), 
+      new ParameterizedTypeReference<ResponseDTO<List<ProductDTO>>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
-    ResponseDTO responseDTO = response.getBody();
-    List<ProductDTO> actualData = objectMapper
-      .convertValue(responseDTO.getData(), new TypeReference<List<ProductDTO>>() {});
+    ResponseDTO<List<ProductDTO>> responseDTO = response.getBody();
+    List<ProductDTO> actualData = responseDTO.getData();
 
     assertNull(responseDTO.getError());
     assertNotNull(responseDTO.getData());
@@ -131,11 +132,15 @@ public class ProductControllerTest {
       .queryParam("categoryNames", "cat1")
       .queryParam("accountId", acc1ID.toString())
       .toUriString();
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    ResponseEntity<ResponseDTO<List<ProductDTO>>> response = restTemplate.exchange(
+      uri, HttpMethod.GET, 
+      new HttpEntity<>(generateHeaderWithToken()), 
+      new ParameterizedTypeReference<ResponseDTO<List<ProductDTO>>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
-    ResponseDTO responseDTO = response.getBody();
-    List<ProductDTO> actualData = objectMapper.convertValue(responseDTO.getData(), new TypeReference<List<ProductDTO>>() {});
+    ResponseDTO<List<ProductDTO>> responseDTO = response.getBody();
+    List<ProductDTO> actualData = responseDTO.getData();
 
     assertNull(responseDTO.getError());
     assertIterableEquals(List.of(prDTO1), actualData);
@@ -154,11 +159,14 @@ public class ProductControllerTest {
     );
 
     HttpEntity<ProductDTO> request = new HttpEntity<>(prDTO1, generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product?invId=" + invId, HttpMethod.POST, request, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
+      "/product?invId=" + invId, HttpMethod.POST, request, 
+      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(201), response.getStatusCode(), "El check de user con el perm ha fallado");
 
-    ResponseDTO responseDTO = response.getBody();
-    ProductDTO actual = objectMapper.convertValue(responseDTO.getData(), ProductDTO.class);
+    ResponseDTO<ProductDTO> responseDTO = response.getBody();
+    ProductDTO actual = responseDTO.getData();
 
     assertNull(responseDTO.getError());
     assertEquals(prDTO1, actual);
@@ -171,11 +179,14 @@ public class ProductControllerTest {
     configJwtMock("admin", "admin", true, null);
 
     HttpEntity<ProductDTO> request = new HttpEntity<>(prDTO1, generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product?invId=" + invId, HttpMethod.POST, request, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
+      "/product?invId=" + invId, HttpMethod.POST, request, 
+      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(201), response.getStatusCode(), "El check de admin ha fallado");
 
-    ResponseDTO responseDTO = response.getBody();
-    ProductDTO actual = objectMapper.convertValue(responseDTO.getData(), ProductDTO.class);
+    ResponseDTO<ProductDTO> responseDTO = response.getBody();
+    ProductDTO actual = responseDTO.getData();
 
     assertNull(responseDTO.getError());
     assertEquals(prDTO1, actual);
@@ -192,7 +203,10 @@ public class ProductControllerTest {
     );
 
     HttpEntity<ProductDTO> request = new HttpEntity<ProductDTO>(prDTO1, generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product?invId=" + invId, HttpMethod.POST, request, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
+      "/product?invId=" + invId, HttpMethod.POST, request, 
+      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
     verify(service, never()).create(any());
   }
@@ -209,10 +223,13 @@ public class ProductControllerTest {
     );
 
     HttpEntity<ProductDTO> request = new HttpEntity<>(prDTO1, generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product/edit?invId=" + invId, HttpMethod.PUT, request, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
+      "/product/edit?invId=" + invId, HttpMethod.PUT, request, 
+      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
-    ProductDTO actual = objectMapper.convertValue(response.getBody().getData(), ProductDTO.class);
+    ProductDTO actual = response.getBody().getData();
 
     assertEquals(200, response.getBody().getStatus());
     assertNull(response.getBody().getError());
@@ -225,10 +242,13 @@ public class ProductControllerTest {
     configJwtMock("user", "role", true, List.of());
 
     HttpEntity<ProductDTO> request = new HttpEntity<>(prDTO1, generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product/edit?invId=" + invId, HttpMethod.PUT, request, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
+      "/product/edit?invId=" + invId, HttpMethod.PUT, request, 
+      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
-    ProductDTO actual = objectMapper.convertValue(response.getBody().getData(), ProductDTO.class);
+    ProductDTO actual = response.getBody().getData();
 
     assertEquals(200, response.getBody().getStatus());
     assertNull(response.getBody().getError());
@@ -241,7 +261,10 @@ public class ProductControllerTest {
     configJwtMock("user", "role", false, List.of());
 
     HttpEntity<ProductDTO> request = new HttpEntity<>(prDTO1, generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product/edit?invId=" + invId, HttpMethod.PUT, request, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
+      "/product/edit?invId=" + invId, HttpMethod.PUT, request, 
+      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
     verify(service, never()).update(any());
   }
@@ -258,7 +281,10 @@ public class ProductControllerTest {
 
     String uri = "/product?id=" + prDTO1.getId() + "&invId=" + invId;
     HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
+      uri, HttpMethod.DELETE, request, 
+      new ParameterizedTypeReference<ResponseDTO<String>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
     assertEquals("Producto eliminado con éxito", response.getBody().getData());
@@ -271,7 +297,10 @@ public class ProductControllerTest {
 
     String uri = "/product?id=" + prDTO1.getId() + "&invId=" + invId;
     HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
+      uri, HttpMethod.DELETE, request,
+      new ParameterizedTypeReference<ResponseDTO<String>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
     assertEquals("Producto eliminado con éxito", response.getBody().getData());
@@ -284,8 +313,11 @@ public class ProductControllerTest {
 
     String uri = "/product?id=" + prDTO1.getId() + "&invId=" + invId;
     HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, ResponseDTO.class);
-    System.out.println(response.toString());
+    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
+      uri, HttpMethod.DELETE, request,
+      new ParameterizedTypeReference<ResponseDTO<String>>() {}
+    );
+
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
     verify(service, never()).delete(any());
   }
@@ -296,7 +328,10 @@ public class ProductControllerTest {
     String uri = "/product/delete-by-account?id=" + acc1ID;
 
     HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(uri, HttpMethod.DELETE, entity, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
+      uri, HttpMethod.DELETE, entity,
+      new ParameterizedTypeReference<ResponseDTO<Object>>() {}
+    );
 
     assertEquals(200, response.getBody().getStatus());
     assertNull(response.getBody().getData());
@@ -309,7 +344,10 @@ public class ProductControllerTest {
     String uri = "/product/delete-by-account?id=" + acc1ID;
 
     HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(uri, HttpMethod.DELETE, entity, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
+      uri, HttpMethod.DELETE, entity,
+      new ParameterizedTypeReference<ResponseDTO<Object>>() {}
+    );
 
     assertEquals(403, response.getBody().getStatus());
     verify(service, never()).deleteByAccountId(any());
@@ -323,7 +361,10 @@ public class ProductControllerTest {
     .toUriString();
 
     HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(uri, HttpMethod.DELETE, entity, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
+      uri, HttpMethod.DELETE, entity,
+      new ParameterizedTypeReference<ResponseDTO<Object>>() {}
+    );
 
     assertEquals(200, response.getBody().getStatus());
     assertNull(response.getBody().getData());
@@ -339,7 +380,10 @@ public class ProductControllerTest {
     .toUriString();
 
     HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(uri, HttpMethod.DELETE, entity, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
+      uri, HttpMethod.DELETE, entity,
+      new ParameterizedTypeReference<ResponseDTO<Object>>() {}
+    );
 
     assertEquals(403, response.getBody().getStatus());
     verify(service, never()).deleteByIds(anyList());

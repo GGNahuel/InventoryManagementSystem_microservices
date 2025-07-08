@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
-public class ResponseDTO {
+public class ResponseDTO<T> {
   private Integer status;
   private ErrorDTO error;
-  private Object data;
+  private T data;
 }

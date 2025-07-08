@@ -15,9 +15,9 @@ import com.nahuelgg.inventory_app.products.dtos.ResponseDTO;
 
 @RestControllerAdvice
 public class _ExceptionsHandler {
-  private ResponseDTO buildResponseDTO(Integer status, Exception ex, ErrorDTO.Type type, String specialMessage) {
+  private ResponseDTO<String> buildResponseDTO(Integer status, Exception ex, ErrorDTO.Type type, String specialMessage) {
     ErrorDTO errorDTO = new ErrorDTO(ex.getMessage(), ex.getCause() != null ? ex.getCause().toString() : null, type, ex.getClass().toString());
-    ResponseDTO response = new ResponseDTO(
+    ResponseDTO<String> response = new ResponseDTO<>(
       status,
       errorDTO,
       specialMessage == null ? ex.getMessage() : specialMessage
@@ -27,18 +27,18 @@ public class _ExceptionsHandler {
   }
 
   @ExceptionHandler(ResourceNotFoundException.class)
-  public ResponseEntity<ResponseDTO> resourceNotFound(ResourceNotFoundException ex) {
+  public ResponseEntity<ResponseDTO<String>> resourceNotFound(ResourceNotFoundException ex) {
     return new ResponseEntity<>(buildResponseDTO(404, ex, ErrorDTO.Type.critical, null), HttpStatus.NOT_FOUND);
   }
 
   @ExceptionHandler(EmptyFieldException.class)
-  public ResponseEntity<ResponseDTO> emptyField(EmptyFieldException ex) {
+  public ResponseEntity<ResponseDTO<String>> emptyField(EmptyFieldException ex) {
     return new ResponseEntity<>(buildResponseDTO(406, ex, ErrorDTO.Type.warning, null), HttpStatus.NOT_ACCEPTABLE);
   }
 
   // INPUTS IN CONTROLLERS JAVA EXCEPTIONS
   @ExceptionHandler(HttpMessageNotReadableException.class)
-  public ResponseEntity<ResponseDTO> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+  public ResponseEntity<ResponseDTO<String>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
     Throwable cause = ex.getCause();
 
     if (cause instanceof MismatchedInputException) {
@@ -55,7 +55,7 @@ public class _ExceptionsHandler {
   }
 
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-  public ResponseEntity<ResponseDTO> paramTypeMismatch(MethodArgumentTypeMismatchException ex) {
+  public ResponseEntity<ResponseDTO<String>> paramTypeMismatch(MethodArgumentTypeMismatchException ex) {
     return new ResponseEntity<>(
       buildResponseDTO(400, ex, null, "Tipo incorrecto en parámetro: " + ex.getName()),
       HttpStatus.BAD_REQUEST
@@ -63,7 +63,7 @@ public class _ExceptionsHandler {
   }
 
   @ExceptionHandler(MissingServletRequestParameterException.class)
-  public ResponseEntity<ResponseDTO> missingParam(MissingServletRequestParameterException ex) {
+  public ResponseEntity<ResponseDTO<String>> missingParam(MissingServletRequestParameterException ex) {
     return new ResponseEntity<>(
       buildResponseDTO(400, ex, null, "Falta el parámetro: " + ex.getParameterName()),
       HttpStatus.BAD_REQUEST
@@ -72,7 +72,7 @@ public class _ExceptionsHandler {
 
   // AUTHORIZATION EXCEPTIONS
   @ExceptionHandler(AuthorizationDeniedException.class)
-  public ResponseEntity<ResponseDTO> authorizationDenied(AuthorizationDeniedException ex) {
+  public ResponseEntity<ResponseDTO<String>> authorizationDenied(AuthorizationDeniedException ex) {
     return new ResponseEntity<>(
       buildResponseDTO(403, ex, ErrorDTO.Type.critical, "No tiene los permisos para acceder a esta acción/recurso."),
       HttpStatus.FORBIDDEN
@@ -81,7 +81,7 @@ public class _ExceptionsHandler {
 
   // OTHER EXCEPTIONS
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ResponseDTO> generalExceptions(Exception ex) {
+  public ResponseEntity<ResponseDTO<String>> generalExceptions(Exception ex) {
     return new ResponseEntity<>(
       buildResponseDTO(500, ex, ErrorDTO.Type.critical, "Ocurrió un error inesperado, intente de nuevo más tarde"),
       HttpStatus.INTERNAL_SERVER_ERROR

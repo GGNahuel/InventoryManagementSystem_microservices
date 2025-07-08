@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -78,14 +79,20 @@ public class ExceptionHandlerTest {
   @Test
   void emptyFieldEx() {
     when(service.getByIds(List.of())).thenThrow(EmptyFieldException.class);
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product", HttpMethod.GET, entity, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
+      "/product", HttpMethod.GET, entity,
+      new ParameterizedTypeReference<ResponseDTO<String>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(406), response.getStatusCode());
   }
 
   @Test
   void resourceNotFound() {
     when(service.getByIds(List.of())).thenThrow(ResourceNotFoundException.class);
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product", HttpMethod.GET, entity, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
+      "/product", HttpMethod.GET, entity,
+      new ParameterizedTypeReference<ResponseDTO<String>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(404), response.getStatusCode());
   }
 
@@ -99,7 +106,10 @@ public class ExceptionHandlerTest {
     headers.setBearerAuth(token);
     HttpEntity<Map<String, Object>> postEntity = new HttpEntity<>(invalidInput, headers);
 
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product?invId=" + invId, HttpMethod.POST, postEntity, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
+      "/product?invId=" + invId, HttpMethod.POST, postEntity,
+      new ParameterizedTypeReference<ResponseDTO<String>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
     assertTrue(response.getBody().getError().getExClass().contains("MismatchedInputException"));
   }
@@ -107,26 +117,38 @@ public class ExceptionHandlerTest {
   @Test
   void paramTypeMismatch() {
     when(service.getByIds(List.of())).thenThrow(MethodArgumentTypeMismatchException.class);
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product", HttpMethod.GET, entity, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
+      "/product", HttpMethod.GET, entity,
+      new ParameterizedTypeReference<ResponseDTO<String>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
   }
 
   @Test
   void missingParam() {
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product/ids", HttpMethod.GET, entity, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
+      "/product/ids", HttpMethod.GET, entity,
+      new ParameterizedTypeReference<ResponseDTO<String>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
   }
 
   @Test
   void accessDenied() {
-    ResponseEntity<ResponseDTO> response = restTemplate.getForEntity("/product", ResponseDTO.class);
+    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
+      "/product", HttpMethod.GET, null,
+      new ParameterizedTypeReference<ResponseDTO<String>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
   }
   
   @Test
   void globalException() {
     when(service.getByIds(List.of())).thenThrow(RuntimeException.class);
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/product", HttpMethod.GET, entity, ResponseDTO.class);
+    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
+      "/product", HttpMethod.GET, entity,
+      new ParameterizedTypeReference<ResponseDTO<String>>() {}
+    );
     assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
   }
 }

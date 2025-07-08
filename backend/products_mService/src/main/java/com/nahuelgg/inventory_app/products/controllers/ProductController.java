@@ -35,69 +35,69 @@ public class ProductController {
   }
 
   @GetMapping("/ids")
-  public ResponseEntity<ResponseDTO> getByIds(@RequestParam List<String> list) {
+  public ResponseEntity<ResponseDTO<List<ProductDTO>>> getByIds(@RequestParam List<String> list) {
     List<UUID> uuidList = list.stream().map(string -> UUID.fromString(string)).toList();
-    ResponseDTO response = new ResponseDTO(200, null, service.getByIds(uuidList));
+    ResponseDTO<List<ProductDTO>> response = new ResponseDTO<>(200, null, service.getByIds(uuidList));
 
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   @GetMapping("/search")
-  public ResponseEntity<ResponseDTO> search(
+  public ResponseEntity<ResponseDTO<List<ProductDTO>>> search(
     @RequestParam(required = false) String brand,
     @RequestParam(required = false) String name,
     @RequestParam(required = false) String model,
     @RequestParam(required = false) List<String> categoryNames,
     @RequestParam String accountId
   ) {
-    ResponseDTO response = new ResponseDTO(200, null, service.search(brand, name, model, categoryNames, UUID.fromString(accountId)));
+    ResponseDTO<List<ProductDTO>> response = new ResponseDTO<>(200, null, service.search(brand, name, model, categoryNames, UUID.fromString(accountId)));
 
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   @PostMapping("")
   @PreAuthorize("@authorizationService.checkUserHasPerm('addProducts', #invId)")
-  public ResponseEntity<ResponseDTO> create(@RequestBody ProductDTO product, @RequestParam String invId) {
-    ResponseDTO response = new ResponseDTO(201, null, service.create(product));
+  public ResponseEntity<ResponseDTO<ProductDTO>> create(@RequestBody ProductDTO product, @RequestParam String invId) {
+    ResponseDTO<ProductDTO> response = new ResponseDTO<>(201, null, service.create(product));
     
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
   
   @PutMapping("/edit")
   @PreAuthorize("@authorizationService.checkUserHasPerm('editProducts', #invId)")
-  public ResponseEntity<ResponseDTO> update(@RequestBody ProductDTO product, @RequestParam String invId) {
-    ResponseDTO response = new ResponseDTO(200, null, service.update(product));
+  public ResponseEntity<ResponseDTO<ProductDTO>> update(@RequestBody ProductDTO product, @RequestParam String invId) {
+    ResponseDTO<ProductDTO> response = new ResponseDTO<>(200, null, service.update(product));
     
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
   
   @DeleteMapping("")
   @PreAuthorize("@authorizationService.checkUserHasPerm('deleteProducts', #invId)")
-  public ResponseEntity<ResponseDTO> delete(@RequestParam String id, @RequestParam String invId) {
+  public ResponseEntity<ResponseDTO<String>> delete(@RequestParam String id, @RequestParam String invId) {
     service.delete(UUID.fromString(id));
-    ResponseDTO response = new ResponseDTO(200, null, "Producto eliminado con éxito");
+    ResponseDTO<String> response = new ResponseDTO<>(200, null, "Producto eliminado con éxito");
 
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   @DeleteMapping("/delete-by-account")
   @PreAuthorize("@authorizationService.checkUserIsAdmin()")
-  public ResponseEntity<ResponseDTO> deleteByAccountId(@RequestParam String id) {
+  public ResponseEntity<ResponseDTO<Object>> deleteByAccountId(@RequestParam String id) {
     service.deleteByAccountId(UUID.fromString(id));
 
     return new ResponseEntity<>(
-      new ResponseDTO(200, null, null),
+      new ResponseDTO<>(200, null, null),
       HttpStatus.OK
     );
   }
 
   @DeleteMapping("/delete-by-ids")
   @PreAuthorize("@authorizationService.checkUserIsAdmin()")
-  public ResponseEntity<ResponseDTO> deleteByIds(@RequestParam List<String> ids) {
+  public ResponseEntity<ResponseDTO<Object>> deleteByIds(@RequestParam List<String> ids) {
     service.deleteByIds(ids.stream().map(id -> UUID.fromString(id)).toList());
 
     return new ResponseEntity<>(
-      new ResponseDTO(200, null, null),
+      new ResponseDTO<>(200, null, null),
       HttpStatus.OK
     ); 
   }
