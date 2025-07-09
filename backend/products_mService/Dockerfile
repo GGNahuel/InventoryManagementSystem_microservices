@@ -1,12 +1,18 @@
-FROM openjdk:17-jdk-slim
+FROM maven:3.9.5-eclipse-temurin-17 AS builder
 
 WORKDIR /backend/products
 
 COPY ./ .
 
-RUN chmod +x mvnw
+RUN mvn clean package -DskipTests
+
+
+FROM openjdk:17-jdk-slim
+
+WORKDIR /backend/products
+
+COPY --from=builder /backend/products/target/*.jar /api/products_service.jar
 
 EXPOSE 8081
 
-CMD ["./mvnw", "spring-boot:run"]
-# ToDo: cambiar este comando cuando se pase a producción
+CMD ["java", "-jar", "/api/products_service.jar"]

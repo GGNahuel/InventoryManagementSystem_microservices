@@ -1,7 +1,8 @@
 services:
   api_gateway:
     build: ./backend/gateway
-    container_name: "gateway"
+    container_name: "api-gateway"
+    image: api-gateway
     ports:
       - "8080:8080"
     env_file:
@@ -19,6 +20,7 @@ services:
   api_products:
     build: ./backend/products_mService
     container_name: "api-products"
+    image: api-products:latest
     ports:
       - "8081:8081"
     env_file:
@@ -33,6 +35,7 @@ services:
   api_users:
     build: ./backend/users_mService
     container_name: "api-users"
+    image: api-users:latest
     ports:
       - "8082:8082"
     env_file:
@@ -47,6 +50,7 @@ services:
   api_inventories:
     build: ./backend/inventory_mService
     container_name: "api-inventories"
+    image: api-inventories:latest
     ports:
       - "8083:8083"
     env_file:
