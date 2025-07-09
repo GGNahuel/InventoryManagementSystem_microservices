@@ -91,6 +91,7 @@ public class JwtService {
     }
 
     Map<String, Object> extraClaims = new HashMap<>();
+    extraClaims.put("accountId", info.getAccountId());
     extraClaims.put("userName", info.getUserName());
     extraClaims.put("userRole", info.getUserRole());
     extraClaims.put("isAdmin", info.isAdmin());
@@ -107,6 +108,7 @@ public class JwtService {
 
   public String generateEmptyToken() {
     Map<String, Object> extraClaims = new HashMap<>();
+    extraClaims.put("accountId", null);
     extraClaims.put("userName", null);
     extraClaims.put("userRole", null);
     extraClaims.put("isAdmin", null);
