@@ -4,7 +4,8 @@ WORKDIR /backend/products
 
 COPY ./ .
 
-RUN mvn clean package -DskipTests
+# Importantt: saltea los tests porque se deberían hacer en el CI/CD
+RUN mvn clean package -DskipTests 
 
 
 FROM openjdk:17-jdk-slim
