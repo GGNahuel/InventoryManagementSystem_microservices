@@ -26,20 +26,17 @@ public class InitData implements ApplicationRunner {
 
     List<ProductEntity> productsToSave = List.of(
       ProductEntity.builder()
-        .id(UUID.fromString("abc00000-0000-0000-0000-000000000001"))
         .name("ProductA")
         .brand("brand1")
         .accountId(acc1Id)
         .unitPrice(5.0)
       .build(),
       ProductEntity.builder()
-        .id(UUID.fromString("abc00000-0000-0000-0000-000000000002"))
         .name("ProductB")
         .accountId(acc1Id)
         .unitPrice(8.5)
       .build(),
       ProductEntity.builder()
-        .id(UUID.fromString("abc00000-0000-0000-0000-000000000003"))
         .name("ProductA")
         .brand("brand2")
         .accountId(acc1Id)
@@ -47,13 +44,11 @@ public class InitData implements ApplicationRunner {
       .build(),
 
       ProductEntity.builder()
-        .id(UUID.fromString("abc00000-0000-0000-0000-000000000004"))
         .name("ProductA")
         .accountId(acc2Id)
         .unitPrice(6.0)
       .build(),
       ProductEntity.builder()
-        .id(UUID.fromString("abc00000-0000-0000-0000-000000000005"))
         .name("ProductB")
         .accountId(acc2Id)
         .unitPrice(7.0)
