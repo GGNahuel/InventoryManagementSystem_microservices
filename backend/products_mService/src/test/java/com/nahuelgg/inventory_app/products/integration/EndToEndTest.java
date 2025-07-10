@@ -12,14 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -39,7 +38,6 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = "JWT_KEY=TestSecretKeyForJWT1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ=")
 @ActiveProfiles("test")
 public class EndToEndTest {
   @Autowired ObjectMapper objectMapper;
@@ -48,7 +46,8 @@ public class EndToEndTest {
   @LocalServerPort
   int port;
 
-  String secretKeyTest = "TestSecretKeyForJWT1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ=";
+  @Value("${JWT_KEY}")
+  String secretKeyTest;
 
   UUID acc1Id = UUID.fromString("acc00000-0000-0000-0000-000000000001");
   UUID acc2Id = UUID.fromString("acc00000-0000-0000-0000-000000000002");
