@@ -5,18 +5,19 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import java.util.List;
 import java.util.UUID;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.nahuelgg.inventory_app.products.entities.ProductEntity;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
+@ActiveProfiles("test")
 public class RepositoriesTest {
   private final ProductRepository repository;
 
@@ -31,6 +32,8 @@ public class RepositoriesTest {
 
   @BeforeEach
   void beforeEach() {
+    repository.deleteAll();
+
     pr1 = ProductEntity.builder()
       .name("Ventilador")
       .brand("Marca 1")
@@ -61,11 +64,6 @@ public class RepositoriesTest {
     .build();
 
     repository.saveAll(List.of(pr1, pr2, pr3, pr4));
-  }
-
-  @AfterEach
-  void afterEach() {
-    repository.deleteAll();
   }
 
   @Test

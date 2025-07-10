@@ -26,6 +26,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -41,6 +42,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 public class ProductControllerTest {
   @Autowired TestRestTemplate restTemplate;
   
@@ -203,9 +205,9 @@ public class ProductControllerTest {
     );
 
     HttpEntity<ProductDTO> request = new HttpEntity<ProductDTO>(prDTO1, generateHeaderWithToken());
-    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
+    ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
       "/product?invId=" + invId, HttpMethod.POST, request, 
-      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
+      new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
     verify(service, never()).create(any());
@@ -261,9 +263,9 @@ public class ProductControllerTest {
     configJwtMock("user", "role", false, List.of());
 
     HttpEntity<ProductDTO> request = new HttpEntity<>(prDTO1, generateHeaderWithToken());
-    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
+    ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
       "/product/edit?invId=" + invId, HttpMethod.PUT, request, 
-      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
+      new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
     verify(service, never()).update(any());
