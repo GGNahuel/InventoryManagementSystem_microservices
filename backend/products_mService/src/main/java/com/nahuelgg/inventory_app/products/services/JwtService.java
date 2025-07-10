@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtService {
   private final ObjectMapper objectMapper;
 
-  @Value("${JWT_KEY}")
+  @Value("${jwt_key}")
   private String SECRET_KEY;
   
   protected Key getSignInKey() {

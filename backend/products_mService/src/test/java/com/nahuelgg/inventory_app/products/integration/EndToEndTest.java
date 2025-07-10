@@ -46,7 +46,7 @@ public class EndToEndTest {
   @LocalServerPort
   int port;
 
-  @Value("${JWT_KEY}")
+  @Value("${jwt_key}")
   String secretKeyTest;
 
   UUID acc1Id = UUID.fromString("acc00000-0000-0000-0000-000000000001");
