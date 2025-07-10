@@ -45,7 +45,9 @@ public class JwtService {
       .getBody();
     } catch (ExpiredJwtException e) {
       return e.getClaims();
-    } catch (UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
+    } catch (SignatureException e) {
+      throw new RuntimeException("Invalid KEY");
+    } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException e) {
       throw new RuntimeException("Invalid JWT token or mal formed", e);
     }
   }
