@@ -75,8 +75,6 @@ public class RepositoriesTest {
     invRef = i;
     perms1 = p1;
     perms2 = p2;
-    // user1 = u1;
-    // user2 = u2;
     acc1 = a1;
   }
 

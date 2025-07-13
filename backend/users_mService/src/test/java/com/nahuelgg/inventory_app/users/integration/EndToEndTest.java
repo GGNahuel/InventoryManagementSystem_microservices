@@ -31,7 +31,7 @@ public class EndToEndTest {
 
   @SuppressWarnings("resource")
   static GenericContainer<?> inventoryService = new GenericContainer<>("api-inventories")
-    .withExposedPorts(8081)
+    .withExposedPorts(8083)
     .withNetwork(network)
     .withNetworkAliases("api-inventories")
     .withEnv(Map.of(
