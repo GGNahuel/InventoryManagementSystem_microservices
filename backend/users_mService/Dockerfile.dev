@@ -1,0 +1,16 @@
+FROM openjdk:17-jdk-slim
+
+WORKDIR /backend/users
+
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+COPY src ./src
+
+RUN chmod +x ./mvnw
+
+EXPOSE 8082
+
+ENV SPRING_DEVTOOLS_RESTART_ENABLED=true
+
+CMD ["./mvnw", "spring-boot:run"]

@@ -1,6 +1,8 @@
 services:
   api-gateway:
-    build: ./backend/gateway
+    build: 
+      context: ./backend/gateway
+      dockerfile: Dockerfile.dev
     container_name: "api-gateway"
     image: api-gateway
     ports:
@@ -18,7 +20,9 @@ services:
       - api-inventories
 
   api-products:
-    build: ./backend/products_mService
+    build:
+      context: ./backend/products_mService
+      dockerfile: Dockerfile.dev
     container_name: "api-products"
     image: api-products:latest
     ports:
@@ -34,7 +38,9 @@ services:
         condition: service_healthy
 
   api-users:
-    build: ./backend/users_mService
+    build:
+      context: ./backend/users_mService
+      dockerfile: Dockerfile.dev
     container_name: "api-users"
     image: api-users:latest
     ports:
@@ -50,7 +56,9 @@ services:
         condition: service_healthy
 
   api-inventories:
-    build: ./backend/inventory_mService
+    build:
+      context: ./backend/inventory_mService
+      dockerfile: Dockerfile.dev
     container_name: "api-inventories"
     image: api-inventories:latest
     ports:
