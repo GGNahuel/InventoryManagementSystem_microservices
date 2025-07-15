@@ -11,7 +11,7 @@ import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtils {
-  @Value("${JWT_KEY}")
+  @Value("${jwt_key}")
   private String secretKey;
 
   public void validateToken(final String token) {
