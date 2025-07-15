@@ -38,7 +38,7 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@ActiveProfiles("e2e")
 public class EndToEndTest {
   @Autowired ObjectMapper objectMapper;
   @Autowired ProductRepository productRepository;
