@@ -13,7 +13,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
+@Entity(name = "product_in_inv")
 @Data @Builder(toBuilder = true)
 @NoArgsConstructor @AllArgsConstructor
 public class ProductInInvEntity {

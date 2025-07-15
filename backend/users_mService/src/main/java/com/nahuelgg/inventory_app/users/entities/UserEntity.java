@@ -16,7 +16,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity(name = "users")
+@Entity(name = "user")
 @Data @Builder(toBuilder = true)
 @NoArgsConstructor @AllArgsConstructor
 public class UserEntity {
@@ -33,6 +33,6 @@ public class UserEntity {
   
   @ManyToOne @JoinColumn
   private AccountEntity associatedAccount;  
-  @OneToMany(cascade = CascadeType.REMOVE) @JoinColumn
+  @OneToMany(cascade = CascadeType.REMOVE) @JoinColumn(name = "associated_user_id")
   private List<PermissionsForInventoryEntity> inventoryPerms;
 }

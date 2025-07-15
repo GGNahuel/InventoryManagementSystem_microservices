@@ -11,7 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
+@Entity(name = "user_reference")
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
 public class UserReferenceEntity {

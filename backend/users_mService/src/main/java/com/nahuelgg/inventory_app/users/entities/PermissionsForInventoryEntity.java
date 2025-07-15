@@ -13,7 +13,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity(name = "permissions_for_inventory")
+@Entity(name = "permission_for_inventory")
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
 public class PermissionsForInventoryEntity {

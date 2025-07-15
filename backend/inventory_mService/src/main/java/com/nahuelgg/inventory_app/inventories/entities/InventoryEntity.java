@@ -17,7 +17,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
+@Entity(name = "inventory")
 @Data @Builder(toBuilder = true)
 @NoArgsConstructor @AllArgsConstructor
 public class InventoryEntity {
@@ -29,9 +29,11 @@ public class InventoryEntity {
   private UUID accountId;
 
   @ManyToMany @JoinTable(
-    name = "product_categories", 
-    joinColumns = @JoinColumn(referencedColumnName = "id"), // id del inventario
-    inverseJoinColumns = @JoinColumn(referencedColumnName = "id") // id de la ref al usuario
+    name = "inventory_users", 
+    // id del inventario
+    joinColumns = @JoinColumn(referencedColumnName = "id"), 
+    // id de la ref al usuario (no la id de referencia, sino la de la tabla con las referencias)
+    inverseJoinColumns = @JoinColumn(referencedColumnName = "id") 
   )
   private List<UserReferenceEntity> users;
   @OneToMany(mappedBy = "inventory", cascade = CascadeType.REMOVE)

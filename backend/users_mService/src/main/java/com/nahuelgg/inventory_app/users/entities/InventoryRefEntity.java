@@ -11,7 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity(name = "inventoryReference")
+@Entity(name = "inventory_reference")
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
 public class InventoryRefEntity {
