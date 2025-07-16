@@ -13,7 +13,7 @@ import java.util.List;
 public interface InventoryRepository extends JpaRepository<InventoryEntity, UUID> {
   List<InventoryEntity> findByAccountId(UUID accountId);
 
-  @Query("select i from InventoryEntity i join i.products p where p.referenceId in ?1")
+  @Query("select i from inventory i join i.products p where p.referenceId in ?1")
   List<InventoryEntity> searchByProductRefId(List<UUID> referenceIds);
   /*group by i having count(distinct p.referenceId) = ?2 */
 

@@ -12,14 +12,14 @@ import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
 
 @Repository
 public interface ProductInInvRepository extends JpaRepository<ProductInInvEntity, UUID> {
-  @Query("select p from ProductInInvEntity p join p.inventory i where p.referenceId = ?1 and i.id = ?2")
+  @Query("select p from product_in_inv p join p.inventory i where p.referenceId = ?1 and i.id = ?2")
   Optional<ProductInInvEntity> findByReferenceIdAndInventoryId(UUID referenceId, UUID inventoryId);
 
   @Query("""
-    select p.referenceId from ProductInInvEntity p where 
+    select p.referenceId from product_in_inv p where 
     p.inventory.id = ?1 and
     p.referenceId in (
-      select p2.referenceId from ProductInInvEntity p2
+      select p2.referenceId from product_in_inv p2
       group by p2.referenceId
       having count(p2.referenceId) = 1
     )
