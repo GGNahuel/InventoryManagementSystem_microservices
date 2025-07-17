@@ -2,7 +2,7 @@ services:
   api-gateway:
     build: ./backend/gateway
     container_name: "api-gateway"
-    image: api-gateway
+    image: api-gateway:latest
     ports:
       - "8080:8080"
     env_file:
