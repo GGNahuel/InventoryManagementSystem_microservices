@@ -12,6 +12,14 @@ import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPri
 
 @Service
 public class AuthorizationService {
+  public boolean checkAccountIsLogged() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !(authentication.getPrincipal() instanceof ContextAuthenticationPrincipal)) return false;
+
+    ContextAuthenticationPrincipal auth = (ContextAuthenticationPrincipal) authentication.getPrincipal();
+    return auth.getAccount().getUsername() != null;
+  }
+
   public boolean checkUserIsAdmin() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !(authentication.getPrincipal() instanceof ContextAuthenticationPrincipal)) return false;

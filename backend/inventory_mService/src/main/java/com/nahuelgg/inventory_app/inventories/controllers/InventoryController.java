@@ -28,11 +28,15 @@ public class InventoryController {
   // Queries
   @QueryMapping
   public InventoryDTO getById(@Argument String id) {
+    if (!authorizationService.checkAccountIsLogged())
+      throw new AccessDeniedException("Necesita iniciar sesión para realizar esta acción");
     return service.getById(UUID.fromString(id));
   }
 
   @QueryMapping
   public List<InventoryDTO> getByAccount(@Argument String accountId) {
+    if (!authorizationService.checkAccountIsLogged())
+      throw new AccessDeniedException("Necesita iniciar sesión para realizar esta acción");
     return service.getByAccount(UUID.fromString(accountId));
   }
 
@@ -40,6 +44,8 @@ public class InventoryController {
   public List<InventoryDTO> searchProductsInInventories(
     @Argument String name, @Argument String brand, @Argument String model, @Argument List<String> categories, @Argument String accountId
   ) {
+    if (!authorizationService.checkAccountIsLogged())
+      throw new AccessDeniedException("Necesita iniciar sesión para realizar esta acción");
     return service.searchProductsInInventories(name, brand, model, categories, UUID.fromString(name));
   }
 
