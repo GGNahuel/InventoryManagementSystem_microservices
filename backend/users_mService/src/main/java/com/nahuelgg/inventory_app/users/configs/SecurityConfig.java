@@ -25,6 +25,7 @@ public class SecurityConfig {
     httpSecurity
       .authorizeHttpRequests(request -> request
         .requestMatchers("/account/register", "/authenticate/login/account").permitAll()
+        .requestMatchers("/e2e/**").permitAll()
         .anyRequest().authenticated()
       )
       .sessionManagement(session ->

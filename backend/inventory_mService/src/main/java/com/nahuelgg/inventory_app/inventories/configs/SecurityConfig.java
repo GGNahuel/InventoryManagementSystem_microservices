@@ -19,7 +19,7 @@ public class SecurityConfig {
   SecurityFilterChain setFilterChainProps(HttpSecurity httpSecurity) throws Exception {
     httpSecurity
       .authorizeHttpRequests(request -> request
-        .anyRequest().authenticated()
+        .anyRequest().permitAll()
       )
       .addFilterBefore(jwtRequestFilterConfig, UsernamePasswordAuthenticationFilter.class)
       .csrf(csrf -> csrf.disable());

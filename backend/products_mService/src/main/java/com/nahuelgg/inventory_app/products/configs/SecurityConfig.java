@@ -21,6 +21,7 @@ public class SecurityConfig {
   SecurityFilterChain setFilterChainProps(HttpSecurity httpSecurity) throws Exception {
     httpSecurity
       .authorizeHttpRequests(request -> request
+        .requestMatchers("/e2e/**").permitAll()
         .anyRequest().authenticated()
       )
       .addFilterBefore(jwtRequestFilterConfig, UsernamePasswordAuthenticationFilter.class)
