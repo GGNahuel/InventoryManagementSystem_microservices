@@ -1,0 +1,9 @@
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+WORKDIR /backend/e2eTests
+COPY . .
+RUN mvn clean package -DskipTests
+
+FROM openjdk:17-jdk-slim
+WORKDIR /backend/e2eTests
+COPY --from=build /backend/e2eTests /backend/e2eTests
+CMD ["mvn", "test"]
