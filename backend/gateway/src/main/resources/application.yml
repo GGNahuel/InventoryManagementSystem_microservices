@@ -13,7 +13,7 @@ spring:
             - id: users-service
               uri: http://api-users:8082
               predicates:
-                - Path=/account/id/**,/account/register,/account/add-user,/account/delete,/authenticate/**,/user/**
+                - Path=/account/id/**,/account/register,/account/add-user,/account/delete,/authenticate/**,/user/**,/e2e/**
               filters:
                 - AuthenticationFilter
 
@@ -27,7 +27,7 @@ spring:
             - id: products-service
               uri: http://api-products:8081
               predicates:
-                - Path=/product/**
+                - Path=/product/**,/e2e/**
               filters:
                 - AuthenticationFilter
 

@@ -20,7 +20,8 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
   private boolean checkIfEndpointIsOpen(ServerHttpRequest request) {
     List<String> openEndpoints = List.of(
       "/account/register",
-      "/authenticate/login/account"
+      "/authenticate/login/account",
+      "/e2e"
     );
 
     System.out.println(request.getURI());

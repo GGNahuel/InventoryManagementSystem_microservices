@@ -1,0 +1,22 @@
+type Query {
+  getAllInventories: [Inventory]
+  getAllProductsInInv: [ProductInInvEntity]
+  getAllUserReferences: [UserRef]
+}
+
+type ProductInInvEntity {
+  id: ID!
+  referenceId: ID!
+  stock: Int
+  isAvailable: Boolean
+  inventory: InvEntity!
+}
+
+type InvEntity {
+  id: ID!
+}
+
+type UserRef {
+  id: ID!
+  referenceId: ID!
+}
