@@ -70,25 +70,20 @@ public class AccountService_Impl implements AccountService {
     if (!password.equals(passwordRepeated) || !adminPassword.equals(adminPasswordRepeated))
       throw new InvalidValueException("Las contraseñas no coinciden con sus respectivas repeticiones");
 
+    AccountEntity accountSaved = repository.save(AccountEntity.builder()
+      .username(username)
+      .password(encoder.encode(password))
+    .build());
+
     UserEntity adminUser = userRepository.save(UserEntity.builder()
       .name("admin")
       .password(encoder.encode(adminPassword))
       .role("admin")
       .isAdmin(true)
+      .associatedAccount(accountSaved)
     .build());
 
-    AccountEntity accountToCreate = AccountEntity.builder()
-      .username(username)
-      .password(encoder.encode(password))
-      .users(List.of(adminUser))
-    .build();
-
-    AccountEntity accountSaved = repository.save(accountToCreate);
-
-    adminUser.setAssociatedAccount(accountSaved);
-    userRepository.save(adminUser);
-
-    return entityMappers.mapAccount(accountSaved);
+    return entityMappers.mapAccount(accountSaved.toBuilder().users(List.of(adminUser)).build());
   }
 
   @Override @Transactional

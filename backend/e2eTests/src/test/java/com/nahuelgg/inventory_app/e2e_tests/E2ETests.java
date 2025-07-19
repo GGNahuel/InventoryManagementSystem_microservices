@@ -55,7 +55,7 @@ public class E2ETests {
   @SuppressWarnings("resource")
   @Container
   static GenericContainer<?> productsService = new GenericContainer<>("api-products:latest")
-    //.withExposedPorts(8081)
+    .withExposedPorts(8081)
     .withEnv(setInitialEnvVariables(databaseNames.products))
     .withNetwork(network)
     .withNetworkAliases(containerAliases.get("productAlias"))
@@ -64,7 +64,7 @@ public class E2ETests {
     @SuppressWarnings("resource")
     @Container
     static GenericContainer<?> usersService = new GenericContainer<>("api-users:latest")
-    //.withExposedPorts(8082)
+    .withExposedPorts(8082)
     .withEnv(setInitialEnvVariables(databaseNames.users))
     .withNetworkAliases(containerAliases.get("userAlias"))
     .withNetwork(network)
@@ -73,7 +73,7 @@ public class E2ETests {
   @SuppressWarnings("resource")
   @Container
   static GenericContainer<?> inventoriesService = new GenericContainer<>("api-inventories:latest")
-    //.withExposedPorts(8083)
+    .withExposedPorts(8083)
     .withEnv(setInitialEnvVariables(databaseNames.inventories))
     .withNetworkAliases(containerAliases.get("inventoryAlias"))
     .withNetwork(network)
@@ -95,18 +95,17 @@ public class E2ETests {
     return "";
   } */
 
-  // ver cómo guardar el jwt
   @Test
-  void accountRegistrationCanBeDone() {
+  void accountRegistration_saveAccountAndAdminUserInDB() {
     String baseUrl = "http://" + gatewayService.getHost() + ":" + gatewayService.getMappedPort(8080);
     String completeUrl = baseUrl + "/account/register?username=user&password=1234&passwordRepeated=1234" + 
       "&adminPassword=4321&adminPasswordRepeated=4321";
     Response response = RestAssured.given().when().post(completeUrl).andReturn();
-      
+
     System.out.println(gatewayService.getLogs());
     System.out.println(usersService.getLogs());
     System.out.println(response.asPrettyString());
 
-    assertEquals(200, response.getStatusCode());
+    assertEquals(201, response.getStatusCode());
   }
 }
