@@ -23,6 +23,8 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
       "/authenticate/login/account"
     );
 
+    System.out.println(request.getURI());
+    System.out.println(request.getURI().getPath());
     return openEndpoints.stream().noneMatch(uri -> request.getURI().getPath().contains(uri));
   }
 

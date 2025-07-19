@@ -1,32 +1,38 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: inventory_app.gateway
 
   cloud:
     gateway:
-      routes:
-        - id: users-service
-          uri: http://api-users:8082
-          predicates:
-            - Path=/account/id/**
-            - Path=/account/register
-            - Path=/account/add-user
-            - Path=/account/delete
-            - Path=/authenticate/**
-            - Path=/user/**
-          filters:
-            - AuthenticationFilter
+      server:
+        webflux:
+          routes:
+            - id: users-service
+              uri: http://api-users:8082
+              predicates:
+                - Path=/account/id/**,/account/register,/account/add-user,/account/delete,/authenticate/**,/user/**
+              filters:
+                - AuthenticationFilter
 
-        - id: inventories-service
-          uri: http://api-inventories:8083
-          predicates:
-            - Path=/graphql
-          filters:
-            - AuthenticationFilter
+            - id: inventories-service
+              uri: http://api-inventories:8083
+              predicates:
+                - Path=/graphql/**
+              filters:
+                - AuthenticationFilter
 
-        - id: products-service
-          uri: http://api-products:8081
-          predicates:
-            - Path=/product/edit
-          filters:
-            - AuthenticationFilter
+            - id: products-service
+              uri: http://api-products:8081
+              predicates:
+                - Path=/product/**
+              filters:
+                - AuthenticationFilter
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: gateway,health
