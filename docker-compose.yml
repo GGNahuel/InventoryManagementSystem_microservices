@@ -78,6 +78,7 @@ services:
 
 networks:
   inventoryApp-network:
+    name: inventory-app-network
 
 volumes:
   database-data:
