@@ -13,7 +13,7 @@ import com.nahuelgg.inventory_app.products.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/e2e")
+@RequestMapping("/e2e/product-service")
 @Profile("e2e")
 @RequiredArgsConstructor
 public class E2ETestController {

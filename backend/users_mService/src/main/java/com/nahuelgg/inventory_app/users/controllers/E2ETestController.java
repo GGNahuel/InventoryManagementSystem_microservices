@@ -19,7 +19,7 @@ import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/e2e")
+@RequestMapping("/e2e/users-service")
 @Profile("e2e")
 @RequiredArgsConstructor
 public class E2ETestController {
