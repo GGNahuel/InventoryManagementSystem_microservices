@@ -79,7 +79,7 @@ public class AuthenticateControllerTest {
 
   @Test
   void loginAccount_successWithoutToken() {
-    LoginDTO input = LoginDTO.builder().isAccountLogin(true).username(acc.getUsername()).password("123test").build();
+    LoginDTO input = LoginDTO.builder().accountLogin(true).username(acc.getUsername()).password("123test").build();
     when(authenticationService.login(input)).thenReturn(new TokenDTO(token));
 
     HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input);
@@ -90,7 +90,7 @@ public class AuthenticateControllerTest {
 
   @Test
   void loginAccount_successWithEmptyToken() {
-    LoginDTO input = LoginDTO.builder().isAccountLogin(true).username(acc.getUsername()).password("123test").build();
+    LoginDTO input = LoginDTO.builder().accountLogin(true).username(acc.getUsername()).password("123test").build();
     when(authenticationService.login(input)).thenReturn(new TokenDTO(token));
     configJwtMock(null, null, false, null, null);
 
@@ -102,7 +102,7 @@ public class AuthenticateControllerTest {
 
   @Test
   void loginAsUser_success() {
-    LoginDTO input = LoginDTO.builder().isAccountLogin(false).username("subUser").password("123test").build();
+    LoginDTO input = LoginDTO.builder().accountLogin(false).username("subUser").password("123test").build();
     when(authenticationService.loginAsUser(input)).thenReturn(new TokenDTO(token));
     configJwtMock("subUser", "role", false, null, acc.getUsername());
 
@@ -114,7 +114,7 @@ public class AuthenticateControllerTest {
 
   @Test
   void loginAsUser_deniedIfNotLogged() {
-    LoginDTO input = LoginDTO.builder().isAccountLogin(false).username("subUser").password("123test").build();
+    LoginDTO input = LoginDTO.builder().accountLogin(false).username("subUser").password("123test").build();
     configJwtMock(null, null, false, null, null);
 
     HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken());
