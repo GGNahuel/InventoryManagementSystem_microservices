@@ -74,34 +74,40 @@ public class AuthenticationService {
 
   @Transactional(readOnly = true)
   public TokenDTO loginAsUser(LoginDTO info) {
-    String username = info.getUsername();
+    String userUsername = info.getUsername();
     
     checkFieldsHasContent(new Field("tipo de login", info.isAccountLogin()));
-    checkFieldsHasContent(new Field("nombre de cuenta", username), new Field("contraseña", info.getPassword()));
+    checkFieldsHasContent(new Field("nombre de cuenta", userUsername), new Field("contraseña", info.getPassword()));
     
     if (info.isAccountLogin())
     throw new RuntimeException("El tipo de datos enviados no pertenece al login de usuario");
-
+    
+    // Verificación y extracción de los datos necesarios para armar el nuevo Principal del Authentication del SecurityContext y el JWT
     Authentication currentAuthInContext = SecurityContextHolder.getContext().getAuthentication();
     if (currentAuthInContext == null)
       throw new RuntimeException("Necesita iniciar sesión como cuenta antes de como usuario");
 
     ContextAuthenticationPrincipal currentAccountLogged = (ContextAuthenticationPrincipal) currentAuthInContext.getPrincipal();
-    if (currentAccountLogged.getUser().getName() != null)
+    if (currentAccountLogged.getUser() != null)
       throw new RuntimeException("Ya hay un usuario en sesión");
 
-    UserEntity userToAuthenticate = userRepository.findByNameAndAccountUsername(username, currentAccountLogged.getUsername()).orElseThrow(
+    AccountEntity loggedAccount = accountRepository.findByUsername(currentAccountLogged.getUsername()).orElseThrow(
+      () -> new ResourceNotFoundException("cuenta", "nombre de usuario", userUsername)
+    );
+
+    UserEntity userToAuthenticate = userRepository.findByNameAndAssociatedAccountId(userUsername, loggedAccount.getId()).orElseThrow(
       () -> new ResourceNotFoundException(
-        "usuario", "nombre", username + " en la cuenta " + currentAccountLogged.getUsername())
+        "usuario", "nombre", userUsername + " en la cuenta " + currentAccountLogged.getUsername())
     );
     List<PermissionsForInventoryDTO> permsDto = userToAuthenticate.getInventoryPerms() != null ? userToAuthenticate.getInventoryPerms().stream().map(
       invPermEntity -> entityMappers.mapPerms(invPermEntity)
     ).toList() : null;
 
+    // Armado del nuevo Principal
     ContextAuthenticationPrincipal loggedAccountAndUser = ContextAuthenticationPrincipal.builder()
       .account(new AccountSigned(currentAccountLogged.getUsername(), currentAccountLogged.getPassword()))
       .user(new UserSigned(
-        username, 
+        userUsername, 
         userToAuthenticate.getRole(), 
         userToAuthenticate.getIsAdmin(), 
         permsDto != null ? permsDto.stream().map(
@@ -109,14 +115,11 @@ public class AuthenticationService {
         ).toList() : null
       ))
     .build();
-
-    AccountEntity loggedAccount = accountRepository.findByUsername(currentAccountLogged.getUsername()).orElseThrow(
-      () -> new ResourceNotFoundException("cuenta", "nombre de usuario", username)
-    );
     
+    // Generación de token y seteo de autenticación
     String token = jwtService.generateToken(JwtClaimsDTO.builder()
       .accountId(loggedAccount.getId().toString())
-      .userName(username)
+      .userName(userUsername)
       .userRole(userToAuthenticate.getRole())
       .isAdmin(userToAuthenticate.getIsAdmin())
       .userPerms(permsDto)

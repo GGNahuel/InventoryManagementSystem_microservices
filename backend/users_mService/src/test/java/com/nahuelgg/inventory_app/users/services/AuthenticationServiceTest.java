@@ -118,13 +118,14 @@ public class AuthenticationServiceTest {
       new UsernamePasswordAuthenticationToken(currentAuth, null)
     );
 
-    when(userRepository.findByNameAndAccountUsername("subUser", username)).thenReturn(Optional.of(userEntity));
+    when(accountRepository.findByUsername(username)).thenReturn(Optional.of(AccountEntity.builder().id(accountId).username(username).build()));
+    when(userRepository.findByNameAndAssociatedAccountId("subUser", accountId)).thenReturn(Optional.of(userEntity));
     when(jwtService.generateToken(any(), eq(username))).thenReturn(token);
 
     TokenDTO result = authenticationService.loginAsUser(login);
 
     assertEquals(token, result.getToken());
-    verify(userRepository).findByNameAndAccountUsername("subUser", username);
+    verify(userRepository).findByNameAndAssociatedAccountId("subUser", accountId);
   }
 
   @Test
@@ -141,7 +142,7 @@ public class AuthenticationServiceTest {
 
     assertThrows(RuntimeException.class, () -> authenticationService.loginAsUser(login));
 
-    verify(userRepository, never()).findByNameAndAccountUsername(any(), any());
+    verify(userRepository, never()).findByNameAndAssociatedAccountId(any(), any());
     verify(jwtService, never()).generateToken(any(), any());
   }
 
