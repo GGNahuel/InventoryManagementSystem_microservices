@@ -5,6 +5,9 @@ spring:
   application:
     name: inventory_app.gateway
 
+  profiles:
+    active: default
+
   cloud:
     gateway:
       server:

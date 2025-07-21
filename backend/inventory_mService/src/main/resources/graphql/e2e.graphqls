@@ -1,9 +1,3 @@
-type Query {
-  getAllInventories: [Inventory]
-  getAllProductsInInv: [ProductInInvEntity]
-  getAllUserReferences: [UserRef]
-}
-
 type ProductInInvEntity {
   id: ID!
   referenceId: ID!

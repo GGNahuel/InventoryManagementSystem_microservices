@@ -2,12 +2,14 @@ package com.nahuelgg.inventory_app.e2e_tests;
 
 import static org.junit.Assert.assertEquals;
 
+import java.time.Duration;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -33,6 +35,7 @@ public class E2ETests {
 
   private static Map<String, String> setInitialEnvVariables(databaseNames databaseName) {
     return Map.of(
+      "SPRING_PROFILES_ACTIVE", "e2e",
       "SPRING_DATASOURCE_URL", "jdbc:mysql://%s:3306/%s".formatted(
         containerAliases.get("databaseAlias"), databaseName.toString()),
       "SPRING_DATASOURCE_USERNAME", "root",
@@ -83,8 +86,13 @@ public class E2ETests {
   @Container
   static GenericContainer<?> gatewayService = new GenericContainer<>("api-gateway:latest")
     .withExposedPorts(8080)
-    .withEnv("jwt_key", jwt_key)
+    .withEnv(Map.of(
+      "jwt_key", jwt_key,
+      "SPRING_PROFILES_ACTIVE", "e2e"
+    ))
     .withNetwork(network)
+    .withStartupTimeout(Duration.ofSeconds(60))
+    .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
     .dependsOn(databaseService, productsService, inventoriesService, usersService);
 
   /* private String generateUrlWithParams(Map<String, Object> params) {

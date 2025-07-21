@@ -3,10 +3,10 @@ package com.nahuelgg.inventory_app.gateway.utilities;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -18,13 +18,12 @@ import reactor.core.publisher.Mono;
 @Component
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter> {
   private final JwtUtils jwtUtils;
+  private final Environment env;
 
-  @Value("${spring.profiles.active}")
-  String profile;
-
-  public AuthenticationFilter(JwtUtils jwtUtils) {
+  public AuthenticationFilter(JwtUtils jwtUtils, Environment env) {
     super(AuthenticationFilter.class);
     this.jwtUtils = jwtUtils;
+    this.env = env;
   }
 
   private boolean checkIfEndpointIsNotOpen(ServerHttpRequest request) {
@@ -45,7 +44,9 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
       ServerHttpRequest request = exchange.getRequest();
       String path = request.getURI().getPath();
 
-      if (path.contains("/graphql") && profile.equals("e2e")) {
+      String[] profiles = env.getActiveProfiles();
+
+      if (path.contains("/graphql") && profiles[0].equals("e2e")) {
         Mono<String> bodyOfGraphQlRequest =request.getBody().map(dataBuffer -> {
           byte[] bytes = new byte[dataBuffer.readableByteCount()];
           dataBuffer.read(bytes);

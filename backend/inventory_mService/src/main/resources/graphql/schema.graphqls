@@ -8,6 +8,10 @@ type Query {
     categories: [String], 
     accountId: ID!
   ): [Inventory]
+
+  getAllInventories: [Inventory]
+  getAllProductsInInv: [ProductInInvEntity]
+  getAllUserReferences: [UserRef]
 }
 
 type Mutation {
