@@ -66,7 +66,7 @@ public class AuthenticationService {
           .account(new AccountSigned(username, info.getPassword()))
           .user(null)
         .build(),
-        token
+        info.getPassword()
       )
     );
 
@@ -126,7 +126,7 @@ public class AuthenticationService {
       .userPerms(permsDto)
     .build(), currentAccountLogged.getUsername());
 
-    Authentication newAuthInContext = new UsernamePasswordAuthenticationToken(loggedAccountAndUser, token);
+    Authentication newAuthInContext = new UsernamePasswordAuthenticationToken(loggedAccountAndUser, currentAccountLogged.getPassword());
     SecurityContextHolder.getContext().setAuthentication(newAuthInContext);
     
     return new TokenDTO(token);
@@ -164,7 +164,7 @@ public class AuthenticationService {
           .account(new AccountSigned(currentAuth.getUsername(), currentAuth.getPassword()))
           .user(null)
         .build(), 
-      token
+      currentAuth.getPassword()
     ));
 
     return new TokenDTO(token);
