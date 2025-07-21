@@ -1,6 +1,8 @@
 package com.nahuelgg.inventory_app.e2e_tests;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.Matchers.*;
 
 import java.time.Duration;
 import java.util.Map;
@@ -14,6 +16,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
 @Testcontainers
@@ -104,16 +107,40 @@ public class E2ETests {
   } */
 
   @Test
-  void accountRegistration_saveAccountAndAdminUserInDB() {
+  void accountCanBeRegisteredAndLogged() {
     String baseUrl = "http://" + gatewayService.getHost() + ":" + gatewayService.getMappedPort(8080);
-    String completeUrl = baseUrl + "/account/register?username=user&password=1234&passwordRepeated=1234" + 
+
+    // realizar registro
+    String registrationUrl = baseUrl + "/account/register?username=user&password=1234&passwordRepeated=1234" + 
       "&adminPassword=4321&adminPasswordRepeated=4321";
-    Response response = RestAssured.given().when().post(completeUrl).andReturn();
+    Response registrationResponse = RestAssured.given().when().post(registrationUrl).andReturn();
 
-    System.out.println(gatewayService.getLogs());
+    assertEquals(201, registrationResponse.getStatusCode());
+    assertNotNull(registrationResponse.getBody().jsonPath().getJsonObject("data"));
+
+    // verificar que la cuenta se haya guardado en la base de datos
+    RestAssured.given().when().get(baseUrl + "/e2e/users-service/accounts").then()
+      .statusCode(200)
+      .body("size()", equalTo(1))
+      .body("[0].username", equalTo("user"))
+      .body("[0].password", is(not("1234")));
+
+    // realizar login
+    Map<String, ?> bodyOfLogin = Map.of(
+      "username", "user",
+      "password", "1234",
+      "accountLogin", true
+    );
+
+    String loginUrl = baseUrl + "/authenticate/login/account";
+    Response loginResponse = RestAssured.given()
+      .contentType(ContentType.JSON).body(bodyOfLogin)
+    .when().post(loginUrl).andReturn();
+
     System.out.println(usersService.getLogs());
-    System.out.println(response.asPrettyString());
+    System.out.println(gatewayService.getLogs());
+    System.out.println(loginResponse.asPrettyString());
 
-    assertEquals(201, response.getStatusCode());
+    assertEquals(200, loginResponse.getStatusCode());
   }
 }
