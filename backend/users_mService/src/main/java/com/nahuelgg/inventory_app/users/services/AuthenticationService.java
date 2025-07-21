@@ -109,9 +109,13 @@ public class AuthenticationService {
         ).toList() : null
       ))
     .build();
+
+    AccountEntity loggedAccount = accountRepository.findByUsername(currentAccountLogged.getUsername()).orElseThrow(
+      () -> new ResourceNotFoundException("cuenta", "nombre de usuario", username)
+    );
     
     String token = jwtService.generateToken(JwtClaimsDTO.builder()
-      .accountId(userToAuthenticate.getAssociatedAccount().getId().toString())
+      .accountId(loggedAccount.getId().toString())
       .userName(username)
       .userRole(userToAuthenticate.getRole())
       .isAdmin(userToAuthenticate.getIsAdmin())

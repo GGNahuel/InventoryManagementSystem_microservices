@@ -182,7 +182,7 @@ public class AccountServiceTest {
       .id(UUID.randomUUID())
       .name("Juan")
       .role("caja")
-      .associatedAccount(acc)
+      .associatedAccountId(acc.getId())
       .inventoryPerms(List.of(mappedPerm))
     .build();
 
@@ -192,7 +192,7 @@ public class AccountServiceTest {
 
     when(repository.findById(acc.getId())).thenReturn(Optional.of(acc));
 
-    when(dtoMappers.mapUser(userInput, acc)).thenReturn(mappedInput_savedEntity);
+    when(dtoMappers.mapUser(userInput, acc.getId())).thenReturn(mappedInput_savedEntity);
     when(dtoMappers.mapPerms(perm)).thenReturn(mappedPerm);
 
     when(permsRepository.save(mappedPerm)).thenReturn(mappedPerm);

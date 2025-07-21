@@ -57,10 +57,10 @@ public class UserService_Impl implements UserService {
       () -> new ResourceNotFoundException("usuario", "id", updatedUser.getId())
     );
 
-    if (repository.findByNameAndAssociatedAccountId(updatedUser.getName(), userInDB.getAssociatedAccount().getId()).isPresent())
+    if (repository.findByNameAndAssociatedAccountId(updatedUser.getName(), userInDB.getAssociatedAccountId()).isPresent())
       throw new InvalidValueException("Ya existe un usuario con ese nombre asociado a esta cuenta");
 
-    UserEntity newUser = dtoMappers.mapUser(updatedUser, userInDB.getAssociatedAccount());
+    UserEntity newUser = dtoMappers.mapUser(updatedUser, userInDB.getAssociatedAccountId());
     newUser.setInventoryPerms(userInDB.getInventoryPerms()); // la idea es que solo se editen los permisos con sus respectivos métodos
 
     return entityMappers.mapUser(repository.save(newUser));
@@ -110,7 +110,7 @@ public class UserService_Impl implements UserService {
         )
       }
     """.formatted(
-      id.toString(), user.getAssociatedAccount().getId().toString()
+      id.toString(), user.getAssociatedAccountId().toString()
     )).retrieve("removeUser").toEntity(Boolean.class);
 
     repository.deleteById(id);

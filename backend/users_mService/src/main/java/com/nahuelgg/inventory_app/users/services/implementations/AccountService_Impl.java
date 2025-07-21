@@ -80,7 +80,7 @@ public class AccountService_Impl implements AccountService {
       .password(encoder.encode(adminPassword))
       .role("admin")
       .isAdmin(true)
-      .associatedAccount(accountSaved)
+      .associatedAccountId(accountSaved.getId())
     .build());
 
     return entityMappers.mapAccount(accountSaved.toBuilder().users(List.of(adminUser)).build());
@@ -113,7 +113,7 @@ public class AccountService_Impl implements AccountService {
       () -> new ResourceNotFoundException("cuenta", "id", accountId.toString())
     );
 
-    UserEntity newUser = dtoMappers.mapUser(user, parentAccount);
+    UserEntity newUser = dtoMappers.mapUser(user, parentAccount.getId());
 
     List<PermissionsForInventoryEntity> permsEntities = new ArrayList<>();
     for (int i = 0; i < user.getInventoryPerms().size(); i++) {

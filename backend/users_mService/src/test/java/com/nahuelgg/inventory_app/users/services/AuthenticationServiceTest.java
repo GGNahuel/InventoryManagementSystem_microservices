@@ -110,7 +110,7 @@ public class AuthenticationServiceTest {
       .name("subUser")
       .role("role")
       .isAdmin(true)
-      .associatedAccount(AccountEntity.builder().id(accountId).build())
+      .associatedAccountId(accountId)
       .inventoryPerms(null)
     .build();
 
