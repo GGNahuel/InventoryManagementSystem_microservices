@@ -46,11 +46,12 @@ public class AuthenticationService {
     checkFieldsHasContent(new Field("tipo de login", info.isAccountLogin()));
     checkFieldsHasContent(new Field("nombre de cuenta", username), new Field("contraseña", info.getPassword()));
     
+    System.out.println(info.toString());
     if (!info.isAccountLogin())
-    throw new RuntimeException("El tipo de datos enviados no pertenece al login de cuenta");
+      throw new RuntimeException("El tipo de datos enviados no pertenece al login de cuenta");
 
     Authentication currentAuthInContext = SecurityContextHolder.getContext().getAuthentication();
-    if (currentAuthInContext != null)
+    if (currentAuthInContext.getPrincipal() instanceof ContextAuthenticationPrincipal)
       throw new RuntimeException("Ya hay una sesión iniciada para la cuenta");
     
     AccountEntity accountToLog = accountRepository.findByUsername(username).orElseThrow(
