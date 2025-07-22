@@ -6,8 +6,10 @@ import java.util.List;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthenticationService {
   private final AuthenticationManager authenticationManager;
   private final JwtService jwtService;
+  private final BCryptPasswordEncoder encoder;
 
   private final AccountRepository accountRepository;
   private final UserRepository userRepository;
@@ -103,6 +106,10 @@ public class AuthenticationService {
     List<PermissionsForInventoryDTO> permsDto = userToAuthenticate.getInventoryPerms() != null ? userToAuthenticate.getInventoryPerms().stream().map(
       invPermEntity -> entityMappers.mapPerms(invPermEntity)
     ).toList() : null;
+
+    // Validación de contraseña del usuario
+    if (!encoder.matches(info.getPassword(), userToAuthenticate.getPassword()))
+      throw new AuthorizationDeniedException("La contraseña del usuario no coincide");
 
     // Armado del nuevo Principal
     ContextAuthenticationPrincipal loggedAccountAndUser = ContextAuthenticationPrincipal.builder()
