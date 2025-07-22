@@ -12,6 +12,6 @@ import com.nahuelgg.inventory_app.users.entities.UserEntity;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, UUID>{
-  @Query("select u from user u where u.name = ?1 and u.associatedAccountId = ?2")
+  @Query("select u from users u where u.name = ?1 and u.associatedAccountId = ?2")
   Optional<UserEntity> findByNameAndAssociatedAccountId(String name, UUID accountId);
 }
