@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.users.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
@@ -58,12 +60,12 @@ public class JwtService {
     }
   }
 
-  public JwtClaimsDTO mapTokenClaims(String token) {
+  public JwtClaimsDTO mapTokenClaims(String token) throws JsonMappingException, JsonProcessingException {
     Claims claims = getAllClaims(token);
-    List<Map<String, Object>> rawPermList = claims.get("userPerms", List.class);
-    List<PermissionsForInventoryDTO> convertedPerms = rawPermList.stream().map(
-      rawPerm -> objectMapper.convertValue(rawPerm, PermissionsForInventoryDTO.class)
-    ).toList();
+    List<PermissionsForInventoryDTO> convertedPerms = objectMapper.readValue(
+      claims.get("userPerms", String.class),
+      new TypeReference<List<PermissionsForInventoryDTO>>() {}
+    );
 
     return JwtClaimsDTO.builder()
       .accountId(claims.get("accountId", String.class))

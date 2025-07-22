@@ -53,7 +53,7 @@ public class ExceptionHandlerTest {
   HttpEntity<String> entity;
 
   @BeforeEach
-  void configJwtMock() {
+  void configJwtMock() throws Exception {
     when(jwtService.getClaim(eq(token), any())).thenAnswer(inv -> {
       Function<Claims, ?> claimGetter = inv.getArgument(1);
       Claims claims = Jwts.claims();

@@ -47,7 +47,8 @@ public class AuthenticateControllerTest {
   AccountDTO acc = AccountDTO.builder().id(UUID.randomUUID().toString()).username("accUsername").build();
   String token = "tokenTest";
 
-  private void configJwtMock(String userName, String userRole, boolean isAdmin, List<PermissionsForInventoryDTO> userPerms, String accLoggedUsername) {
+  private void configJwtMock(String userName, String userRole, boolean isAdmin, List<PermissionsForInventoryDTO> userPerms, String accLoggedUsername) 
+  throws Exception {
     when(jwtService.getClaim(eq(token), any())).thenAnswer(inv -> {
       Function<Claims, ?> claimGetter = inv.getArgument(1);
       Claims claims = Jwts.claims();
@@ -89,7 +90,7 @@ public class AuthenticateControllerTest {
   }
 
   @Test
-  void loginAccount_successWithEmptyToken() {
+  void loginAccount_successWithEmptyToken() throws Exception {
     LoginDTO input = LoginDTO.builder().accountLogin(true).username(acc.getUsername()).password("123test").build();
     when(authenticationService.login(input)).thenReturn(new TokenDTO(token));
     configJwtMock(null, null, false, null, null);
@@ -101,7 +102,7 @@ public class AuthenticateControllerTest {
   }
 
   @Test
-  void loginAsUser_success() {
+  void loginAsUser_success() throws Exception {
     LoginDTO input = LoginDTO.builder().accountLogin(false).username("subUser").password("123test").build();
     when(authenticationService.loginAsUser(input)).thenReturn(new TokenDTO(token));
     configJwtMock("subUser", "role", false, null, acc.getUsername());
@@ -113,7 +114,7 @@ public class AuthenticateControllerTest {
   }
 
   @Test
-  void loginAsUser_deniedIfNotLogged() {
+  void loginAsUser_deniedIfNotLogged() throws Exception {
     LoginDTO input = LoginDTO.builder().accountLogin(false).username("subUser").password("123test").build();
     configJwtMock(null, null, false, null, null);
 
@@ -124,7 +125,7 @@ public class AuthenticateControllerTest {
   }
 
   @Test
-  void logout_success() {
+  void logout_success() throws Exception {
     when(authenticationService.logout()).thenReturn(new TokenDTO(token));
     configJwtMock("subUser", "role", false, null, acc.getUsername());
 
@@ -137,7 +138,7 @@ public class AuthenticateControllerTest {
   }
 
   @Test
-  void logout_deniedIfNotLogged() {
+  void logout_deniedIfNotLogged() throws Exception {
     configJwtMock("subUser", "role", false, null, null);
 
     ResponseEntity<TokenDTO> response = restTemplate.exchange(
@@ -149,7 +150,7 @@ public class AuthenticateControllerTest {
   }
 
   @Test
-  void logoutUser_success() {
+  void logoutUser_success() throws Exception {
     when(authenticationService.logoutAsUser()).thenReturn(new TokenDTO(token));
     configJwtMock("subUser", "role", false, null, acc.getUsername());
 
@@ -162,7 +163,7 @@ public class AuthenticateControllerTest {
   }
 
   @Test
-  void logoutUser_deniedIfNotLogged() {
+  void logoutUser_deniedIfNotLogged() throws Exception {
     configJwtMock("subUser", "role", false, null, null);
 
     ResponseEntity<TokenDTO> response = restTemplate.exchange(

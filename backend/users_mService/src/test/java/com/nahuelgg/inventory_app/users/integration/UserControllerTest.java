@@ -24,7 +24,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.JwtClaimsDTO;
@@ -50,7 +49,8 @@ public class UserControllerTest {
   UserDTO user = UserDTO.builder().id(UUID.randomUUID().toString()).build();
   String token = "testToken";
 
-  private void configJwtMock(String userName, String userRole, boolean isAdmin, List<PermissionsForInventoryDTO> userPerms, String accUsername) {
+  private void configJwtMock(String userName, String userRole, boolean isAdmin, List<PermissionsForInventoryDTO> userPerms, String accUsername) 
+  throws Exception {
     when(jwtService.getClaim(eq(token), any())).thenAnswer(inv -> {
       Function<Claims, ?> claimGetter = inv.getArgument(1);
       Claims claims = Jwts.claims();
@@ -81,7 +81,7 @@ public class UserControllerTest {
   }
 
   @Test
-  void getById_successIfAccountLogged() {
+  void getById_successIfAccountLogged() throws Exception {
     when(service.getById(UUID.fromString(user.getId()))).thenReturn(user);
     configJwtMock(null, null, false, null, acc.getUsername());
 
@@ -98,7 +98,7 @@ public class UserControllerTest {
   }
 
   @Test
-  void getById_deniedIfNotLoggedAccount() {
+  void getById_deniedIfNotLoggedAccount() throws Exception {
     configJwtMock(null, null, false, null, null);
 
     ResponseEntity<ResponseDTO> response = restTemplate.exchange(
@@ -113,7 +113,7 @@ public class UserControllerTest {
   }
 
   @Test
-  void edit_successIfAdmin() {
+  void edit_successIfAdmin() throws Exception {
     when(service.edit(user)).thenReturn(user);
     configJwtMock("admin", "admin", true, null, acc.getUsername());
 
@@ -126,7 +126,7 @@ public class UserControllerTest {
   }
 
   @Test
-  void edit_deniedIfNotAdmin() {
+  void edit_deniedIfNotAdmin() throws Exception {
     configJwtMock("admin", "admin", false, null, acc.getUsername());
 
     HttpEntity<UserDTO> httpEntity = new HttpEntity<UserDTO>(user, generateHeaderWithToken());
@@ -137,7 +137,7 @@ public class UserControllerTest {
   }
 
   @Test
-  void assignNewPerms_successIfAdmin() throws JsonProcessingException {
+  void assignNewPerms_successIfAdmin() throws Exception {
     PermissionsForInventoryDTO perm = PermissionsForInventoryDTO.builder().id(UUID.randomUUID().toString()).build();
     when(service.assignNewPerms(perm, UUID.fromString(user.getId()))).thenReturn(user);
     configJwtMock("admin", "admin", true, null, acc.getUsername());
@@ -156,7 +156,7 @@ public class UserControllerTest {
   }
 
   @Test
-  void assignNewPerms_deniedIfNotAdmin() throws JsonProcessingException {
+  void assignNewPerms_deniedIfNotAdmin() throws Exception {
     PermissionsForInventoryDTO perm = PermissionsForInventoryDTO.builder().id(UUID.randomUUID().toString()).build();
     configJwtMock("admin", "admin", false, null, acc.getUsername());
 
@@ -173,7 +173,7 @@ public class UserControllerTest {
   }
 
   @Test
-  void delete_successIfAdmin() {
+  void delete_successIfAdmin() throws Exception {
     configJwtMock("admin", "admin", true, null, acc.getUsername());
 
     ResponseEntity<ResponseDTO> response = restTemplate.exchange(
@@ -186,7 +186,7 @@ public class UserControllerTest {
   }
 
   @Test
-  void delete_deniedIfNotAdmin() {
+  void delete_deniedIfNotAdmin() throws Exception {
     configJwtMock("admin", "admin", false, null, acc.getUsername());
 
     ResponseEntity<ResponseDTO> response = restTemplate.exchange(
