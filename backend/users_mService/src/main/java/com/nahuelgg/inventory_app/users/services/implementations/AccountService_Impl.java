@@ -8,9 +8,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.graphql.client.HttpGraphQlClient;
-import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +27,6 @@ import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.AccountService;
-import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
@@ -185,18 +181,6 @@ public class AccountService_Impl implements AccountService {
   public void delete(UUID accountId) {
     checkFieldsHasContent(new Field("id de cuenta", accountId));
 
-    Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
-    if (currentAuth == null) {
-      throw new RuntimeException("No hay cuenta en sesión");
-    }
-    ContextAuthenticationPrincipal principal = (ContextAuthenticationPrincipal) currentAuth.getPrincipal();
-    AccountEntity loggedAccount = repository.findByUsername(principal.getUsername()).orElseThrow(
-      () -> new RuntimeException("Error al buscar la cuenta en sesión")
-    );
-    if (!loggedAccount.getId().equals(accountId)) {
-      throw new AuthorizationDeniedException("No puede borrar otra cuenta distinta a la que está en sesión");
-    }
-
     boolean accountWithIdExists = repository.findById(accountId).isPresent();
     if (accountWithIdExists) {
       boolean inventoryRequestWasSuccess = client.document("""
@@ -211,9 +195,7 @@ public class AccountService_Impl implements AccountService {
         throw new RuntimeException("El borrado de inventarios asociados no se ha podido realizar, operación cancelada");
 
       restTemplate.delete("http://api-products:8081/product/delete-by-account?id=" + accountId.toString());
-      System.out.println("ASDASD");
       repository.deleteById(accountId);
-      System.out.println("RYTRYTRY");
     }
   }
 }
