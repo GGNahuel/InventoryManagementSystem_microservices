@@ -1,83 +1,78 @@
 package com.nahuelgg.inventory_app.users.integration;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.graphql.client.GraphQlClient;
+import org.springframework.graphql.client.HttpGraphQlClient;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
-import com.nahuelgg.inventory_app.users.dtos.JwtClaimsDTO;
-import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
+import com.nahuelgg.inventory_app.users.dtos.LoginDTO;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
-import com.nahuelgg.inventory_app.users.services.AccountService;
+import com.nahuelgg.inventory_app.users.entities.AccountEntity;
+import com.nahuelgg.inventory_app.users.entities.InventoryRefEntity;
+import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
+import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
+import com.nahuelgg.inventory_app.users.repositories.UserRepository;
+import com.nahuelgg.inventory_app.users.services.AuthenticationForTesting;
+import com.nahuelgg.inventory_app.users.services.AuthenticationForTesting.AuthData;
 import com.nahuelgg.inventory_app.users.services.JwtService;
+import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import reactor.core.publisher.Mono;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 public class AccountControllerTest {
   @Autowired TestRestTemplate restTemplate;
   @Autowired ObjectMapper objectMapper;
+  @Autowired JwtService jwtService;
+  @Autowired AuthenticationForTesting authenticator;
 
-  @MockitoBean AccountService service;
-  @MockitoBean JwtService jwtService;
+  @Autowired AccountRepository accountRepository;
+  @Autowired UserRepository userRepository;
+  @Autowired InventoryRefRepository inventoryRefRepository;
 
-  AccountDTO acc = AccountDTO.builder()
+  @MockitoBean RestTemplate innerRestTemplate;
+  @MockitoBean HttpGraphQlClient graphQlClient;
+
+  EntityMappers eMappers = new EntityMappers();
+
+  AccountDTO exampleAcc = AccountDTO.builder()
     .id(UUID.randomUUID().toString())
-    .username("account")
+    .username("exampleAccount")
     .users(new ArrayList<>())
   .build();
 
-  String token = "testToken";
-
-  private void configJwtMock(String userName, String userRole, boolean isAdmin, List<PermissionsForInventoryDTO> userPerms, String accUsername) {
-    when(jwtService.getClaim(eq(token), any())).thenAnswer(inv -> {
-      Function<Claims, ?> claimGetter = inv.getArgument(1);
-      Claims claims = Jwts.claims();
-      claims.setSubject(accUsername);
-      claims.put("accountId", acc.getId());
-      claims.put("userName", userName);
-      claims.put("userRole", userRole);
-      claims.put("isAdmin", isAdmin);
-      claims.put("userPerms", userPerms);
-      return claimGetter.apply(claims);
-    });
-    when(jwtService.isTokenExpired(token)).thenReturn(false);
-    when(jwtService.isTokenValid(token, acc.getUsername())).thenReturn(true);
-    when(jwtService.mapTokenClaims(token)).thenReturn(JwtClaimsDTO.builder()
-      .accountId(acc.getId())
-      .userName(userName)
-      .userRole(userRole)
-      .isAdmin(isAdmin)
-      .userPerms(userPerms != null ? userPerms : List.of())
-    .build());
-  }
+  String token;
 
   private HttpHeaders generateHeaderWithToken() {
     HttpHeaders headers = new HttpHeaders();
@@ -87,54 +82,82 @@ public class AccountControllerTest {
   }
 
   @Test
+  @DirtiesContext
   void getAll_successIfAuthenticated() {
-    List<AccountDTO> expected = List.of(acc);
-    when(service.getAll()).thenReturn(expected);
-    configJwtMock(null, null, false, null, acc.getUsername());
-
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    accountRepository.save(AccountEntity.builder().username(exampleAcc.getUsername()).password("4321").build());
+    
+    AuthData authenticatedData = authenticator.authenticate(new LoginDTO("account", "1234", false));
+    token = authenticatedData.getToken();
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(
+      "/account", HttpMethod.GET, 
+      new HttpEntity<>(generateHeaderWithToken()), 
+      ResponseDTO.class
+    );
+    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+    
     List<AccountDTO> actual = objectMapper.convertValue(
       response.getBody().getData(),
       new TypeReference<List<AccountDTO>>() {}
     );
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    assertIterableEquals(expected, actual);
+    assertEquals(2, actual.size());
+    assertTrue(actual.stream().anyMatch(accDto -> accDto.getUsername().equals(exampleAcc.getUsername())));
+    assertTrue(actual.stream().anyMatch(accDto -> accDto.getUsername().equals("account")));
   }
 
   @Test
   void getAll_denied() {
-    configJwtMock(null, null, false, null, null);
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(
+      "/account", HttpMethod.GET,
+      new HttpEntity<>(generateHeaderWithToken()),
+      ResponseDTO.class
+    );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
   }
 
   @Test
+  @DirtiesContext
   void getById() {
-    when(service.getById(UUID.fromString(acc.getId()))).thenReturn(acc);
-    configJwtMock(null, null, false, null, acc.getUsername());
+    AccountEntity accountToSave = accountRepository.save(AccountEntity.builder()
+      .username("accountToSearch")
+      .password("1234encoded")
+      .users(List.of())
+      .inventoriesReferences(List.of())
+    .build());
+    AccountDTO expected = AccountDTO.builder()
+      .id(accountToSave.getId().toString())
+      .username(accountToSave.getUsername())
+      .users(List.of())
+      .idsOfInventoryReferred(List.of())
+    .build();
 
-    HttpEntity<String> httpEntity = new HttpEntity<>(generateHeaderWithToken());
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account/id/" + acc.getId(), HttpMethod.GET, httpEntity, ResponseDTO.class);
+    token = authenticator.authenticate(new LoginDTO("user", "password", false)).getToken();
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(
+      "/account/id/" + expected.getId(), HttpMethod.GET,
+      new HttpEntity<>(generateHeaderWithToken()),
+      ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
     AccountDTO actual = objectMapper.convertValue(response.getBody().getData(), AccountDTO.class);
-    assertEquals(acc, actual);
+    assertEquals(expected, actual);
   }
 
   @Test
   void getById_denied() {
-    configJwtMock(null, null, false, null, null);
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account/id/" + acc.getId(), HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(
+      "/account/id/" + exampleAcc.getId(), HttpMethod.GET,
+      new HttpEntity<>(generateHeaderWithToken()),
+      ResponseDTO.class
+    );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
   }
 
   @Test
+  @DirtiesContext
   void create_successEvenWithoutAuthentication() {
     String username = "user";
     String password = "password";
     String adminPassword = "adminPassword";
-    when(service.create(username, password, password, adminPassword, adminPassword)).thenReturn(acc);
 
     String url = UriComponentsBuilder.fromUriString("/account/register")
       .queryParam("username", username)
@@ -146,18 +169,25 @@ public class AccountControllerTest {
     ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.POST, null, ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(201), response.getStatusCode());
     
-    AccountDTO actual = objectMapper.convertValue(response.getBody().getData(), AccountDTO.class);
-    assertEquals(acc, actual);
+    Optional<AccountEntity> accountSaved = accountRepository.findByUsername(username);
+    assertTrue(accountSaved.isPresent());
+    
+    AccountEntity accountEntity = accountSaved.get();
+    assertTrue(accountEntity.getUsername().equals(username));
+    assertFalse(accountEntity.getPassword().equals(password));
+    assertTrue(userRepository.findAll().size() == 1);
   }
 
   @Test
   void addUser_success() {
-    UserDTO user = UserDTO.builder().name("user").build();
-    when(service.addUser(user, UUID.fromString(acc.getId()), "123", "123")).thenReturn(user);
-    configJwtMock("admin", "admin", true, null, acc.getUsername());
+    UserDTO user = UserDTO.builder().name("user").role("role").build();
     
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("user", "1234", false));
+    AccountEntity loggedAccount = authData.getAccountSaved();
+    token = authData.getToken();
+
     String url = UriComponentsBuilder.fromUriString("/account/add-user")
-      .queryParam("accountId", acc.getId())
+      .queryParam("accountId", loggedAccount.getId().toString())
       .queryParam("password", "123")
       .queryParam("passwordRepeated", "123")
     .toUriString();
@@ -167,111 +197,207 @@ public class AccountControllerTest {
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     
     UserDTO actual = objectMapper.convertValue(response.getBody().getData(), UserDTO.class);
-    assertEquals(user, actual);
+    assertEquals(user.getName(), actual.getName());
+    assertEquals(user.getRole(), actual.getRole());
+    assertTrue(userRepository.findAll().stream().anyMatch(
+      userSaved -> userSaved.getName().equals(user.getName()) && userSaved.getAssociatedAccountId().equals(loggedAccount.getId())
+    ));
   }
 
   @Test
   void addUser_deniedIfNotAdmin() {
-    configJwtMock("user", "role", false, null, acc.getUsername());
-    UserDTO user = UserDTO.builder().name("user").build();
+    UserDTO user = UserDTO.builder().name("user").role("role").build();
+
     String url = UriComponentsBuilder.fromUriString("/account/add-user")
-      .queryParam("accountId", acc.getId())
+      .queryParam("accountId", exampleAcc.getId())
       .queryParam("password", "123")
       .queryParam("passwordRepeated", "123")
     .toUriString();
-    HttpEntity<UserDTO> httpEntity = new HttpEntity<UserDTO>(user, generateHeaderWithToken());
 
+    token = authenticator.authenticateWithUserToo(
+      new LoginDTO("accountUsername", "1234", false),
+      new LoginDTO("loggedUser", "1234", false), 
+      "notAdmin", null
+    ).getToken();
+    
+    HttpEntity<UserDTO> httpEntity = new HttpEntity<UserDTO>(user, generateHeaderWithToken());
     ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.POST, httpEntity, ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
-
-    verify(service, never()).addUser(any(), any(), any(), any());
+    assertTrue(userRepository.findAll().stream().noneMatch(userSaved -> userSaved.getName().equals(user.getName())));
   }
 
   @Test
   void assignInventory_success() {
     UUID invId = UUID.randomUUID();
-    configJwtMock("admin", "admin", true, null, acc.getUsername());
+
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234", false));
+    AccountEntity loggedAcc = authData.getAccountSaved();
+    token = authData.getToken();
 
     String url = UriComponentsBuilder.fromUriString("/account/add-inventory")
-      .queryParam("accountId", acc.getId())
-      .queryParam("invId", invId.toString())
+      .queryParam("accountId", authData.getAccountSaved().getId().toString())
+      .queryParam("invRefId", invId.toString())
     .toUriString();
 
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.PATCH, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(
+      url, HttpMethod.PATCH,
+      new HttpEntity<>(generateHeaderWithToken()),
+      ResponseDTO.class
+    );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
-    verify(service).assignInventory(UUID.fromString(acc.getId()), invId);
+    Optional<AccountEntity> affectedAccount = accountRepository.findById(loggedAcc.getId());
+    assertTrue(affectedAccount.isPresent());
+    assertTrue(affectedAccount.get().getInventoriesReferences().stream().anyMatch(invRef -> invRef.getInventoryIdReference().equals(invId)));
   }
 
   @Test
   void assignInventory_deniedIfNotAdmin() {
     UUID invId = UUID.randomUUID();
-    configJwtMock("user", "role", false, null, acc.getUsername());
+    
+    token = authenticator.authenticateWithUserToo(
+      new LoginDTO("accountUsername", "1234", false),
+      new LoginDTO("loggedUser", "1234", false), 
+      "notAdmin", null
+    ).getToken();
 
     String url = UriComponentsBuilder.fromUriString("/account/add-inventory")
-      .queryParam("accountId", acc.getId())
-      .queryParam("invId", invId.toString())
+      .queryParam("accountId", exampleAcc.getId())
+      .queryParam("invRefId", invId.toString())
     .toUriString();
 
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.PATCH, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(
+      url, HttpMethod.PATCH,
+      new HttpEntity<>(generateHeaderWithToken()),
+      ResponseDTO.class
+    );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
-
-    verify(service, never()).assignInventory(any(), any());
+    assertTrue(inventoryRefRepository.findAll().isEmpty());
   }
 
   @Test
   void removeInventoryAssigned() {
     UUID invId = UUID.randomUUID();
-    configJwtMock("user", "role", true, null, acc.getUsername());
+    InventoryRefEntity invToRemove = inventoryRefRepository.save(InventoryRefEntity.builder()
+      .inventoryIdReference(invId)
+    .build());
+    
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234", false));
+    AccountEntity loggedAcc = authData.getAccountSaved();
+    token = authData.getToken();
+
+    List<InventoryRefEntity> invRefsInLoggedAccount = new ArrayList<>();
+    invRefsInLoggedAccount.add(invToRemove);
+    loggedAcc.setInventoriesReferences(invRefsInLoggedAccount);
+    accountRepository.save(loggedAcc);
 
     String url = UriComponentsBuilder.fromUriString("/account/remove-inventory")
-      .queryParam("accountId", acc.getId())
-      .queryParam("invId", invId.toString())
+      .queryParam("accountId",loggedAcc.getId().toString())
+      .queryParam("invRefId", invId.toString())
     .toUriString();
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.PATCH, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(
+      url, HttpMethod.PATCH,
+      new HttpEntity<>(generateHeaderWithToken()),
+      ResponseDTO.class
+    );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
-    verify(service).removeInventoryAssigned(UUID.fromString(acc.getId()), invId);
+    Optional<AccountEntity> affectedAccount = accountRepository.findById(loggedAcc.getId());
+    assertTrue(affectedAccount.isPresent());
+    assertTrue(affectedAccount.get().getInventoriesReferences().isEmpty());
   }
 
   @Test
   void removeInventoryAssigned_deniedIfNotAdmin() {
     UUID invId = UUID.randomUUID();
-    configJwtMock("user", "role", false, null, acc.getUsername());
+    token = authenticator.authenticateWithUserToo(
+      new LoginDTO("accountUsername", "1234", false),
+      new LoginDTO("loggedUser", "1234", false), 
+      "notAdmin", null
+    ).getToken();
 
     String url = UriComponentsBuilder.fromUriString("/account/remove-inventory")
-      .queryParam("accountId", acc.getId())
-      .queryParam("invId", invId.toString())
+      .queryParam("accountId", exampleAcc.getId())
+      .queryParam("invRefId", invId.toString())
     .toUriString();
     ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.PATCH, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
-
-    verify(service, never()).removeInventoryAssigned(any(), any());
   }
 
   @Test
   void delete() {
-    configJwtMock("user", "role", true, null, acc.getUsername());
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234", false));
+    token = authData.getToken();
+    AccountEntity loggedAccount = authData.getAccountSaved();
+
+    String graphQlQuery = """
+      mutation {
+        deleteByAccountId(
+          id: "%s"
+        )
+      }
+    """.formatted(loggedAccount.getId());
+
+    GraphQlClient.RequestSpec requestSpec = mock(GraphQlClient.RequestSpec.class);
+    GraphQlClient.RetrieveSpec retrieveSpec = mock(GraphQlClient.RetrieveSpec.class);
+    when(graphQlClient.document(graphQlQuery)).thenReturn(requestSpec);
+    when(requestSpec.retrieve("deleteByAccountId")).thenReturn(retrieveSpec);
+    when(retrieveSpec.toEntity(Boolean.class)).thenReturn(Mono.just(true));
 
     String url = UriComponentsBuilder.fromUriString("/account/delete")
-      .queryParam("id", acc.getId())
+      .queryParam("id", loggedAccount.getId().toString())
     .toUriString();
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(
+      url, HttpMethod.DELETE, 
+      new HttpEntity<>(generateHeaderWithToken()),
+      ResponseDTO.class
+    );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-
-    verify(service).delete(UUID.fromString(acc.getId()));
+    assertTrue(accountRepository.findById(loggedAccount.getId()).isEmpty());
+    verify(innerRestTemplate).delete(
+      "http://api-products:8081/product/delete-by-account?id=" + loggedAccount.getId().toString()
+    );
+    verify(graphQlClient).document(graphQlQuery);
   }
 
   @Test
   void delete_deniedIfNotAdmin() {
-    configJwtMock("user", "role", false, null, acc.getUsername());
+    AccountEntity testAcc = accountRepository.save(AccountEntity.builder()
+      .username("username")
+      .password("password")
+    .build());
 
     String url = UriComponentsBuilder.fromUriString("/account/delete")
-      .queryParam("id", acc.getId())
+      .queryParam("id", testAcc.getId().toString())
     .toUriString();
     ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
+    assertTrue(accountRepository.findById(testAcc.getId()).isPresent());
+    verify(graphQlClient, never()).document(anyString());
+    verify(innerRestTemplate, never()).delete(anyString());
+  }
 
-    verify(service, never()).delete(any());
+  @Test
+  void delete_deniedIfAccountIsNotTheLoggedOne() {
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234", false));
+    token = authData.getToken();
+    AccountEntity testAcc = accountRepository.save(AccountEntity.builder()
+      .username("username")
+      .password("password")
+    .build());
+
+    String url = UriComponentsBuilder.fromUriString("/account/delete")
+      .queryParam("id", testAcc.getId().toString())
+    .toUriString();
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange(
+      url, HttpMethod.DELETE, 
+      new HttpEntity<>(generateHeaderWithToken()),
+      ResponseDTO.class
+    );
+    assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
+    assertTrue(accountRepository.findById(testAcc.getId()).isPresent());
+    verify(graphQlClient, never()).document(anyString());
+    verify(innerRestTemplate, never()).delete(anyString());
   }
 }

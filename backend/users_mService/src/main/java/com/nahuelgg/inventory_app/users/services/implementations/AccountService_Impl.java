@@ -5,8 +5,12 @@ import static com.nahuelgg.inventory_app.users.utilities.Validations.checkFields
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.graphql.client.HttpGraphQlClient;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +30,7 @@ import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.AccountService;
+import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
@@ -39,10 +44,12 @@ public class AccountService_Impl implements AccountService {
   private final UserRepository userRepository;
   private final InventoryRefRepository inventoryRefRepository;
   private final PermissionsForInventoryRepository permsRepository;
+
   private final DTOMappers dtoMappers;
   private final EntityMappers entityMappers = new EntityMappers();
-  private final RestTemplate restTemplate;
   private final BCryptPasswordEncoder encoder;
+
+  private final RestTemplate restTemplate;
   private final HttpGraphQlClient client;
 
   @Override @Transactional(readOnly = true)
@@ -113,19 +120,23 @@ public class AccountService_Impl implements AccountService {
       () -> new ResourceNotFoundException("cuenta", "id", accountId.toString())
     );
 
-    UserEntity newUser = dtoMappers.mapUser(user, parentAccount.getId());
-
     List<PermissionsForInventoryEntity> permsEntities = new ArrayList<>();
-    for (int i = 0; i < user.getInventoryPerms().size(); i++) {
-      PermissionsForInventoryDTO permsDto = user.getInventoryPerms().get(i);
+    if (user.getInventoryPerms() != null) {
+      for (int i = 0; i < user.getInventoryPerms().size(); i++) {
+        PermissionsForInventoryDTO permsDto = user.getInventoryPerms().get(i);
 
-      permsEntities.add(permsRepository.save(dtoMappers.mapPerms(permsDto)));
+        permsEntities.add(permsRepository.save(dtoMappers.mapPerms(permsDto)));
+      }
     }
 
-    newUser.setInventoryPerms(permsEntities);
-    newUser.setIsAdmin(false);
-    newUser.setPassword(encoder.encode(passwordForNewUser));
-    UserEntity savedUser = userRepository.save(newUser);
+    UserEntity savedUser = userRepository.save(UserEntity.builder()
+      .name(user.getName())
+      .role(user.getRole())
+      .password(encoder.encode(passwordForNewUser))
+      .associatedAccountId(accountId)
+      .isAdmin(false)
+      .inventoryPerms(permsEntities)
+    .build());
 
     parentAccount.getUsers().add(savedUser);
     repository.save(parentAccount);
@@ -133,8 +144,8 @@ public class AccountService_Impl implements AccountService {
   }
 
   @Override @Transactional
-  public AccountDTO assignInventory(UUID accountId, UUID inventoryId) {
-    checkFieldsHasContent(new Field("id de cuenta", accountId), new Field("id referenciada de inventario", inventoryId));
+  public AccountDTO assignInventory(UUID accountId, UUID inventoryRefId) {
+    checkFieldsHasContent(new Field("id de cuenta", accountId), new Field("id referenciada de inventario", inventoryRefId));
 
     AccountEntity account = repository.findById(accountId).orElseThrow(
       () -> new ResourceNotFoundException("cuenta", "id", accountId.toString())
@@ -142,7 +153,7 @@ public class AccountService_Impl implements AccountService {
 
     List<InventoryRefEntity> inventoriesReferences = account.getInventoriesReferences() == null ? new ArrayList<>() : account.getInventoriesReferences();
     inventoriesReferences.add(
-      inventoryRefRepository.save(InventoryRefEntity.builder().inventoryIdReference(inventoryId).build())
+      inventoryRefRepository.save(InventoryRefEntity.builder().inventoryIdReference(inventoryRefId).build())
     );
 
     account.setInventoriesReferences(inventoriesReferences);
@@ -150,23 +161,21 @@ public class AccountService_Impl implements AccountService {
   }
 
   @Override @Transactional
-  public void removeInventoryAssigned(UUID accountId, UUID inventoryId) {
-    checkFieldsHasContent(new Field("id de cuenta", accountId), new Field("id referenciada de inventario", inventoryId));
+  public void removeInventoryAssigned(UUID accountId, UUID inventoryRefId) {
+    checkFieldsHasContent(new Field("id de cuenta", accountId), new Field("id referenciada de inventario", inventoryRefId));
 
     AccountEntity account = repository.findById(accountId).orElseThrow(
       () -> new ResourceNotFoundException("cuenta", "id", accountId.toString())
     );
-    inventoryRefRepository.findByInventoryIdReference(inventoryId).orElseThrow(
-      () -> new ResourceNotFoundException("entidad de referencia a inventario", "id de referencia", inventoryId.toString())
+    inventoryRefRepository.findByInventoryIdReference(inventoryRefId).orElseThrow(
+      () -> new ResourceNotFoundException("entidad de referencia a inventario", "id de referencia", inventoryRefId.toString())
     );
 
     List<InventoryRefEntity> inventoriesReferences = account.getInventoriesReferences().stream().filter(
-      invRefEntity -> invRefEntity.getInventoryIdReference() != inventoryId
-    ).toList();
-    List<PermissionsForInventoryEntity> permsAssociatedWithInventoryRef = permsRepository.findByReferencedInventoryId(inventoryId);
-    for (int i = 0; i < permsAssociatedWithInventoryRef.size(); i++) {
-      permsRepository.deleteById(permsAssociatedWithInventoryRef.get(i).getId());
-    }
+      invRefEntity -> !invRefEntity.getInventoryIdReference().equals(inventoryRefId)
+    ).collect(Collectors.toCollection(ArrayList::new));
+    List<PermissionsForInventoryEntity> permsAssociatedWithInventoryRef = permsRepository.findByReferencedInventoryId(inventoryRefId);
+    permsRepository.deleteAll(permsAssociatedWithInventoryRef);
 
     account.setInventoriesReferences(inventoriesReferences);
     repository.save(account);
@@ -175,6 +184,18 @@ public class AccountService_Impl implements AccountService {
   @Override @Transactional
   public void delete(UUID accountId) {
     checkFieldsHasContent(new Field("id de cuenta", accountId));
+
+    Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+    if (currentAuth == null) {
+      throw new RuntimeException("No hay cuenta en sesión");
+    }
+    ContextAuthenticationPrincipal principal = (ContextAuthenticationPrincipal) currentAuth.getPrincipal();
+    AccountEntity loggedAccount = repository.findByUsername(principal.getUsername()).orElseThrow(
+      () -> new RuntimeException("Error al buscar la cuenta en sesión")
+    );
+    if (!loggedAccount.getId().equals(accountId)) {
+      throw new AuthorizationDeniedException("No puede borrar otra cuenta distinta a la que está en sesión");
+    }
 
     boolean accountWithIdExists = repository.findById(accountId).isPresent();
     if (accountWithIdExists) {
@@ -190,8 +211,9 @@ public class AccountService_Impl implements AccountService {
         throw new RuntimeException("El borrado de inventarios asociados no se ha podido realizar, operación cancelada");
 
       restTemplate.delete("http://api-products:8081/product/delete-by-account?id=" + accountId.toString());
-
+      System.out.println("ASDASD");
       repository.deleteById(accountId);
+      System.out.println("RYTRYTRY");
     }
   }
 }
