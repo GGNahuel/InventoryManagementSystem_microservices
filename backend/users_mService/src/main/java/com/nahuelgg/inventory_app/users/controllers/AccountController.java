@@ -18,12 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.services.AccountService;
-import com.nahuelgg.inventory_app.users.utilities.Constants;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(Constants.endpointPrefix + "/account")
+@RequestMapping("/account")
 @RequiredArgsConstructor
 public class AccountController {
   private final AccountService service;
@@ -70,8 +69,8 @@ public class AccountController {
 
   @PatchMapping("/add-inventory")
   @PreAuthorize("@authorizationService.checkUserIsAdmin()")
-  public ResponseEntity<ResponseDTO> assignInventory(@RequestParam String accountId, @RequestParam String invId) {
-    service.assignInventory(UUID.fromString(accountId), UUID.fromString(invId));
+  public ResponseEntity<ResponseDTO> assignInventory(@RequestParam String accountId, @RequestParam String invRefId) {
+    service.assignInventory(UUID.fromString(accountId), UUID.fromString(invRefId));
     return new ResponseEntity<>(
       new ResponseDTO(200, null, null),
       HttpStatus.OK
@@ -80,8 +79,8 @@ public class AccountController {
 
   @PatchMapping("/remove-inventory")
   @PreAuthorize("@authorizationService.checkUserIsAdmin()")
-  public ResponseEntity<ResponseDTO> removeInventoryAssigned(@RequestParam String accountId, @RequestParam String invId) {
-    service.removeInventoryAssigned(UUID.fromString(accountId), UUID.fromString(invId));
+  public ResponseEntity<ResponseDTO> removeInventoryAssigned(@RequestParam String accountId, @RequestParam String invRefId) {
+    service.removeInventoryAssigned(UUID.fromString(accountId), UUID.fromString(invRefId));
     return new ResponseEntity<>(
       new ResponseDTO(200, null, null),
       HttpStatus.OK
