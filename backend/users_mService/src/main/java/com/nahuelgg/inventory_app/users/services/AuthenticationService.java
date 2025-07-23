@@ -49,7 +49,6 @@ public class AuthenticationService {
     checkFieldsHasContent(new Field("tipo de login", info.isAccountLogin()));
     checkFieldsHasContent(new Field("nombre de cuenta", username), new Field("contraseña", info.getPassword()));
     
-    System.out.println(info.toString());
     if (!info.isAccountLogin())
       throw new RuntimeException("El tipo de datos enviados no pertenece al login de cuenta");
 

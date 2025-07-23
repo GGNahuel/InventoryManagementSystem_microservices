@@ -2,10 +2,10 @@ package com.nahuelgg.inventory_app.users.configs;
 
 import java.io.IOException;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -78,12 +78,11 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
         ))
       .build();
 
-      UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
+      PreAuthenticatedAuthenticationToken newAuth = new PreAuthenticatedAuthenticationToken(
         newAuthData,
-        token,
         null
       );
-
+      newAuth.setAuthenticated(true);
       newAuth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
       SecurityContextHolder.getContext().setAuthentication(newAuth);
