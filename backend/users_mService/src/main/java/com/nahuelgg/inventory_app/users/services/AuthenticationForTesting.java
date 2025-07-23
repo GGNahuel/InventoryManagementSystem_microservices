@@ -105,6 +105,7 @@ public class AuthenticationForTesting {
       .associatedAccountId(accountSaved.getId())
       .isAdmin(true)
       .role("admin")
+      .inventoryPerms(new ArrayList<>())
     .build());
     usersInAccount.add(adminSaved);
 
@@ -122,9 +123,9 @@ public class AuthenticationForTesting {
         .associatedAccountId(accountSaved.getId())
         .isAdmin(false)
         .role(claimsForToken.getUserRole())
-        /* .inventoryPerms(claimsForToken.getUserPerms().stream().map(
+        .inventoryPerms(/* claimsForToken.getUserPerms().stream().map(
           permDto -> permsRepo.save()
-        )) // esto sería innecesario */
+        ) es innecesario que sea real este atributo */ new ArrayList<>())
       .build());
 
       permsForOtherUser = claimsForToken.getUserPerms() != null ? 
