@@ -31,7 +31,8 @@ public class UserController {
   private final UserService service;
 
   @GetMapping("/id/{id}")
-  public ResponseEntity<ResponseDTO> getById(@PathVariable String id) {
+  @PreAuthorize("@authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
+  public ResponseEntity<ResponseDTO> getById(@PathVariable String id, @RequestParam String accountId) {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.getById(UUID.fromString(id))),
       HttpStatus.OK
@@ -39,8 +40,8 @@ public class UserController {
   }
 
   @PutMapping("/edit")
-  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
-  public ResponseEntity<ResponseDTO> edit(@RequestBody UserDTO user) {
+  @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
+  public ResponseEntity<ResponseDTO> edit(@RequestBody UserDTO user, @RequestParam String accountId) {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.edit(user)),
       HttpStatus.OK
@@ -48,8 +49,9 @@ public class UserController {
   }
 
   @PatchMapping("/add-perms")
-  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
-  public ResponseEntity<ResponseDTO> assignNewPerms(@RequestBody PermissionsForInventoryDTO perm, @RequestParam String id) throws JsonProcessingException {
+  @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
+  public ResponseEntity<ResponseDTO> assignNewPerms(@RequestBody PermissionsForInventoryDTO perm, @RequestParam String id, @RequestParam String accountId)
+  throws JsonProcessingException {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.assignNewPerms(perm, UUID.fromString(id))),
       HttpStatus.OK
@@ -57,8 +59,8 @@ public class UserController {
   }
 
   @DeleteMapping("/{id}")
-  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
-  public ResponseEntity<ResponseDTO> delete(@PathVariable String id) {
+  @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
+  public ResponseEntity<ResponseDTO> delete(@PathVariable String id, @RequestParam String accountId) {
     service.delete(UUID.fromString(id));
     return new ResponseEntity<>(
       new ResponseDTO(200, null, null),

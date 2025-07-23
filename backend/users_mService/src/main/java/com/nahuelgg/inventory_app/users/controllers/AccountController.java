@@ -27,15 +27,16 @@ import lombok.RequiredArgsConstructor;
 public class AccountController {
   private final AccountService service;
 
-  @GetMapping("")
+  /* @GetMapping("") // método para superAdmin
   public ResponseEntity<ResponseDTO> getAll() {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.getAll()),
       HttpStatus.OK
     );
-  }
+  } */
 
   @GetMapping("/id/{id}")
+  @PreAuthorize("@authorizationService.loggedAccountHasTheIdReferenced(#id)")
   public ResponseEntity<ResponseDTO> getById(@PathVariable String id) {
     return new ResponseEntity<>(
       new ResponseDTO(200, null, service.getById(UUID.fromString(id))),
@@ -56,7 +57,7 @@ public class AccountController {
 
   // TODO: agregar validación en todos los endpoints que afecten a una cuenta, en la que se fije si el id de la cuenta pasada coincide con la del token
   @PostMapping("/add-user")
-  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
   public ResponseEntity<ResponseDTO> addUser(
     @RequestBody UserDTO user, @RequestParam String accountId,
     @RequestParam String password, @RequestParam String passwordRepeated
@@ -68,7 +69,7 @@ public class AccountController {
   }
 
   @PatchMapping("/add-inventory")
-  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
   public ResponseEntity<ResponseDTO> assignInventory(@RequestParam String accountId, @RequestParam String invRefId) {
     service.assignInventory(UUID.fromString(accountId), UUID.fromString(invRefId));
     return new ResponseEntity<>(
@@ -78,7 +79,7 @@ public class AccountController {
   }
 
   @PatchMapping("/remove-inventory")
-  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
   public ResponseEntity<ResponseDTO> removeInventoryAssigned(@RequestParam String accountId, @RequestParam String invRefId) {
     service.removeInventoryAssigned(UUID.fromString(accountId), UUID.fromString(invRefId));
     return new ResponseEntity<>(
@@ -88,7 +89,7 @@ public class AccountController {
   }
 
   @DeleteMapping("/delete")
-  @PreAuthorize("@authorizationService.checkUserIsAdmin()")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#id)")
   public ResponseEntity<ResponseDTO> delete(@RequestParam String id) {
     service.delete(UUID.fromString(id));
     return new ResponseEntity<>(

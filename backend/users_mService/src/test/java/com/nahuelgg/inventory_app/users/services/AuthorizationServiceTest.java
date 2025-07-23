@@ -2,18 +2,33 @@ package com.nahuelgg.inventory_app.users.services;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.nahuelgg.inventory_app.users.entities.AccountEntity;
+import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.AccountSigned;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.UserSigned;
 
+@ExtendWith(MockitoExtension.class)
 public class AuthorizationServiceTest {
-  AuthorizationService service = new AuthorizationService();
+  @Mock AccountRepository accountRepository;
+
+  @InjectMocks AuthorizationService service;
 
   @AfterEach
   void clearContext() {
@@ -27,7 +42,7 @@ public class AuthorizationServiceTest {
       .user(new UserSigned("user", "role", true, null))
     .build();
 
-    var auth = new UsernamePasswordAuthenticationToken(principal, null, null);
+    Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, null);
     SecurityContextHolder.getContext().setAuthentication(auth);
 
     assertTrue(service.checkUserIsAdmin());
@@ -41,21 +56,71 @@ public class AuthorizationServiceTest {
 
   @Test
   void checkUserIsAdmin_deniedIfPrincipalIsNotContextAuthenticationPrincipal() {
-    var auth = new UsernamePasswordAuthenticationToken("string-user", null, null);
+    Authentication auth = new UsernamePasswordAuthenticationToken("string-user", null, null);
     SecurityContextHolder.getContext().setAuthentication(auth);
 
     assertFalse(service.checkUserIsAdmin());
   }
 
   @Test
-  void checkUserIsAdmin_DeniedIfUserIsNull() {
+  void checkUserIsAdmin_deniedIfUserIsNull() {
     ContextAuthenticationPrincipal principal = ContextAuthenticationPrincipal.builder()
       .user(null)
     .build();
 
-    var auth = new UsernamePasswordAuthenticationToken(principal, null, null);
+    Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, null);
     SecurityContextHolder.getContext().setAuthentication(auth);
 
     assertFalse(service.checkUserIsAdmin());
+  }
+
+  @Test
+  void loggedAccountHasTheIdReferenced_success() {
+    UUID idToCompare = UUID.randomUUID();
+    String username = "username";
+    when(accountRepository.findByUsername(username)).thenReturn(Optional.of(AccountEntity.builder()
+      .id(idToCompare)
+      .username(username)
+    .build()));
+
+    Authentication auth = new UsernamePasswordAuthenticationToken(
+      ContextAuthenticationPrincipal.builder()
+        .account(new AccountSigned(username, "1234"))
+        .user(null)
+      .build(), 
+      "1234"
+    );
+    SecurityContextHolder.getContext().setAuthentication(auth);
+
+    assertTrue(service.loggedAccountHasTheIdReferenced(idToCompare.toString()));
+    verify(accountRepository).findByUsername(username);
+  }
+
+  @Test
+  void loggedAccountHasTheIdReferenced_deniedIfNotLogged() {
+    SecurityContextHolder.clearContext();
+    assertFalse(service.loggedAccountHasTheIdReferenced(UUID.randomUUID().toString()));
+  }
+
+  @Test
+  void loggedAccountHasTheIdReferenced_deniedIfIdsAreNotEqual() {
+    UUID idToCompare = UUID.randomUUID();
+    String loggedAccountUsername = "username";
+    when(accountRepository.findByUsername(loggedAccountUsername)).thenReturn(Optional.of(AccountEntity.builder()
+      .id(UUID.randomUUID())
+      .username(loggedAccountUsername)
+    .build()));
+
+    Authentication auth = new UsernamePasswordAuthenticationToken(
+      ContextAuthenticationPrincipal.builder()
+        .account(new AccountSigned(loggedAccountUsername, "1234"))
+        .user(null)
+      .build(), 
+      "1234"
+    );
+    SecurityContextHolder.getContext().setAuthentication(auth);
+
+    assertFalse(service.loggedAccountHasTheIdReferenced(idToCompare.toString()));
+    verify(accountRepository).findByUsername(loggedAccountUsername);
   }
 }
