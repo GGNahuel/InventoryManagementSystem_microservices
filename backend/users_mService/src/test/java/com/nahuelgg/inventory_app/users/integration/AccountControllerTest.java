@@ -44,7 +44,6 @@ import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.AuthenticationForTesting;
 import com.nahuelgg.inventory_app.users.services.AuthenticationForTesting.AuthData;
-import com.nahuelgg.inventory_app.users.services.JwtService;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 
 import reactor.core.publisher.Mono;
@@ -54,7 +53,6 @@ import reactor.core.publisher.Mono;
 public class AccountControllerTest {
   @Autowired TestRestTemplate restTemplate;
   @Autowired ObjectMapper objectMapper;
-  @Autowired JwtService jwtService;
   @Autowired AuthenticationForTesting authenticator;
 
   @Autowired AccountRepository accountRepository;
@@ -65,12 +63,6 @@ public class AccountControllerTest {
   @MockitoBean HttpGraphQlClient graphQlClient;
 
   EntityMappers eMappers = new EntityMappers();
-
-  AccountDTO exampleAcc = AccountDTO.builder()
-    .id(UUID.randomUUID().toString())
-    .username("exampleAccount")
-    .users(new ArrayList<>())
-  .build();
 
   String token;
 
@@ -305,14 +297,15 @@ public class AccountControllerTest {
   void assignInventory_deniedIfNotAdmin() {
     UUID refInvId = UUID.randomUUID();
     
-    token = authenticator.authenticateWithUserToo(
+    AuthData authData = authenticator.authenticateWithUserToo(
       new LoginDTO("accountUsername", "1234", false),
       new LoginDTO("loggedUser", "1234", false), 
       "notAdmin", null
-    ).getToken();
+    );
+    token = authData.getToken();
 
     String url = UriComponentsBuilder.fromUriString("/account/add-inventory")
-      .queryParam("accountId", exampleAcc.getId())
+      .queryParam("accountId", authData.getAccountSaved().getId().toString())
       .queryParam("invRefId", refInvId.toString())
     .toUriString();
 
