@@ -137,7 +137,7 @@ public class AuthenticationForTesting {
       usersInAccount.add(otherUser);
     }
 
-    // -- Agrega el/los usuario/s a la cuenta guardada por si sirve en el retorno
+    // -- Agrega el/los usuario/s a la cuenta guardada para que se incluya en el retorno
     accountSaved.setUsers(usersInAccount);
 
     // Autentica el usuario/cuenta según datos ingresados
@@ -157,7 +157,6 @@ public class AuthenticationForTesting {
     JwtClaimsDTO completeClaims = claimsForToken != null ? claimsForToken.toBuilder()
       .accountId(accId)
     .build() : JwtClaimsDTO.builder().accountId(accId).isAdmin(false).build();
-    System.out.println("HACE TODO EL AUTHENTICATE");
     return new AuthData(
       accountSaved,
       jwtService.generateToken(completeClaims, username)

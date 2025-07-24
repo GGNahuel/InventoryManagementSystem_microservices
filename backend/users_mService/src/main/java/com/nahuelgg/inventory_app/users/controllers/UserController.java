@@ -34,7 +34,7 @@ public class UserController {
   @PreAuthorize("@authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
   public ResponseEntity<ResponseDTO> getById(@PathVariable String id, @RequestParam String accountId) {
     return new ResponseEntity<>(
-      new ResponseDTO(200, null, service.getById(UUID.fromString(id))),
+      new ResponseDTO(200, null, service.getById(UUID.fromString(id), UUID.fromString(accountId))),
       HttpStatus.OK
     );
   }
@@ -43,7 +43,7 @@ public class UserController {
   @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
   public ResponseEntity<ResponseDTO> edit(@RequestBody UserDTO user, @RequestParam String accountId) {
     return new ResponseEntity<>(
-      new ResponseDTO(200, null, service.edit(user)),
+      new ResponseDTO(200, null, service.edit(user, UUID.fromString(accountId))),
       HttpStatus.OK
     );
   }
@@ -53,15 +53,15 @@ public class UserController {
   public ResponseEntity<ResponseDTO> assignNewPerms(@RequestBody PermissionsForInventoryDTO perm, @RequestParam String id, @RequestParam String accountId)
   throws JsonProcessingException {
     return new ResponseEntity<>(
-      new ResponseDTO(200, null, service.assignNewPerms(perm, UUID.fromString(id))),
+      new ResponseDTO(200, null, service.assignNewPerms(perm, UUID.fromString(id), UUID.fromString(accountId))),
       HttpStatus.OK
     );
   }
 
-  @DeleteMapping("/{id}")
+  @DeleteMapping("/delete")
   @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
-  public ResponseEntity<ResponseDTO> delete(@PathVariable String id, @RequestParam String accountId) {
-    service.delete(UUID.fromString(id));
+  public ResponseEntity<ResponseDTO> delete(@RequestParam String id, @RequestParam String accountId) {
+    service.delete(UUID.fromString(id), UUID.fromString(accountId));
     return new ResponseEntity<>(
       new ResponseDTO(200, null, null),
       HttpStatus.OK

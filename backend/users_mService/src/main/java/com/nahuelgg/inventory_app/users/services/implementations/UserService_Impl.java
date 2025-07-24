@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.graphql.client.HttpGraphQlClient;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,18 +36,26 @@ public class UserService_Impl implements UserService {
   private final EntityMappers entityMappers = new EntityMappers();
   private final HttpGraphQlClient client;
 
-  @Override @Transactional(readOnly = true)
-  public UserDTO getById(UUID id) {
-    checkFieldsHasContent(new Field("id", id));
+  private void validateUserIsInLoggedAccount(UserEntity userToCheck, UUID accountId) {
+    if (!userToCheck.getAssociatedAccount().getId().equals(accountId))
+      throw new AuthorizationDeniedException("El usuario al que se le quiere realizar la acción no pertenece a la cuenta en sesión");
+  }
 
-    return entityMappers.mapUser(repository.findById(id).orElseThrow(
+  @Override @Transactional(readOnly = true)
+  public UserDTO getById(UUID id, UUID accountId) {
+    checkFieldsHasContent(new Field("id", id), new Field("id de la cuenta", accountId));
+
+    UserEntity user = repository.findById(id).orElseThrow(
       () -> new ResourceNotFoundException("usuario", "id", id.toString())
-    ));
+    );
+
+    validateUserIsInLoggedAccount(user, accountId);
+    return entityMappers.mapUser(user);
   }
 
   @Override @Transactional
-  public UserDTO edit(UserDTO updatedUser) {
-    checkFieldsHasContent(new Field("usuario actualizado", updatedUser));
+  public UserDTO edit(UserDTO updatedUser, UUID accountId) {
+    checkFieldsHasContent(new Field("usuario actualizado", updatedUser), new Field("id de cuenta", accountId));
     checkFieldsHasContent(
       new Field("id", updatedUser.getId()),
       new Field("nombre del usuario", updatedUser.getName()),
@@ -57,18 +66,23 @@ public class UserService_Impl implements UserService {
       () -> new ResourceNotFoundException("usuario", "id", updatedUser.getId())
     );
 
-    if (repository.findByNameAndAssociatedAccountId(updatedUser.getName(), userInDB.getAssociatedAccountId()).isPresent())
+    validateUserIsInLoggedAccount(userInDB, accountId);
+
+    if (repository.findByNameAndAssociatedAccountId(updatedUser.getName(), userInDB.getAssociatedAccount().getId()).isPresent())
       throw new InvalidValueException("Ya existe un usuario con ese nombre asociado a esta cuenta");
 
-    UserEntity newUser = dtoMappers.mapUser(updatedUser, userInDB.getAssociatedAccountId());
-    newUser.setInventoryPerms(userInDB.getInventoryPerms()); // la idea es que solo se editen los permisos con sus respectivos métodos
+    // la idea es que solo se editen los permisos en su respectivo método, por lo que se ignoran los permisos que lleguen en el dto
+    UserEntity newUser = userInDB.toBuilder()
+      .name(updatedUser.getName())
+      .role(updatedUser.getRole())
+    .build();
 
     return entityMappers.mapUser(repository.save(newUser));
   }
 
   @Override @Transactional
-  public UserDTO assignNewPerms(PermissionsForInventoryDTO permission, UUID userId) throws JsonProcessingException {
-    checkFieldsHasContent(new Field("permiso", permission), new Field("id de usuario", userId));
+  public UserDTO assignNewPerms(PermissionsForInventoryDTO permission, UUID userId, UUID accountId) throws JsonProcessingException {
+    checkFieldsHasContent(new Field("permiso", permission), new Field("id de usuario", userId), new Field("id de la cuenta", accountId));
     checkFieldsHasContent(
       new Field("lista de permisos", permission.getPermissions()), 
       new Field("id inventario asociado", permission.getIdOfInventoryReferenced())
@@ -77,6 +91,8 @@ public class UserService_Impl implements UserService {
     UserEntity user = repository.findById(userId).orElseThrow(
       () -> new ResourceNotFoundException("usuario", "id", userId.toString())
     );
+
+    validateUserIsInLoggedAccount(user, accountId);
 
     List<PermissionsForInventoryEntity> perms = user.getInventoryPerms();
     PermissionsForInventoryEntity newPerm = permsRepository.save(dtoMappers.mapPerms(permission));
@@ -95,23 +111,29 @@ public class UserService_Impl implements UserService {
     return entityMappers.mapUser(repository.save(user));
   }
 
+  // TODO: agregar para eliminar y editar permisos
+
   @Override @Transactional
-  public void delete(UUID id) {
-    checkFieldsHasContent(new Field("id", id));
+  public void delete(UUID id, UUID accountId) {
+    checkFieldsHasContent(new Field("id", id), new Field("id de la cuenta", accountId));
 
     UserEntity user = repository.findById(id).orElseThrow(
       () -> new ResourceNotFoundException("usuario", "id", id.toString())
     );
+    validateUserIsInLoggedAccount(user, accountId);
 
-    client.document("""
+    Boolean inventoryDeletionOk = client.document("""
       mutation {
         removeUser(
           userId: %s, accountId: %s
         )
       }
     """.formatted(
-      id.toString(), user.getAssociatedAccountId().toString()
-    )).retrieve("removeUser").toEntity(Boolean.class);
+      id.toString(), user.getAssociatedAccount().getId().toString()
+    )).retrieve("removeUser").toEntity(Boolean.class).block();
+
+    if (inventoryDeletionOk == null || !inventoryDeletionOk)
+      throw new RuntimeException("Error al borrar el usuario en el servicio de inventarios");
 
     repository.deleteById(id);
   }
