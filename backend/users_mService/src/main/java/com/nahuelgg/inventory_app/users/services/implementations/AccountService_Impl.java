@@ -83,7 +83,7 @@ public class AccountService_Impl implements AccountService {
       .password(encoder.encode(adminPassword))
       .role("admin")
       .isAdmin(true)
-      .associatedAccountId(accountSaved.getId())
+      .associatedAccount(accountSaved)
     .build());
 
     return entityMappers.mapAccount(accountSaved.toBuilder().users(List.of(adminUser)).build());
@@ -129,7 +129,7 @@ public class AccountService_Impl implements AccountService {
       .name(user.getName())
       .role(user.getRole())
       .password(encoder.encode(passwordForNewUser))
-      .associatedAccountId(accountId)
+      .associatedAccount(parentAccount)
       .isAdmin(false)
       .inventoryPerms(permsEntities)
     .build());
@@ -183,7 +183,7 @@ public class AccountService_Impl implements AccountService {
 
     boolean accountWithIdExists = repository.findById(accountId).isPresent();
     if (accountWithIdExists) {
-      boolean inventoryRequestWasSuccess = client.document("""
+      Boolean inventoryRequestWasSuccess = client.document("""
         mutation {
           deleteByAccountId(
             id: "%s"
@@ -191,7 +191,7 @@ public class AccountService_Impl implements AccountService {
         }
       """.formatted(accountId.toString())).retrieve("deleteByAccountId").toEntity(Boolean.class).block();
 
-      if (!inventoryRequestWasSuccess) 
+      if (inventoryRequestWasSuccess == null || !inventoryRequestWasSuccess) 
         throw new RuntimeException("El borrado de inventarios asociados no se ha podido realizar, operación cancelada");
 
       restTemplate.delete("http://api-products:8081/product/delete-by-account?id=" + accountId.toString());
