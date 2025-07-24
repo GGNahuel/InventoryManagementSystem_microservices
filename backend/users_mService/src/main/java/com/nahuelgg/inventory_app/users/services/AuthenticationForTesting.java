@@ -102,7 +102,7 @@ public class AuthenticationForTesting {
     UserEntity adminSaved = userRepository.save(UserEntity.builder()
       .name("admin")
       .password(encoder.encode("adminTest"))
-      .associatedAccountId(accountSaved.getId())
+      .associatedAccount(accountSaved)
       .isAdmin(true)
       .role("admin")
       .inventoryPerms(new ArrayList<>())
@@ -120,7 +120,7 @@ public class AuthenticationForTesting {
       UserEntity otherUser = userRepository.save(UserEntity.builder()
         .name(userInfo.getUsername())
         .password(encoder.encode(userInfo.getPassword()))
-        .associatedAccountId(accountSaved.getId())
+        .associatedAccount(accountSaved)
         .isAdmin(false)
         .role(claimsForToken.getUserRole())
         .inventoryPerms(/* claimsForToken.getUserPerms().stream().map(
@@ -137,9 +137,8 @@ public class AuthenticationForTesting {
       usersInAccount.add(otherUser);
     }
 
-    // -- Agrega el/los usuario/s a la cuenta guardada y guarda el cambio
+    // -- Agrega el/los usuario/s a la cuenta guardada por si sirve en el retorno
     accountSaved.setUsers(usersInAccount);
-    accountRepository.save(accountSaved);
 
     // Autentica el usuario/cuenta según datos ingresados
     authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -158,6 +157,7 @@ public class AuthenticationForTesting {
     JwtClaimsDTO completeClaims = claimsForToken != null ? claimsForToken.toBuilder()
       .accountId(accId)
     .build() : JwtClaimsDTO.builder().accountId(accId).isAdmin(false).build();
+    System.out.println("HACE TODO EL AUTHENTICATE");
     return new AuthData(
       accountSaved,
       jwtService.generateToken(completeClaims, username)

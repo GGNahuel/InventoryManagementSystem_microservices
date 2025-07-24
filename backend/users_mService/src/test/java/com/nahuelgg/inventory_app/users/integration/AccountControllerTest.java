@@ -210,7 +210,7 @@ public class AccountControllerTest {
     assertEquals(user.getName(), actual.getName());
     assertEquals(user.getRole(), actual.getRole());
     assertTrue(userRepository.findAll().stream().anyMatch(
-      userSaved -> userSaved.getName().equals(user.getName()) && userSaved.getAssociatedAccountId().equals(loggedAccount.getId())
+      userSaved -> userSaved.getName().equals(user.getName()) && userSaved.getAssociatedAccount().getId().equals(loggedAccount.getId())
     ));
   }
 

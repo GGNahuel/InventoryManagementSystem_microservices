@@ -109,8 +109,8 @@ public class AuthenticationServiceTest {
     UserEntity userEntity = UserEntity.builder()
       .name("subUser")
       .role("role")
-      .isAdmin(true)
-      .associatedAccountId(accountId)
+      .isAdmin(false)
+      .associatedAccount(null)
       .inventoryPerms(null)
     .build();
 

@@ -10,6 +10,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,9 +31,18 @@ public class UserEntity {
   private String role;
   @Column(nullable = false)
   private Boolean isAdmin;
-  @Column(name = "associated_account_id")
-  private UUID associatedAccountId;  
   
+  @ManyToOne @JoinColumn(name = "associated_account_id", nullable = false)
+  private AccountEntity associatedAccount;  
   @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER) @JoinColumn(name = "associated_user_id")
   private List<PermissionsForInventoryEntity> inventoryPerms;
+
+  @Override
+  public String toString() {
+    return "UserEntity(id: %s, name: %s, password: %s, role: %s, isAdmin: %s, associatedAccountId: %s, inventoryPerms: %s)"
+      .formatted(
+        this.id.toString(), this.name, this.password, this.role, this.isAdmin.toString(), 
+        this.associatedAccount.getId(), this.inventoryPerms.toString()
+      );
+  }
 }

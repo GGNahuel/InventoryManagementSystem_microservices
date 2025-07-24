@@ -29,6 +29,6 @@ public class AccountEntity {
 
   @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER) @JoinColumn(name = "associated_account_id")
   private List<InventoryRefEntity> inventoriesReferences;
-  @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER) @JoinColumn(name = "associated_account_id")
+  @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, mappedBy = "associatedAccount")
   private List<UserEntity> users;
 }

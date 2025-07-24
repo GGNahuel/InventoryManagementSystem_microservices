@@ -182,7 +182,7 @@ public class AccountServiceTest {
       .id(UUID.randomUUID())
       .name("Juan")
       .role("caja")
-      .associatedAccountId(acc.getId())
+      .associatedAccount(acc)
       .inventoryPerms(List.of(mappedPerm))
     .build();
 

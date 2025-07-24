@@ -60,13 +60,13 @@ public class RepositoriesTest {
     UserEntity u1 = userRepo.save(UserEntity.builder()
       .name("admin").password("123")
       .isAdmin(true).role("admin")
-      .associatedAccountId(a1.getId())
+      .associatedAccount(a1)
     .build());
     UserEntity u2 = userRepo.save(UserEntity.builder()
       .name("general").password("123")
       .isAdmin(false).role("general")
       .inventoryPerms(new ArrayList<>(List.of(p1, p2)))
-      .associatedAccountId(a1.getId())
+      .associatedAccount(a1)
     .build());
 
     a1.setUsers(new ArrayList<>(List.of(u1, u2)));
