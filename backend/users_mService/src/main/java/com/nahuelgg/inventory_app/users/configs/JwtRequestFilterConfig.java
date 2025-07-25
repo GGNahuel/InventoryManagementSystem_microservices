@@ -67,15 +67,17 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
         return;
       }
-
-      ContextAuthenticationPrincipal newAuthData = ContextAuthenticationPrincipal.builder()
-        .account(new AccountSigned(accountUsername, ""))
-        .user(new UserSigned(
+      UserSigned userToNewAuthData = tokenClaims.getUserName() == null ? null : 
+        new UserSigned(
           tokenClaims.getUserName(), tokenClaims.getUserRole(), tokenClaims.isAdmin(), 
           tokenClaims.getUserPerms().stream().map(
             permDto -> new PermsForInv(permDto.getIdOfInventoryReferenced(), permDto.getPermissions())
           ).toList()
-        ))
+        );
+
+      ContextAuthenticationPrincipal newAuthData = ContextAuthenticationPrincipal.builder()
+        .account(new AccountSigned(accountUsername, ""))
+        .user(userToNewAuthData)
       .build();
 
       PreAuthenticatedAuthenticationToken newAuth = new PreAuthenticatedAuthenticationToken(
