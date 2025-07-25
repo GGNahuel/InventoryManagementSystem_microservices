@@ -1,15 +1,9 @@
 package com.nahuelgg.inventory_app.users.integration;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.function.Function;
+import java.util.ArrayList;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,157 +14,165 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
-import com.nahuelgg.inventory_app.users.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.users.dtos.LoginDTO;
-import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.TokenDTO;
-import com.nahuelgg.inventory_app.users.services.AuthenticationService;
+import com.nahuelgg.inventory_app.users.entities.AccountEntity;
+import com.nahuelgg.inventory_app.users.entities.UserEntity;
+import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
+import com.nahuelgg.inventory_app.users.repositories.UserRepository;
+import com.nahuelgg.inventory_app.users.services.AuthenticationForTesting;
+import com.nahuelgg.inventory_app.users.services.AuthenticationForTesting.AuthData;
 import com.nahuelgg.inventory_app.users.services.JwtService;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 public class AuthenticateControllerTest {
   @Autowired TestRestTemplate restTemplate;
   @Autowired ObjectMapper objectMapper;
+  @Autowired AuthenticationForTesting authenticator;
+  @Autowired JwtService jwtService;
+  @Autowired BCryptPasswordEncoder encoder;
 
-  @MockitoBean AuthenticationService authenticationService;
-  @MockitoBean JwtService jwtService;
+  @Autowired AccountRepository accountRepository;
+  @Autowired UserRepository userRepository;
 
-  AccountDTO acc = AccountDTO.builder().id(UUID.randomUUID().toString()).username("accUsername").build();
-  String token = "tokenTest";
+  String accUsername = "username";
+  String accPassword = "password";
+  String userName = "subUser";
+  String userPassword = "userPassword";
 
-  private void configJwtMock(String userName, String userRole, boolean isAdmin, List<PermissionsForInventoryDTO> userPerms, String accLoggedUsername) 
-  throws Exception {
-    when(jwtService.getClaim(eq(token), any())).thenAnswer(inv -> {
-      Function<Claims, ?> claimGetter = inv.getArgument(1);
-      Claims claims = Jwts.claims();
-      claims.setSubject(accLoggedUsername);
-      claims.put("accountId", acc.getId());
-      claims.put("userName", userName);
-      claims.put("userRole", userRole);
-      claims.put("isAdmin", isAdmin);
-      claims.put("userPerms", userPerms);
-      return claimGetter.apply(claims);
-    });
-    when(jwtService.isTokenExpired(token)).thenReturn(false);
-    when(jwtService.isTokenValid(token, acc.getUsername())).thenReturn(true);
-    when(jwtService.mapTokenClaims(token)).thenReturn(JwtClaimsDTO.builder()
-      .accountId(acc.getId())
-      .userName(userName)
-      .userRole(userRole)
-      .isAdmin(isAdmin)
-      .userPerms(userPerms != null ? userPerms : List.of())
-    .build());
-  }
-
-  private HttpHeaders generateHeaderWithToken() {
+  private HttpHeaders generateHeaderWithToken(String token) {
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(token);
 
     return headers;
   }
 
+  private void registerAccountWithUser() {
+    AccountEntity registeredAccount = accountRepository.save(AccountEntity.builder()
+      .username(accUsername)
+      .password(encoder.encode(accPassword))
+      .users(new ArrayList<>())
+      .inventoriesReferences(new ArrayList<>())
+    .build());
+
+    userRepository.save(UserEntity.builder()
+      .name(userName)
+      .password(encoder.encode(userPassword))
+      .role("role")
+      .associatedAccount(registeredAccount)
+      .isAdmin(false)
+      .inventoryPerms(new ArrayList<>())
+    .build());
+  }
+
   @Test
   void loginAccount_successWithoutToken() {
-    LoginDTO input = LoginDTO.builder().accountLogin(true).username(acc.getUsername()).password("123test").build();
-    when(authenticationService.login(input)).thenReturn(new TokenDTO(token));
+    registerAccountWithUser();
+    LoginDTO input = new LoginDTO(accUsername, accPassword, true);
 
     HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input);
     ResponseEntity<TokenDTO> response = restTemplate.exchange("/authenticate/login/account", HttpMethod.POST, httpEntity, TokenDTO.class);
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    verify(authenticationService).login(input);
+    assertTrue(jwtService.isTokenValid(response.getBody().getToken(), accUsername));
   }
 
   @Test
-  void loginAccount_successWithEmptyToken() throws Exception {
-    LoginDTO input = LoginDTO.builder().accountLogin(true).username(acc.getUsername()).password("123test").build();
-    when(authenticationService.login(input)).thenReturn(new TokenDTO(token));
-    configJwtMock(null, null, false, null, null);
+  void loginAccount_successWithEmptyToken() {
+    registerAccountWithUser();
+    LoginDTO input = new LoginDTO(accUsername, accPassword, true);
 
-    HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken());
+    String emptyToken = jwtService.generateEmptyToken();
+    HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken(emptyToken));
     ResponseEntity<TokenDTO> response = restTemplate.exchange("/authenticate/login/account", HttpMethod.POST, httpEntity, TokenDTO.class);
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    verify(authenticationService).login(input);
+    assertTrue(jwtService.isTokenValid(response.getBody().getToken(), accUsername));
   }
 
   @Test
-  void loginAsUser_success() throws Exception {
-    LoginDTO input = LoginDTO.builder().accountLogin(false).username("subUser").password("123test").build();
-    when(authenticationService.loginAsUser(input)).thenReturn(new TokenDTO(token));
-    configJwtMock("subUser", "role", false, null, acc.getUsername());
+  void loginAsUser_success() {
+    // Primero se loguea la cuenta únicamente, y luego se crea un usuario asociado a esa cuenta sin loguearlo todavía
+    AuthData authData = authenticator.authenticate(new LoginDTO(accUsername, accPassword, false));
+    AccountEntity loggedAccount = authData.getAccountSaved();
+    userRepository.save(UserEntity.builder()
+      .name(userName)
+      .password(encoder.encode(userPassword))
+      .role("role")
+      .associatedAccount(loggedAccount)
+      .isAdmin(false)
+      .inventoryPerms(new ArrayList<>())
+    .build());
 
-    HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken());
+    // Preparación del llamado para loguear al usuario creado
+    LoginDTO input = new LoginDTO(userName, userPassword, false);
+
+    HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken(authData.getToken()));
     ResponseEntity<TokenDTO> response = restTemplate.exchange("/authenticate/login/user", HttpMethod.POST, httpEntity, TokenDTO.class);
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    verify(authenticationService).loginAsUser(input);
+    assertTrue(jwtService.isTokenValid(response.getBody().getToken(), accUsername));
+
+
   }
 
   @Test
-  void loginAsUser_deniedIfNotLogged() throws Exception {
-    LoginDTO input = LoginDTO.builder().accountLogin(false).username("subUser").password("123test").build();
-    configJwtMock(null, null, false, null, null);
+  void loginAsUser_deniedIfNotLogged() {
+    LoginDTO input = new LoginDTO(userName, userPassword, false);
 
-    HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken());
+    HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken(jwtService.generateEmptyToken()));
     ResponseEntity<TokenDTO> response = restTemplate.exchange("/authenticate/login/user", HttpMethod.POST, httpEntity, TokenDTO.class);
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
-    verify(authenticationService, never()).loginAsUser(input);
   }
 
   @Test
-  void logout_success() throws Exception {
-    when(authenticationService.logout()).thenReturn(new TokenDTO(token));
-    configJwtMock("subUser", "role", false, null, acc.getUsername());
+  void logout_success() {
+    AuthData authData = authenticator.authenticate(new LoginDTO(accUsername, accPassword, false));
 
     ResponseEntity<TokenDTO> response = restTemplate.exchange(
       "/authenticate/logout/account", HttpMethod.POST, 
-      new HttpEntity<>(generateHeaderWithToken()), TokenDTO.class
+      new HttpEntity<>(generateHeaderWithToken(authData.getToken())), TokenDTO.class
     );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    verify(authenticationService).logout();
+
+
   }
 
   @Test
-  void logout_deniedIfNotLogged() throws Exception {
-    configJwtMock("subUser", "role", false, null, null);
-
+  void logout_deniedIfNotLogged() {
     ResponseEntity<TokenDTO> response = restTemplate.exchange(
       "/authenticate/logout/account", HttpMethod.POST, 
-      new HttpEntity<>(generateHeaderWithToken()), TokenDTO.class
+      new HttpEntity<>(generateHeaderWithToken(jwtService.generateEmptyToken())), TokenDTO.class
     );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
-    verify(authenticationService, never()).logout();
   }
 
   @Test
-  void logoutUser_success() throws Exception {
-    when(authenticationService.logoutAsUser()).thenReturn(new TokenDTO(token));
-    configJwtMock("subUser", "role", false, null, acc.getUsername());
+  void logoutUser_success() {
+    AuthData authData = authenticator.authenticateWithUserToo(
+      new LoginDTO(accUsername, accPassword, false),
+      new LoginDTO(userName, userPassword, false),
+      "role", null
+    );
 
     ResponseEntity<TokenDTO> response = restTemplate.exchange(
       "/authenticate/logout/user", HttpMethod.POST, 
-      new HttpEntity<>(generateHeaderWithToken()), TokenDTO.class
+      new HttpEntity<>(generateHeaderWithToken(authData.getToken())), TokenDTO.class
     );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    verify(authenticationService).logoutAsUser();
   }
 
   @Test
-  void logoutUser_deniedIfNotLogged() throws Exception {
-    configJwtMock("subUser", "role", false, null, null);
+  void logoutUser_deniedIfNotLogged() {
+    AuthData authData = authenticator.authenticate(new LoginDTO(accUsername, accPassword, false));
 
     ResponseEntity<TokenDTO> response = restTemplate.exchange(
-      "/authenticate/logout/account", HttpMethod.POST, 
-      new HttpEntity<>(generateHeaderWithToken()), TokenDTO.class
+      "/authenticate/logout/user", HttpMethod.POST, 
+      new HttpEntity<>(generateHeaderWithToken(authData.getToken())), TokenDTO.class
     );
+    System.out.println(response.toString());
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
-    verify(authenticationService, never()).logoutAsUser();
   }
 }

@@ -152,12 +152,15 @@ public class AuthenticationService {
 
   public TokenDTO logoutAsUser() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth == null || !(auth.getPrincipal() instanceof ContextAuthenticationPrincipal)) {
-      throw new RuntimeException("No hay usuario en sesión para cerrarla");
-    }
+    if (auth == null)
+      throw new RuntimeException("No hay cuenta en sesión");
+    
 
     ContextAuthenticationPrincipal currentAuth = (ContextAuthenticationPrincipal) auth.getPrincipal();
     String accountUsername = currentAuth.getUsername();
+
+    if (currentAuth.getUser() == null)
+      throw new AuthorizationDeniedException("Hay cuenta pero no usuario en sesión");
 
     AccountEntity accountLogged = accountRepository.findByUsername(accountUsername).orElseThrow(
       () -> new ResourceNotFoundException("cuenta", "username", accountUsername)
