@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -27,5 +29,6 @@ public class ProductEntity {
   private UUID accountId;
   @Column(nullable = false)
   private Double unitPrice;
+  @ElementCollection(fetch = FetchType.EAGER)
   private List<String> categories;
 }
