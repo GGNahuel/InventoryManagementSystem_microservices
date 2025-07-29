@@ -3,12 +3,12 @@ package com.nahuelgg.inventory_app.products.services;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInventoryDTO;
@@ -52,12 +52,12 @@ public class JwtService {
     }
   }
 
-  public JwtClaimsDTO mapTokenClaims(String token) {
+  public JwtClaimsDTO mapTokenClaims(String token) throws Exception {
     Claims claims = getAllClaims(token);
-    List<Map<String, Object>> rawPermList = claims.get("userPerms", List.class);
-    List<PermissionsForInventoryDTO> convertedPerms = rawPermList.stream().map(
-      rawPerm -> objectMapper.convertValue(rawPerm, PermissionsForInventoryDTO.class)
-    ).toList();
+    List<PermissionsForInventoryDTO> convertedPerms = objectMapper.readValue(
+      claims.get("userPerms", String.class), 
+      new TypeReference<List<PermissionsForInventoryDTO>>() {}
+    );
 
     return JwtClaimsDTO.builder()
       .accountId(claims.get("accountId", String.class))
