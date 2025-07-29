@@ -1,23 +1,17 @@
 package com.nahuelgg.inventory_app.products.integration;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Function;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
@@ -26,8 +20,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInventoryDTO;
@@ -35,65 +29,27 @@ import com.nahuelgg.inventory_app.products.dtos.ProductDTO;
 import com.nahuelgg.inventory_app.products.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.products.entities.ProductEntity;
 import com.nahuelgg.inventory_app.products.enums.Permissions;
-import com.nahuelgg.inventory_app.products.services.JwtService;
-import com.nahuelgg.inventory_app.products.services.ProductService;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import com.nahuelgg.inventory_app.products.repositories.ProductRepository;
+import com.nahuelgg.inventory_app.products.services.TokenGenerator;
+import com.nahuelgg.inventory_app.products.utilities.Mappers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 public class ProductControllerTest {
   @Autowired TestRestTemplate restTemplate;
+  @Autowired TokenGenerator tokenGenerator;
+  @Autowired ProductRepository productRepository;
   
-  @MockitoBean ProductService service;
-  @MockitoBean JwtService jwtService;
-
-  UUID acc1ID = UUID.randomUUID();
-  ProductEntity pr1;
-  ProductDTO prDTO1;
-
+  Mappers mappers = new Mappers();
+  
+  @Value("${jwt_key}")
+  String secretKey;
   String accUsername = "accUsername";
-  String token = "testToken";
-  String invId = "abcde";
+  UUID accId = UUID.randomUUID();
+  String invId = UUID.randomUUID().toString();
 
-  @BeforeEach
-  void beforeEach() {
-    pr1 = ProductEntity.builder()
-      .id(UUID.randomUUID())
-      .name("Ventilador")
-      .brand("Marca 1")
-      .unitPrice(80.0)
-      .categories(List.of("cat1"))
-      .accountId(acc1ID)
-    .build();
 
-    prDTO1 = ProductDTO.builder()
-      .id(pr1.getId().toString())
-      .name("Ventilador")
-      .brand("Marca 1")
-      .unitPrice(80.0)
-      .categories(List.of("cat1"))
-      .accountId(acc1ID.toString())
-    .build();
-  }
-
-  private void configJwtMock(String userName, String userRole, boolean isAdmin, List<PermissionsForInventoryDTO> userPerms) {
-    when(jwtService.getClaim(eq(token), any())).thenAnswer(inv -> {
-      Function<Claims, ?> claimGetter = inv.getArgument(1);
-      Claims claims = Jwts.claims();
-      claims.setSubject(accUsername);
-      claims.put("accountId", acc1ID.toString());
-      claims.put("userName", userName);
-      claims.put("userRole", userRole);
-      claims.put("isAdmin", isAdmin);
-      claims.put("userPerms", userPerms);
-      return claimGetter.apply(claims);
-    });
-    when(jwtService.isTokenExpired(token)).thenReturn(false);
-  }
-
-  private HttpHeaders generateHeaderWithToken() {
+  private HttpHeaders generateHeaderWithToken(String token) {
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(token);
 
@@ -102,15 +58,27 @@ public class ProductControllerTest {
 
   @Test
   void getByIds() {
-    when(service.getByIds(anyList())).thenReturn(List.of(prDTO1));
-    configJwtMock(null, null, false, null);
+    ProductEntity pr1 = productRepository.save(ProductEntity.builder()
+      .name("product1")
+      .accountId(accId)
+      .unitPrice(10.0)
+    .build());
+    ProductEntity pr2 = productRepository.save(ProductEntity.builder()
+      .name("product2")
+      .accountId(accId)
+      .unitPrice(8.0)
+    .build());
+    UUID pr1Id = pr1.getId();
+    UUID pr2Id = pr2.getId();
+
+    String token = tokenGenerator.generateAccountToken(accUsername, accId.toString());
 
     String uri = UriComponentsBuilder.fromUriString("/product/ids")
-      .queryParam("list", List.of(prDTO1.getId()).toArray())
+      .queryParam("list", List.of(pr1Id, pr2Id).toArray())
     .toUriString();
     ResponseEntity<ResponseDTO<List<ProductDTO>>> response = restTemplate.exchange(
       uri, HttpMethod.GET, 
-      new HttpEntity<>(generateHeaderWithToken()), 
+      new HttpEntity<>(generateHeaderWithToken(token)), 
       new ParameterizedTypeReference<ResponseDTO<List<ProductDTO>>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
@@ -118,25 +86,55 @@ public class ProductControllerTest {
     ResponseDTO<List<ProductDTO>> responseDTO = response.getBody();
     List<ProductDTO> actualData = responseDTO.getData();
 
-    assertNull(responseDTO.getError());
-    assertNotNull(responseDTO.getData());
-    assertIterableEquals(List.of(prDTO1), actualData);
+    assertTrue(actualData.size() == 2);
+    assertTrue(
+      actualData.stream().anyMatch(pr -> pr.getId().equals(pr1Id.toString())) && 
+      actualData.stream().anyMatch(pr -> pr.getId().equals(pr2Id.toString()))
+    );
   }
 
   @Test
+  @DirtiesContext
   void search() {
-    when(service.search(any(), any(), any(), any(), any())).thenReturn(List.of(prDTO1));
-    configJwtMock(null, null, false, null);
+    ProductEntity pr1 = productRepository.save(ProductEntity.builder()
+      .name("Ventilador de techo")
+      .brand("marca 1")
+      .model("ABC-123")
+      .categories(List.of("electrodomésticos"))
+      .accountId(accId)
+      .unitPrice(0.0)
+    .build());
+    ProductEntity pr2 = productRepository.save(ProductEntity.builder()
+      .name("Ventilador")
+      .brand("marca 2")
+      .model("45AB123")
+      .categories(List.of("electrodomésticos"))
+      .accountId(accId)
+      .unitPrice(0.0)
+    .build());
+    ProductEntity pr3 = productRepository.save(ProductEntity.builder()
+      .name("Estufa")
+      .brand("marca 1")
+      .model("DEF-123")
+      .categories(List.of("electrodomésticos"))
+      .accountId(accId)
+      .unitPrice(0.0)
+    .build());
+
+    String token = tokenGenerator.generateAccountToken(accUsername, accId.toString());
+
+    System.out.println(productRepository.findAll());
 
     String uri = UriComponentsBuilder.fromUriString("/product/search")
-      .queryParam("brand", "Marca 1")
       .queryParam("name", "Ventilador")
-      .queryParam("categoryNames", "cat1")
-      .queryParam("accountId", acc1ID.toString())
-      .toUriString();
+      .queryParam("brand", "")
+      .queryParam("categoryNames", "electrodomésticos")
+      .queryParam("accountId", accId.toString())
+    .toUriString();
+
     ResponseEntity<ResponseDTO<List<ProductDTO>>> response = restTemplate.exchange(
       uri, HttpMethod.GET, 
-      new HttpEntity<>(generateHeaderWithToken()), 
+      new HttpEntity<>(generateHeaderWithToken(token)), 
       new ParameterizedTypeReference<ResponseDTO<List<ProductDTO>>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
@@ -144,23 +142,29 @@ public class ProductControllerTest {
     ResponseDTO<List<ProductDTO>> responseDTO = response.getBody();
     List<ProductDTO> actualData = responseDTO.getData();
 
-    assertNull(responseDTO.getError());
-    assertIterableEquals(List.of(prDTO1), actualData);
+    assertTrue(actualData.size() == 2);
+    assertTrue(
+      actualData.stream().anyMatch(pr -> pr.getId().equals(pr1.getId().toString())) && 
+      actualData.stream().anyMatch(pr -> pr.getId().equals(pr2.getId().toString()))
+    );
+    assertFalse(actualData.contains(mappers.mapEntityToDTO(pr3)));
   }
 
   @Test
   void create_successWithRightPerm() {
-    when(service.create(any())).thenReturn(prDTO1);
+    ProductDTO input = ProductDTO.builder()
+      .name("Celular")
+      .brand("marca 1")
+      .accountId(accId.toString())
+      .unitPrice(1.0)
+    .build();
 
-    configJwtMock(
-      "user", "role", false, 
-      List.of(PermissionsForInventoryDTO.builder()
-        .idOfInventoryReferenced(invId)
-        .permissions(List.of(Permissions.addProducts))
-      .build())
-    );
-
-    HttpEntity<ProductDTO> request = new HttpEntity<>(prDTO1, generateHeaderWithToken());
+    String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(PermissionsForInventoryDTO.builder()
+      .idOfInventoryReferenced(invId)
+      .permissions(List.of(Permissions.addProducts))
+    .build()));
+    
+    HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
       "/product?invId=" + invId, HttpMethod.POST, request, 
       new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
@@ -170,17 +174,24 @@ public class ProductControllerTest {
     ResponseDTO<ProductDTO> responseDTO = response.getBody();
     ProductDTO actual = responseDTO.getData();
 
-    assertNull(responseDTO.getError());
-    assertEquals(prDTO1, actual);
+    assertNotNull(actual);
+    assertEquals("Celular", actual.getName());
+    assertNotNull(actual.getId());
+    assertTrue(productRepository.findById(UUID.fromString(actual.getId())).isPresent());
   }
 
   @Test
   void create_successIfAdmin() {
-    when(service.create(any())).thenReturn(prDTO1);
-    
-    configJwtMock("admin", "admin", true, null);
+    ProductDTO input = ProductDTO.builder()
+      .name("Celular")
+      .brand("marca 1")
+      .accountId(accId.toString())
+      .unitPrice(1.0)
+    .build();
 
-    HttpEntity<ProductDTO> request = new HttpEntity<>(prDTO1, generateHeaderWithToken());
+    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
+
+    HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
       "/product?invId=" + invId, HttpMethod.POST, request, 
       new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
@@ -190,41 +201,50 @@ public class ProductControllerTest {
     ResponseDTO<ProductDTO> responseDTO = response.getBody();
     ProductDTO actual = responseDTO.getData();
 
-    assertNull(responseDTO.getError());
-    assertEquals(prDTO1, actual);
+    assertNotNull(actual);
+    assertEquals("Celular", actual.getName());
+    assertNotNull(actual.getId());
+    assertTrue(productRepository.findById(UUID.fromString(actual.getId())).isPresent());
   }
 
   @Test
   void create_denied() {
-    configJwtMock(
-      "user", "role", false, 
-      List.of(PermissionsForInventoryDTO.builder()
-        .idOfInventoryReferenced(invId)
-        .permissions(List.of(Permissions.editInventory))
-      .build())
-    );
+    String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(PermissionsForInventoryDTO.builder()
+      .idOfInventoryReferenced(invId)
+      .permissions(List.of(Permissions.editInventory))
+    .build()));
 
-    HttpEntity<ProductDTO> request = new HttpEntity<ProductDTO>(prDTO1, generateHeaderWithToken());
+    HttpEntity<ProductDTO> request = new HttpEntity<ProductDTO>(new ProductDTO(), generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
       "/product?invId=" + invId, HttpMethod.POST, request, 
       new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
-    verify(service, never()).create(any());
+    assertTrue(productRepository.findAll().isEmpty());
   }
 
   @Test
   void update_successWithRightPerm() {
-    when(service.update(any())).thenReturn(prDTO1);
-    configJwtMock(
-      "user", "role", false,
-      List.of(PermissionsForInventoryDTO.builder()
-        .idOfInventoryReferenced(invId)
-        .permissions(List.of(Permissions.editProducts))
-      .build())
-    );
+    ProductEntity productToEdit = productRepository.save(ProductEntity.builder()
+      .name("product")
+      .accountId(accId)
+      .unitPrice(4.0)
+    .build());
 
-    HttpEntity<ProductDTO> request = new HttpEntity<>(prDTO1, generateHeaderWithToken());
+    ProductDTO input = ProductDTO.builder()
+      .id(productToEdit.getId().toString())
+      .name("product")
+      .brand("marca")
+      .unitPrice(5.2)
+      .accountId(accId.toString())
+    .build();
+
+    String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(PermissionsForInventoryDTO.builder()
+      .idOfInventoryReferenced(invId)
+      .permissions(List.of(Permissions.editProducts))
+    .build()));
+
+    HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
       "/product/edit?invId=" + invId, HttpMethod.PUT, request, 
       new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
@@ -232,18 +252,33 @@ public class ProductControllerTest {
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
     ProductDTO actual = response.getBody().getData();
+    ProductEntity productInDb = productRepository.findById(productToEdit.getId()).orElse(null);
 
-    assertEquals(200, response.getBody().getStatus());
-    assertNull(response.getBody().getError());
-    assertEquals(prDTO1, actual);
+    assertNotNull(productInDb);
+    assertEquals(productToEdit.getId().toString(), actual.getId());
+    assertTrue(productInDb.getBrand().equals("marca"));
+    assertTrue(productInDb.getUnitPrice() == 5.2);
   }
 
   @Test
   void update_successIfAdmin() {
-    when(service.update(any())).thenReturn(prDTO1);
-    configJwtMock("user", "role", true, List.of());
+    ProductEntity productToEdit = productRepository.save(ProductEntity.builder()
+      .name("product")
+      .accountId(accId)
+      .unitPrice(4.0)
+    .build());
 
-    HttpEntity<ProductDTO> request = new HttpEntity<>(prDTO1, generateHeaderWithToken());
+    ProductDTO input = ProductDTO.builder()
+      .id(productToEdit.getId().toString())
+      .name("product")
+      .brand("marca")
+      .unitPrice(5.2)
+      .accountId(accId.toString())
+    .build();
+
+    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
+
+    HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
       "/product/edit?invId=" + invId, HttpMethod.PUT, request, 
       new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
@@ -251,143 +286,184 @@ public class ProductControllerTest {
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
     ProductDTO actual = response.getBody().getData();
+    ProductEntity productInDb = productRepository.findById(productToEdit.getId()).orElse(null);
 
-    assertEquals(200, response.getBody().getStatus());
-    assertNull(response.getBody().getError());
-    assertEquals(prDTO1, actual);
+    assertNotNull(productInDb);
+    assertEquals(productToEdit.getId().toString(), actual.getId());
+    assertTrue(productInDb.getBrand().equals("marca"));
+    assertTrue(productInDb.getUnitPrice() == 5.2);
   }
 
   @Test
   void update_denied() {
-    when(service.update(any())).thenReturn(prDTO1);
-    configJwtMock("user", "role", false, List.of());
+    UUID anotherInvId = UUID.randomUUID();
 
-    HttpEntity<ProductDTO> request = new HttpEntity<>(prDTO1, generateHeaderWithToken());
+    ProductDTO input = ProductDTO.builder()
+      .id(UUID.randomUUID().toString())
+    .build();
+
+    String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(PermissionsForInventoryDTO.builder()
+      .idOfInventoryReferenced(invId)
+      .permissions(List.of(Permissions.editProducts))
+    .build()));
+
+    HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
-      "/product/edit?invId=" + invId, HttpMethod.PUT, request, 
+      "/product/edit?invId=" + anotherInvId.toString(), HttpMethod.PUT, request, 
       new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
-    verify(service, never()).update(any());
   }
 
   @Test
   void delete_successWithRightPerm() {
-    configJwtMock(
-      "user", "role", false, 
-      List.of(PermissionsForInventoryDTO.builder()
-        .idOfInventoryReferenced(invId)
-        .permissions(List.of(Permissions.deleteProducts))
-      .build())
-    );
+    ProductEntity productToDelete = productRepository.save(ProductEntity.builder()
+      .name("product")
+      .accountId(accId)
+      .unitPrice(10.0)
+    .build());
 
-    String uri = "/product?id=" + prDTO1.getId() + "&invId=" + invId;
-    HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken());
+    String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(PermissionsForInventoryDTO.builder()
+      .idOfInventoryReferenced(invId)
+      .permissions(List.of(Permissions.deleteProducts))
+    .build()));
+
+    String uri = "/product?id=" + productToDelete.getId().toString() + "&invId=" + invId;
+    HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, request, 
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
-    assertEquals("Producto eliminado con éxito", response.getBody().getData());
-    assertNull(response.getBody().getError());
+    assertTrue(productRepository.findById(productToDelete.getId()).isEmpty());
   }
 
   @Test
   void delete_successIfAdmin() {
-    configJwtMock("user", "role", true, null);
+    ProductEntity productToDelete = productRepository.save(ProductEntity.builder()
+      .name("product")
+      .accountId(accId)
+      .unitPrice(10.0)
+    .build());
 
-    String uri = "/product?id=" + prDTO1.getId() + "&invId=" + invId;
-    HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken());
+    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
+
+    String uri = "/product?id=" + productToDelete.getId().toString() + "&invId=" + invId;
+    HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, request,
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
 
-    assertEquals("Producto eliminado con éxito", response.getBody().getData());
-    assertNull(response.getBody().getError());
+    assertTrue(productRepository.findById(productToDelete.getId()).isEmpty());
   }
 
   @Test
   void delete_denied() {
-    configJwtMock("user", "role", false, null);
+    String anotherInvId = UUID.randomUUID().toString();
+    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
 
-    String uri = "/product?id=" + prDTO1.getId() + "&invId=" + invId;
-    HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken());
+    String uri = "/product?id=" + "prDTO1.getId()" + "&invId=" + anotherInvId;
+    HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, request,
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
 
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
-    verify(service, never()).delete(any());
   }
 
   @Test
   void deleteByAccountId_success() {
-    configJwtMock("user", "role", true, null);
-    String uri = "/product/delete-by-account?id=" + acc1ID;
+    ProductEntity pr1 = productRepository.save(ProductEntity.builder()
+      .name("product1")
+      .accountId(accId)
+      .unitPrice(10.0)
+      .categories(new ArrayList<>())
+    .build());
+    ProductEntity pr2 = productRepository.save(ProductEntity.builder()
+      .name("product2")
+      .accountId(UUID.randomUUID())
+      .unitPrice(8.0)
+      .categories(new ArrayList<>())
+    .build());
 
-    HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken());
+    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
+
+    String uri = "/product/delete-by-account?id=" + accId.toString();
+
+    HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, entity,
       new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
-
     assertEquals(200, response.getBody().getStatus());
-    assertNull(response.getBody().getData());
-    assertNull(response.getBody().getError());
+
+    assertTrue(productRepository.findById(pr1.getId()).isEmpty());
+    assertTrue(productRepository.findAll().size() == 1);
+    assertTrue(productRepository.findAll().get(0).getId().equals(pr2.getId()));
   }
 
   @Test
   void deleteByAccountId_denied() {
-    configJwtMock("user", "role", false, null);
-    String uri = "/product/delete-by-account?id=" + acc1ID;
+    String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of());
 
-    HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken());
+    String uri = "/product/delete-by-account?id=" + accId.toString();
+
+    HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, entity,
       new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
 
     assertEquals(403, response.getBody().getStatus());
-    verify(service, never()).deleteByAccountId(any());
   }
 
   @Test
   void deleteByIds_success() {
-    configJwtMock("user", "role", true, null);
+    ProductEntity productToDelete1 = productRepository.save(ProductEntity.builder()
+      .name("product")
+      .accountId(accId)
+      .unitPrice(10.0)
+    .build());
+    ProductEntity productToDelete2 = productRepository.save(ProductEntity.builder()
+      .name("product2")
+      .accountId(accId)
+      .unitPrice(10.0)
+    .build());
+
+    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
+
     String uri = UriComponentsBuilder.fromUriString("/product/delete-by-ids")
-      .queryParam("ids", List.of(prDTO1.getId()))
+      .queryParam("ids", List.of(productToDelete1.getId(), productToDelete2.getId()))
     .toUriString();
 
-    HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken());
+    HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, entity,
       new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
-
     assertEquals(200, response.getBody().getStatus());
-    assertNull(response.getBody().getData());
-    assertNull(response.getBody().getError());
+
+    assertTrue(productRepository.findAll().isEmpty());
   }
 
   @Test
   void deleteByIds_denied() {
-    configJwtMock("user", "role", false, null);
+    String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of());
 
     String uri = UriComponentsBuilder.fromUriString("/product/delete-by-ids")
-      .queryParam("ids", List.of(prDTO1.getId()))
+      .queryParam("ids", List.of())
     .toUriString();
 
-    HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken());
+    HttpEntity<String> entity = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, entity,
       new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
 
     assertEquals(403, response.getBody().getStatus());
-    verify(service, never()).deleteByIds(anyList());
   }
 }

@@ -75,7 +75,7 @@ public class JwtServiceTest {
   }
 
   @Test
-  void mapTokenClaims() {
+  void mapTokenClaims() throws Exception {
     PermissionsForInventoryDTO mockPerm = PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced("inv123")
       .permissions(List.of(Permissions.addProducts))

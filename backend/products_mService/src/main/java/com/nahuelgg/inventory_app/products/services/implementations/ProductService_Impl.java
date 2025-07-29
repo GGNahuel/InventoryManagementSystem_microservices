@@ -2,6 +2,8 @@ package com.nahuelgg.inventory_app.products.services.implementations;
 
 import static com.nahuelgg.inventory_app.products.utilities.Validations.checkFieldsHasContent;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,6 +15,7 @@ import com.nahuelgg.inventory_app.products.entities.ProductEntity;
 import com.nahuelgg.inventory_app.products.exceptions.ResourceNotFoundException;
 import com.nahuelgg.inventory_app.products.repositories.ProductRepository;
 import com.nahuelgg.inventory_app.products.services.ProductService;
+import com.nahuelgg.inventory_app.products.utilities.Mappers;
 import com.nahuelgg.inventory_app.products.utilities.Validations.Field;
 
 import lombok.RequiredArgsConstructor;
@@ -21,66 +24,41 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProductService_Impl implements ProductService {
   private final ProductRepository repository;
+  private final Mappers mappers = new Mappers();
 
-  // MAPPERS
-  private ProductDTO mapEntityToDTO(ProductEntity p) {
-    return ProductDTO.builder()
-      .id(p.getId().toString())
-      .name(p.getName())
-      .brand(p.getBrand())
-      .model(p.getModel())
-      .description(p.getDescription())
-      .unitPrice(p.getUnitPrice())
-      .categories(p.getCategories())
-      .accountId(p.getAccountId().toString())
-    .build();
-  }
-
-  private ProductEntity mapDTOToEntity(ProductDTO p) {
-    return ProductEntity.builder()
-      .id(UUID.fromString(p.getId()))
-      .name(p.getName())
-      .brand(p.getBrand())
-      .model(p.getModel())
-      .description(p.getDescription())
-      .unitPrice(p.getUnitPrice())
-      .categories(p.getCategories())
-      .accountId(UUID.fromString(p.getAccountId()))
-    .build();
-  }
-
-  // CRUD IMPLEMENTATION METHODS
   @Override @Transactional(readOnly = true)
   public List<ProductDTO> search(String brand, String name, String model, List<String> categoryNames, UUID accountId) {
     checkFieldsHasContent(new Field("id de cuenta", accountId));
     
+    categoryNames = categoryNames.stream().map(ctgry -> URLDecoder.decode(ctgry, StandardCharsets.UTF_8).toLowerCase()).toList();
+    
     return repository.search(
-      brand == null || brand.isBlank() ? null : brand,
-      name == null || name.isBlank() ? null : name,
-      model == null || model.isBlank() ? null : model,
-      categoryNames == null || categoryNames.isEmpty() ? null : categoryNames,
+      brand == null || brand.isBlank() ? null : brand.toLowerCase(),
+      name == null || name.isBlank() ? null : name.toLowerCase(),
+      model == null || model.isBlank() ? null : model.toLowerCase(),
+      categoryNames == null || categoryNames.isEmpty() ? null : categoryNames.stream().map(ctgy -> ctgy.toLowerCase()).toList(),
       accountId
-    ).stream().map(p -> mapEntityToDTO(p)).toList();
+    ).stream().map(p -> mappers.mapEntityToDTO(p)).toList();
   }
 
   @Override @Transactional(readOnly = true)
   public List<ProductDTO> getByIds(List<UUID> ids) {
     checkFieldsHasContent(new Field("lista de Id", ids));
 
-    return repository.findAllById(ids).stream().map(p -> mapEntityToDTO(p)).toList();
+    return repository.findAllById(ids).stream().map(p -> mappers.mapEntityToDTO(p)).toList();
   }
 
   @Override @Transactional
   public ProductDTO create(ProductDTO productToCreate) {
     checkFieldsHasContent(new Field("producto a crear", productToCreate));
     checkFieldsHasContent(
-      new Field("nombre de producto", productToCreate.getName()),
+      new Field("nombre del producto", productToCreate.getName()),
       new Field("precio unitario", productToCreate.getUnitPrice()),
       new Field("marca", productToCreate.getBrand()),
-      new Field("lista de categorías", productToCreate.getCategories())
+      new Field("cuenta asociada", productToCreate.getAccountId())
     );
 
-    return mapEntityToDTO(repository.save(mapDTOToEntity(productToCreate)));
+    return mappers.mapEntityToDTO(repository.save(mappers.mapDTOToEntity(productToCreate)));
   }
 
   @Override @Transactional
@@ -91,7 +69,7 @@ public class ProductService_Impl implements ProductService {
       () -> new ResourceNotFoundException("producto", "id", updatedProduct.getId().toString())
     );
 
-    return mapEntityToDTO(repository.save(mapDTOToEntity(updatedProduct)));
+    return mappers.mapEntityToDTO(repository.save(mappers.mapDTOToEntity(updatedProduct)));
   }
 
   @Override @Transactional
