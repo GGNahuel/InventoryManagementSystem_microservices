@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.nahuelgg.inventory_app.products.enums.Permissions;
 import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal;
+import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal.AccountSigned;
 import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal.PermsForInv;
 
 @Service
@@ -36,5 +37,16 @@ public class AuthorizationService {
 
     PermsForInv permObject = auth.getUser().getPerms().stream().filter(permDto -> permDto.getInventoryReferenceId().equals(invId)).findFirst().orElse(null);
     return permObject != null && permObject.getPerms().contains(Permissions.valueOf(perm));
+  }
+
+  public boolean checkActionIsToLoggedAccount(String accountId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !(authentication.getPrincipal() instanceof ContextAuthenticationPrincipal)) return false;
+    
+    ContextAuthenticationPrincipal auth = (ContextAuthenticationPrincipal) authentication.getPrincipal();
+    AccountSigned accountSigned = auth.getAccount();
+    if (accountSigned == null || accountSigned.getUsername() == null) return false;
+
+    return accountSigned.getId().equals(accountId);
   }
 }
