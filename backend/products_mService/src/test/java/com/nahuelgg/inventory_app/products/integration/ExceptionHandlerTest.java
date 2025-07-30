@@ -6,11 +6,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,16 +30,12 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInventoryDTO;
+import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.products.dtos.ResponseDTO;
-import com.nahuelgg.inventory_app.products.enums.Permissions;
 import com.nahuelgg.inventory_app.products.exceptions.EmptyFieldException;
 import com.nahuelgg.inventory_app.products.exceptions.ResourceNotFoundException;
 import com.nahuelgg.inventory_app.products.services.JwtService;
 import com.nahuelgg.inventory_app.products.services.ProductService;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -52,37 +48,31 @@ public class ExceptionHandlerTest {
 
   String token = "abcde";
   String invId = "12345";
-  HttpEntity<String> entity;
+  String accountId = UUID.randomUUID().toString();
 
-  @BeforeEach
-  void configJwtMock() {
-    when(jwtService.getClaim(eq(token), any())).thenAnswer(inv -> {
-      Function<Claims, ?> claimGetter = inv.getArgument(1);
-      Claims claims = Jwts.claims();
-      claims.setSubject("accountUsername");
-      claims.put("accountId", UUID.randomUUID().toString());
-      claims.put("userName", null);
-      claims.put("userRole", null);
-      claims.put("isAdmin", false);
-      claims.put("userPerms", List.of(PermissionsForInventoryDTO.builder()
-        .idOfInventoryReferenced(invId)
-        .permissions(List.of(Permissions.addProducts))
-      .build()));
-      return claimGetter.apply(claims);
-    });
-    when(jwtService.isTokenExpired(token)).thenReturn(false);
-
+  private HttpHeaders generateHeaderWithToken() {
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(token);
 
-    entity = new HttpEntity<>(headers);
+    return headers;
+  }
+
+  @BeforeEach
+  void configJwtMock() throws Exception {
+    when(jwtService.getClaim(eq(token), any())).thenReturn("accountUsername");
+    when(jwtService.mapTokenClaims(token)).thenReturn(JwtClaimsDTO.builder()
+      .accountId(accountId)
+      .isAdmin(true)
+      .userPerms(new ArrayList<>())
+    .build());
+    when(jwtService.isTokenExpired(token)).thenReturn(false);
   }
 
   @Test
   void emptyFieldEx() {
     when(service.getByIds(List.of())).thenThrow(EmptyFieldException.class);
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      "/product", HttpMethod.GET, entity,
+      "/product", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(406), response.getStatusCode());
@@ -92,7 +82,7 @@ public class ExceptionHandlerTest {
   void resourceNotFound() {
     when(service.getByIds(List.of())).thenThrow(ResourceNotFoundException.class);
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      "/product", HttpMethod.GET, entity,
+      "/product", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(404), response.getStatusCode());
@@ -101,7 +91,7 @@ public class ExceptionHandlerTest {
   @Test
   void mismatchedType() throws JsonProcessingException {
     Map<String, Object> invalidInput = new HashMap<>();
-    invalidInput.put("categories", Map.of("foo", "bar"));
+    invalidInput.put("categories", Map.of("invalidObject", "forCategoriesParam"));
     
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -120,7 +110,7 @@ public class ExceptionHandlerTest {
   void paramTypeMismatch() {
     when(service.getByIds(List.of())).thenThrow(MethodArgumentTypeMismatchException.class);
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      "/product", HttpMethod.GET, entity,
+      "/product", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
@@ -129,7 +119,7 @@ public class ExceptionHandlerTest {
   @Test
   void missingParam() {
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      "/product/ids", HttpMethod.GET, entity,
+      "/product/ids", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
@@ -148,7 +138,7 @@ public class ExceptionHandlerTest {
   void globalException() {
     when(service.getByIds(List.of())).thenThrow(RuntimeException.class);
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      "/product", HttpMethod.GET, entity,
+      "/product", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
