@@ -6,6 +6,7 @@ import java.util.UUID;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -28,14 +29,14 @@ public class InventoryEntity {
   @Column(nullable = false)
   private UUID accountId;
 
-  @ManyToMany @JoinTable(
+  @ManyToMany(fetch = FetchType.EAGER) @JoinTable(
     name = "inventory_users", 
     // id del inventario
     joinColumns = @JoinColumn(referencedColumnName = "id"), 
     // id de la ref al usuario (no la id de referencia, sino la de la tabla con las referencias)
-    inverseJoinColumns = @JoinColumn(referencedColumnName = "id") 
+    inverseJoinColumns = @JoinColumn(referencedColumnName = "id")
   )
   private List<UserReferenceEntity> users;
-  @OneToMany(mappedBy = "inventory", cascade = CascadeType.REMOVE)
+  @OneToMany(mappedBy = "inventory", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
   private List<ProductInInvEntity> products;
 }

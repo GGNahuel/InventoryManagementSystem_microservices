@@ -3,12 +3,14 @@ package com.nahuelgg.inventory_app.inventories.services;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.inventories.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO.InventoryPermsDTO;
@@ -50,12 +52,13 @@ public class JwtService {
     }
   }
 
-  public JwtClaimsDTO mapTokenClaims(String token) {
+  public JwtClaimsDTO mapTokenClaims(String token) throws JsonMappingException, JsonProcessingException {
     Claims claims = getAllClaims(token);
-    List<Map<String, Object>> rawPermList = claims.get("userPerms", List.class);
-    List<InventoryPermsDTO> convertedPerms = rawPermList.stream().map(
-      rawPerm -> objectMapper.convertValue(rawPerm, InventoryPermsDTO.class)
-    ).toList();
+    System.out.println(claims.get("userPerms").getClass());
+    List<InventoryPermsDTO> convertedPerms = objectMapper.readValue(
+      claims.get("userPerms", String.class), 
+      new TypeReference<List<InventoryPermsDTO>>() {}
+    );
 
     return JwtClaimsDTO.builder()
       .accountId(claims.get("accountId", String.class))

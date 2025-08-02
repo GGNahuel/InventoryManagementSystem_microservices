@@ -3,6 +3,7 @@ package com.nahuelgg.inventory_app.inventories.services.implementations;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -50,7 +51,7 @@ public class InventoryService_Impl implements InventoryService {
     this.restTemplate = restTemplate;
   }
 
-  private HttpHeaders setTokenInHeader() {
+  private HttpHeaders setTokenToOtherServicesRequests() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     if (auth == null)
       throw new RuntimeException("No se encontró autenticación para realizar la operación");
@@ -65,7 +66,7 @@ public class InventoryService_Impl implements InventoryService {
   private ResponseDTO makeRestRequest(String url, HttpMethod method, Object optionalBody) {
     ResponseEntity<ResponseDTO> response;
     try {
-      HttpEntity<Object> entity = optionalBody != null ? new HttpEntity<Object>(optionalBody, setTokenInHeader()) : new HttpEntity<>(setTokenInHeader());
+      HttpEntity<Object> entity = optionalBody != null ? new HttpEntity<Object>(optionalBody, setTokenToOtherServicesRequests()) : new HttpEntity<>(setTokenToOtherServicesRequests());
 
       response = restTemplate.exchange(url, method, entity, ResponseDTO.class);
       if (response.getStatusCode() != HttpStatusCode.valueOf(200) && response.getStatusCode() != HttpStatusCode.valueOf(201))
@@ -151,7 +152,7 @@ public class InventoryService_Impl implements InventoryService {
     if (repository.existsByNameAndAccountId(name, accountId))
       throw new RuntimeException("Ya existe un inventario con ese nombre en la cuenta");
 
-    InventoryEntity inv = repository.save(InventoryEntity.builder().name(name).build());
+    InventoryEntity inv = repository.save(InventoryEntity.builder().name(name).accountId(accountId).build());
 
     String baseUrl = "http://api-users:8082/account/add-inventory";
     String completeUrl = UriComponentsBuilder.fromUriString(baseUrl)
@@ -203,11 +204,17 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public boolean removeUser(UUID userId, UUID accountId) {
+    System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     List<InventoryEntity> invs = repository.findByAccountId(accountId);
     for (InventoryEntity inv : invs) {
-      inv.setUsers(inv.getUsers().stream().filter(
+      System.out.println(inv.toString());
+      System.out.println(inv.getUsers().stream().filter(
         userRefEntity -> userRefEntity.getReferenceId() != userId 
-      ).toList());
+      ).collect(Collectors.toList()).toString());
+
+      inv.setUsers(inv.getUsers().stream().filter(
+        userRefEntity -> !(userRefEntity.getReferenceId().equals(userId))
+      ).collect(Collectors.toList()));
     }
     repository.saveAll(invs);
 
@@ -231,13 +238,7 @@ public class InventoryService_Impl implements InventoryService {
       .isAvailable(productInput.getStock() > 0)
       .inventory(inv)
     .build());
-    List<ProductInInvEntity> newListProductInInv = inv.getProducts();
-    newListProductInInv.add(newProductInv);
 
-    inv.setProducts(newListProductInInv);
-    System.out.println(inv.toString() + "_______");
-    System.out.println(newListProductInInv.toString());
-    repository.save(inv);
     return mappers.mapProductsFromMSToDTO(productCreated, newProductInv);
   }
 
@@ -260,8 +261,6 @@ public class InventoryService_Impl implements InventoryService {
     }
     productInvRepository.saveAll(newList);
 
-    invTo.setProducts(newList);
-    repository.save(invTo);
     return true;
   }
 

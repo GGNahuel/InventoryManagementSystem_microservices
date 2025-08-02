@@ -1,14 +1,10 @@
 package com.nahuelgg.inventory_app.inventories.integration;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -16,71 +12,66 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.graphql.test.tester.GraphQlTester.Response;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nahuelgg.inventory_app.inventories.dtos.AccountFromUsersMSDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.InventoryDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.ProductFromProductsMSDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductInInvDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductInputDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.ProductToCopyDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO.InventoryPermsDTO;
+import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
+import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
+import com.nahuelgg.inventory_app.inventories.entities.UserReferenceEntity;
 import com.nahuelgg.inventory_app.inventories.enums.Permissions;
-import com.nahuelgg.inventory_app.inventories.services.InventoryService;
+import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
+import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
+import com.nahuelgg.inventory_app.inventories.repositories.UserReferenceRepository;
 import com.nahuelgg.inventory_app.inventories.services.JwtService;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import com.nahuelgg.inventory_app.inventories.services.TokenGenerator;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 public class ControllerTest {
   @Autowired WebTestClient webClientBuilder;
   @Autowired ObjectMapper objectMapper;
+  @Autowired JwtService jwtService;
+  @Autowired TokenGenerator tokenGenerator;
+
+  @Autowired InventoryRepository inventoryRepository;
+  @Autowired UserReferenceRepository userReferenceRepository;
+  @Autowired ProductInInvRepository productInInvRepository;
+
+  @MockitoBean RestTemplate restCaller;
   
   HttpGraphQlTester graphQlTester;
 
   @LocalServerPort
   int port;
 
-  @MockitoBean InventoryService inventoryService;
-  @MockitoBean JwtService jwtService;
+  String accId = UUID.randomUUID().toString();
+  String accUsername = "accUsername";
+  InventoryDTO inv;
 
-  UUID accID = UUID.randomUUID();
-  String accUsername = "username";
-  String token = "testToken";
-  InventoryDTO inv = InventoryDTO.builder()
-    .id(UUID.randomUUID().toString())
-    .name("inventoryA")
-    .accountId(accID.toString())
-    .usersIds(new ArrayList<>())
-  .build();
-
-  private void configJwtMock(String userName, String userRole, boolean isAdmin, List<InventoryPermsDTO> userPerms) {
-    when(jwtService.getClaim(eq(token), any())).thenAnswer(inv -> {
-      Function<Claims, ?> claimGetter = inv.getArgument(1);
-      Claims claims = Jwts.claims();
-      claims.setSubject(accUsername);
-      claims.put("accountId", accID.toString());
-      claims.put("userName", userName);
-      claims.put("userRole", userRole);
-      claims.put("isAdmin", isAdmin);
-      claims.put("userPerms", userPerms);
-      return claimGetter.apply(claims);
-    });
-    when(jwtService.isTokenExpired(token)).thenReturn(false);
-  }
-
-  private Consumer<HttpHeaders> generateHeaderWithToken() {
+  private Consumer<HttpHeaders> generateHeaderWithToken(String token) {
     return headers -> headers.setBearerAuth(token);
   }
 
@@ -89,10 +80,26 @@ public class ControllerTest {
     graphQlTester = HttpGraphQlTester.create(webClientBuilder);
   }
 
+  // Inventory crud tests
   @Test
-  void getById_allowedIfAuthenticated() {
-    when(inventoryService.getById(UUID.fromString(inv.getId()))).thenReturn(inv);
-    configJwtMock(null, null, false, null);
+  void getById_success() {
+    InventoryEntity invToSearch = inventoryRepository.save(InventoryEntity.builder()
+      .name("inventario1")
+      .accountId(UUID.fromString(accId))
+    .build());
+    InventoryDTO expected = InventoryDTO.builder()
+      .id(invToSearch.getId().toString())
+      .name(invToSearch.getName())
+      .accountId(accId)
+      .usersIds(new ArrayList<>())
+      .products(new ArrayList<>())
+    .build();
+
+    when(restCaller.exchange(anyString(), any(), any(), ArgumentMatchers.<Class<ResponseDTO>>any())).thenReturn(new ResponseEntity<>(
+      ResponseDTO.builder().data(List.of()).build(), HttpStatus.OK
+    ));
+
+    String token = tokenGenerator.generateAccountToken(accUsername, accId);
 
     String query = """
       query {
@@ -106,16 +113,16 @@ public class ControllerTest {
           }
         }
       }    
-    """.formatted(inv.getId());
+    """.formatted(invToSearch.getId().toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
-      .document(query).execute().path("getById").entity(InventoryDTO.class).isEqualTo(inv);
-
-    verify(inventoryService).getById(UUID.fromString(inv.getId()));
+    Response response = graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
+      .document(query).execute();
+    response.errors().satisfy(errors -> errors.isEmpty());
+    response.path("getById").entity(InventoryDTO.class).isEqualTo(expected);
   }
 
   @Test
-  void getById_failsIfUnauthenticated() {
+  void getById_deniedIfUnauthenticated() {
     UUID idToSearch = UUID.randomUUID();
 
     String query = """
@@ -130,20 +137,38 @@ public class ControllerTest {
           }
         }
       }
-    """.formatted(idToSearch.toString());
+    """.formatted(idToSearch);
 
-    webClientBuilder.post()
-      .uri("/graphql")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue("{\"query\":\"" + query.replace("\"", "\"") + "\"}")
-      .exchange()
-    .expectStatus().isForbidden();
+    Response response = graphQlTester.mutate().url("http://localhost:" + port + "/graphql").build()
+      .document(query).execute();
+
+    response.errors().satisfy(errors -> {
+      assertFalse(errors.isEmpty());
+      assertTrue(errors.size() == 1);
+      assertTrue(errors.get(0).getMessage().contains("Unauthorized"));
+    });
   }
 
   @Test
   void getByAccount_allowed() {
-    when(inventoryService.getByAccount(accID)).thenReturn(List.of(inv));
-    configJwtMock(null, null, false, null);
+    InventoryEntity inv1 = inventoryRepository.save(InventoryEntity.builder()
+      .name("inv1")
+      .accountId(UUID.fromString(accId))
+    .build());
+    InventoryEntity inv2 = inventoryRepository.save(InventoryEntity.builder()
+      .name("inv2")
+      .accountId(UUID.fromString(accId))
+    .build());
+    InventoryEntity inv3 = inventoryRepository.save(InventoryEntity.builder()
+      .name("invOfAnotherAccount")
+      .accountId(UUID.randomUUID())
+    .build());
+
+    when(restCaller.exchange(anyString(), any(), any(), ArgumentMatchers.<Class<ResponseDTO>>any())).thenReturn(new ResponseEntity<>(
+      ResponseDTO.builder().data(List.of()).build(), HttpStatus.OK
+    ));
+
+    String token = tokenGenerator.generateAccountToken(accUsername, accId);
 
     String query = """
       query {
@@ -157,18 +182,30 @@ public class ControllerTest {
           }
         }
       }    
-    """.formatted(accID.toString());
+    """.formatted(accId);
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
-      .document(query).execute().path("getByAccount[0]").entity(InventoryDTO.class).isEqualTo(inv);
+    Response response = graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
+      .document(query).execute();
+    response.errors().satisfy(errors -> errors.isEmpty());
 
-    verify(inventoryService).getByAccount(accID);
+    List<InventoryDTO> result = response.path("getByAccount").entityList(InventoryDTO.class).get();
+
+    assertTrue(result.stream().noneMatch(invDto -> invDto.getId().equals(inv3.getId().toString())));
+    assertTrue(
+      result.stream().filter(invDto -> invDto.getName().equals(inv1.getName())).findFirst().isPresent() &&
+      result.stream().filter(invDto -> invDto.getName().equals(inv2.getName())).findFirst().isPresent() 
+    );
   }
 
   @Test
   void create_allowIfUserIsAdmin() {
-    when(inventoryService.create("inventoryA", accID)).thenReturn(inv);
-    configJwtMock("userAdmin", "role", true, null);
+    String token = tokenGenerator.generateAdminToken(accUsername, accId);
+
+    when(restCaller.exchange(anyString(), any(), any(), ArgumentMatchers.<Class<ResponseDTO>>any())).thenReturn(new ResponseEntity<>(
+      ResponseDTO.builder()
+        .data(AccountFromUsersMSDTO.builder().id(accId).build())
+      .build(), HttpStatus.OK
+    ));
 
     String query = """
       mutation {
@@ -182,17 +219,21 @@ public class ControllerTest {
           }
         }
       }
-    """.formatted(accID.toString());
+    """.formatted(accId.toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
-      .document(query).execute().path("create").entity(InventoryDTO.class).isEqualTo(inv);
+    Response response = graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
+      .document(query).execute();
+    response.errors().satisfy(errors -> errors.isEmpty());
 
-    verify(inventoryService).create("inventoryA", accID);
+    InventoryDTO result = response.path("create").entity(InventoryDTO.class).get();
+    assertEquals("inventoryA", result.getName());
+    assertEquals(accId, result.getAccountId());
+    assertTrue(inventoryRepository.findById(UUID.fromString(result.getId())).isPresent());
   }
 
   @Test
   void create_denyIfNotAdmin() {
-    configJwtMock("user", "role", false, null);
+    String token = tokenGenerator.generateUserToken(accUsername, accId, null);
 
     String query = """
       mutation {
@@ -206,239 +247,274 @@ public class ControllerTest {
           }
         }
       }
-    """.formatted(accID.toString());
+    """.formatted(accId.toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().errors()
     .satisfy(errors -> {
       assertFalse(errors.isEmpty());
+      assertTrue(errors.size() == 1);
       assertTrue(errors.get(0).getMessage().contains("Forbidden"));
     });
-
-    verify(inventoryService, never()).create(anyString(), any());
   }
 
   @Test
   void edit_allowIfUserIsAdmin() {
-    when(inventoryService.edit(UUID.fromString(inv.getId()), "inventoryA")).thenReturn(true);
-    when(inventoryService.edit(UUID.fromString(inv.getId()), "inventoryB")).thenReturn(false);
-    configJwtMock("userAdmin", "role", true, null);
+    InventoryEntity savedInv = inventoryRepository.save(InventoryEntity.builder()
+      .name("previousName")
+      .accountId(UUID.fromString(accId))
+    .build());
+    String token = tokenGenerator.generateAdminToken(accUsername, accId);
 
-    String query1 = """
+    String query = """
       mutation {
-        edit(invId: "%s", name: "inventoryA")
+        edit(invId: "%s", name: "newName")
       }
-    """.formatted(inv.getId());
-    String query2 = """
-      mutation {
-        edit(invId: "%s", name: "inventoryB")
-      }
-    """.formatted(inv.getId());
+    """.formatted(savedInv.getId().toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
-      .document(query1).execute().path("edit").entity(Boolean.class).isEqualTo(true);
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
+      .document(query).execute().path("edit").entity(Boolean.class).isEqualTo(true);
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
-      .document(query2).execute().path("edit").entity(Boolean.class).isEqualTo(false);
-
-    verify(inventoryService).edit(UUID.fromString(inv.getId()), "inventoryA");
-    verify(inventoryService).edit(UUID.fromString(inv.getId()), "inventoryB");
+    assertTrue(inventoryRepository.findById(savedInv.getId()).get().getName().equals("newName"));
   }
 
   @Test
   void edit_denyIfNotAdmin() {
-    configJwtMock("user", "role", false, null);
+    String token = tokenGenerator.generateUserToken(accUsername, accId, null);
 
     String query = """
       mutation {
-        edit(invId: "%s", name: "inventoryA")
+        edit(invId: "%s", name: "newName")
       }
-    """.formatted(inv.getId());
+    """.formatted(UUID.randomUUID().toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().errors()
     .satisfy(errors -> {
       assertFalse(errors.isEmpty());
+      assertTrue(errors.size() == 1);
       assertTrue(errors.get(0).getMessage().contains("Forbidden"));
     });
-
-    verify(inventoryService, never()).edit(any(), any());
   }
 
   @Test
   void delete_allowedIfUserIsAdmin() {
-    when(inventoryService.delete(UUID.fromString(inv.getId()))).thenReturn(true);
-    configJwtMock("userAdmin", "role", true, null);
+    InventoryEntity invToDelete = inventoryRepository.save(InventoryEntity.builder()
+      .name("inv").accountId(UUID.fromString(accId))
+    .build());
+
+    when(restCaller.exchange(anyString(), any(), any(), ArgumentMatchers.<Class<ResponseDTO>>any())).thenReturn(new ResponseEntity<>(
+      new ResponseDTO(), HttpStatus.OK
+    ));
+
+    String token = tokenGenerator.generateAdminToken(accUsername, accId);
 
     String query = """
       mutation {
         delete(id: "%s")
       }
-    """.formatted(inv.getId());
+    """.formatted(invToDelete.getId().toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().path("delete").entity(Boolean.class).isEqualTo(true);
 
-    verify(inventoryService).delete(UUID.fromString(inv.getId()));
+    assertTrue(inventoryRepository.findById(invToDelete.getId()).isEmpty());
   }
 
   @Test
   void delete_deniedIfNotAdmin() {
-    configJwtMock("user", "role", false, null);
+    String token = tokenGenerator.generateUserToken(accUsername, accId, null);
 
     String query = """
       mutation {
         delete(id: "%s")
       }
-    """.formatted(inv.getId());
+    """.formatted(UUID.randomUUID());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().errors()
     .satisfy(errors -> {
       assertFalse(errors.isEmpty());
+      assertTrue(errors.size() == 1);
       assertTrue(errors.get(0).getMessage().contains("Forbidden"));
     });
-
-    verify(inventoryService, never()).delete(any());
   }
 
   @Test
   void deleteByAccountId_allowedIfUserIsAdmin() {
-    when(inventoryService.deleteByAccountId(accID)).thenReturn(true);
-    configJwtMock("userAdmin", "role", true, null);
+    inventoryRepository.save(InventoryEntity.builder()
+      .name("inv1")
+      .accountId(UUID.fromString(accId))
+    .build());
+    inventoryRepository.save(InventoryEntity.builder()
+      .name("inv2")
+      .accountId(UUID.fromString(accId))
+    .build());
+    inventoryRepository.save(InventoryEntity.builder()
+      .name("invOfAnotherAccount")
+      .accountId(UUID.randomUUID())
+    .build());
+
+    String token = tokenGenerator.generateAdminToken(accUsername, accId);
 
     String query = """
       mutation {
         deleteByAccountId(id: "%s")
       }
-    """.formatted(accID.toString());
+    """.formatted(accId.toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().path("deleteByAccountId").entity(Boolean.class).isEqualTo(true);
 
-    verify(inventoryService).deleteByAccountId(accID);
+    List<InventoryEntity> invsInDB = inventoryRepository.findByAccountId(UUID.fromString(accId));
+    assertEquals(0, invsInDB.size());
+    assertTrue(invsInDB.stream().noneMatch(inv -> inv.getAccountId().equals(UUID.fromString(accId))));
   }
 
   @Test
   void deleteByAccountId_deniedIfNotAdmin() {
-    configJwtMock("user", "role", false, null);
+    String token = tokenGenerator.generateUserToken(accUsername, accId, null);
 
     String query = """
       mutation {
         deleteByAccountId(id: "%s")
       }
-    """.formatted(accID.toString());
+    """.formatted(accId.toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().errors()
     .satisfy(errors -> {
       assertFalse(errors.isEmpty());
+      assertTrue(errors.size() == 1);
       assertTrue(errors.get(0).getMessage().contains("Forbidden"));
     });
-
-    verify(inventoryService, never()).delete(any());
   }
 
+  // Users related endpoints
   @Test
   void addUser_allowedIfUserIsAdmin() {
-    UUID userId = UUID.randomUUID();
-    when(inventoryService.addUser(userId, UUID.fromString(inv.getId()))).thenReturn(true);
-    configJwtMock("userAdmin", "role", true, null);
+    UUID refUserId = UUID.randomUUID();
+    InventoryEntity savedInv = inventoryRepository.save(InventoryEntity.builder()
+      .name("inv")
+      .accountId(UUID.fromString(accId))
+    .build());
+
+    String token = tokenGenerator.generateAdminToken(accUsername, accId);
 
     String query = """
       mutation {
         addUser(userId: "%s", invId: "%s")
       }
-    """.formatted(userId.toString(), inv.getId());
+    """.formatted(refUserId.toString(), savedInv.getId().toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().path("addUser").entity(Boolean.class).isEqualTo(true);
 
-    verify(inventoryService).addUser(userId, UUID.fromString(inv.getId()));
+    InventoryEntity invWithChanges = inventoryRepository.findById(savedInv.getId()).get();
+    assertFalse(invWithChanges.getUsers().isEmpty());
+    assertEquals(refUserId, invWithChanges.getUsers().get(0).getReferenceId());
   }
 
   @Test
   void addUser_denyIfNotAdmin() {
     UUID userId = UUID.randomUUID();
-    configJwtMock("user", "role", false, null);
+    String token = tokenGenerator.generateUserToken(accUsername, accId, null);
 
     String query = """
       mutation {
         addUser(userId: "%s", invId: "%s")
       }
-    """.formatted(userId.toString(), inv.getId());
+    """.formatted(userId.toString(), UUID.randomUUID().toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().errors()
     .satisfy(errors -> {
       assertFalse(errors.isEmpty());
+      assertTrue(errors.size() == 1);
       assertTrue(errors.get(0).getMessage().contains("Forbidden"));
     });
-
-    verify(inventoryService, never()).addUser(any(), any());
   }
 
   @Test
   void removeUser_allowedIfUserIsAdmin() {
-    UUID userId = UUID.randomUUID();
-    when(inventoryService.removeUser(userId, accID)).thenReturn(true);
-    configJwtMock("userAdmin", "role", true, null);
+    UUID refUserId = UUID.randomUUID();
+    UserReferenceEntity userReferenceToRemove = userReferenceRepository.save(UserReferenceEntity.builder()
+      .referenceId(refUserId)
+    .build());
+    InventoryEntity savedInvWithUser1 = inventoryRepository.save(InventoryEntity.builder()
+      .name("inv1")
+      .accountId(UUID.fromString(accId))
+      .users(new ArrayList<>(List.of(userReferenceToRemove)))
+    .build());
+    InventoryEntity savedInvWithUser2 = inventoryRepository.save(InventoryEntity.builder()
+      .name("inv2")
+      .accountId(UUID.fromString(accId))
+      .users(new ArrayList<>(List.of(userReferenceToRemove)))
+    .build());
+
+    String token = tokenGenerator.generateAdminToken(accUsername, accId);
 
     String query = """
       mutation {
         removeUser(userId: "%s", accountId: "%s")
       }
-    """.formatted(userId.toString(), accID.toString());
+    """.formatted(refUserId.toString(), accId.toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().path("removeUser").entity(Boolean.class).isEqualTo(true);
 
-    verify(inventoryService).removeUser(userId, accID);
+    InventoryEntity inv1WithChanges = inventoryRepository.findById(savedInvWithUser1.getId()).get();
+    InventoryEntity inv2WithChanges = inventoryRepository.findById(savedInvWithUser2.getId()).get();
+    assertTrue(inv1WithChanges.getUsers().stream().noneMatch(userRefEntity -> userRefEntity.getReferenceId().equals(refUserId)));
+    assertTrue(inv2WithChanges.getUsers().stream().noneMatch(userRefEntity -> userRefEntity.getReferenceId().equals(refUserId)));
   }
 
   @Test
   void remove_denyIfNotAdmin() {
-    UUID userId = UUID.randomUUID();
-    configJwtMock("user", "role", false, null);
+    UUID refUserId = UUID.randomUUID();
+    String token = tokenGenerator.generateUserToken(accUsername, accId, null);
 
     String query = """
       mutation {
         removeUser(userId: "%s", accountId: "%s")
       }
-    """.formatted(userId.toString(), accID.toString());
+    """.formatted(refUserId.toString(), accId.toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().errors()
     .satisfy(errors -> {
       assertFalse(errors.isEmpty());
+      assertTrue(errors.size() == 1);
       assertTrue(errors.get(0).getMessage().contains("Forbidden"));
     });
-
-    verify(inventoryService, never()).removeUser(any(), any());
   }
 
+  // Products related endpoints
   @Test
   void addProduct_allowIfHasRightPerm() {
-    ProductInputDTO input = ProductInputDTO.builder()
-      .name("product")
-      .brand("brand")
-      .unitPrice(2)
-      .stock(4)
-    .build();
-    ProductInInvDTO expected = ProductInInvDTO.builder()
-      .name("product")
-      .brand("brand")
-      .unitPrice(2)
-      .stock(4)
-    .build();
-    
-    when(inventoryService.addProduct(input, UUID.fromString(inv.getId()))).thenReturn(expected);
-    configJwtMock("user", "role", false, List.of(
-      InventoryPermsDTO.builder()
-        .idOfInventoryReferenced(inv.getId())
-        .permissions(List.of(Permissions.addProducts))
-      .build()
+    InventoryEntity savedInv = inventoryRepository.save(InventoryEntity.builder()
+      .name(accUsername)
+      .accountId(UUID.fromString(accId))
+    .build());
+
+    UUID productId = UUID.randomUUID();
+    when(restCaller.exchange(anyString(), any(), any(), ArgumentMatchers.<Class<ResponseDTO>>any())).thenReturn(new ResponseEntity<>(
+      ResponseDTO.builder()
+        .data(ProductFromProductsMSDTO.builder()
+          .id(productId.toString())
+          .name("product")
+          .brand("brand")
+          .unitPrice(2)
+          .accountId(accId)
+        .build())
+      .build(),
+      HttpStatus.OK
     ));
+
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+      .idOfInventoryReferenced(savedInv.getId().toString())
+      .permissions(List.of(Permissions.addProducts))
+    .build()));
 
     Map<String, Object> variables = Map.of(
       "product", Map.of(
@@ -447,12 +523,13 @@ public class ControllerTest {
         "unitPrice", 2,
         "stock", 4
       ),
-      "invId", inv.getId()
+      "invId", savedInv.getId().toString()
     );
 
     String query = """
       mutation($product: ProductInput!, $invId: ID!) {
         addProduct(product: $product, invId: $invId) {
+          refId
           name
           brand
           unitPrice
@@ -461,32 +538,26 @@ public class ControllerTest {
       }
     """;
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
-      .document(query).variables(variables).execute().path("addProduct").entity(ProductInInvDTO.class).isEqualTo(expected);
+    Response response = graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
+      .document(query).variables(variables).execute();
+
+    ProductInInvDTO result = response.path("addProduct").entity(ProductInInvDTO.class).get();
+
+    assertTrue(
+      result.getName().equals("product") &&
+      result.getRefId().equals(productId.toString()) &&
+      productInInvRepository.findByReferenceIdAndInventoryId(productId, savedInv.getId()).isPresent()
+    );
   }
+
 
   @Test
   void addProduct_denyIfHasWrongPerm() {
-    ProductInputDTO input = ProductInputDTO.builder()
-      .name("product")
-      .brand("brand")
-      .unitPrice(2)
-      .stock(4)
-    .build();
-    ProductInInvDTO expected = ProductInInvDTO.builder()
-      .name("product")
-      .brand("brand")
-      .unitPrice(2)
-      .stock(4)
-    .build();
-    
-    when(inventoryService.addProduct(input, UUID.fromString(inv.getId()))).thenReturn(expected);
-    configJwtMock("user", "role", false, List.of(
-      InventoryPermsDTO.builder()
-        .idOfInventoryReferenced(inv.getId())
-        .permissions(List.of(Permissions.editInventory))
-      .build()
-    ));
+    UUID destinyInvId = UUID.randomUUID();
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+      .idOfInventoryReferenced(destinyInvId.toString())
+      .permissions(List.of(Permissions.editInventory))
+    .build()));
 
     Map<String, Object> variables = Map.of(
       "product", Map.of(
@@ -495,7 +566,7 @@ public class ControllerTest {
         "unitPrice", 2,
         "stock", 4
       ),
-      "invId", inv.getId()
+      "invId", destinyInvId.toString()
     );
 
     String query = """
@@ -509,35 +580,37 @@ public class ControllerTest {
       }
     """;
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).variables(variables).execute().errors()
     .satisfy(errors -> {
       assertFalse(errors.isEmpty());
+      assertTrue(errors.size() == 1);
       assertTrue(errors.get(0).getMessage().contains("Forbidden"));
     });
   }
 
   @Test
-  void copyProducts_allowedIfHasRightPerm() {
-    ProductToCopyDTO input = ProductToCopyDTO.builder()
-      .refId(UUID.randomUUID().toString())
-      .stock(4)
-    .build();
+  void copyProducts_allowedIfHasRightPerm() throws JsonProcessingException {
+    InventoryEntity savedInv = inventoryRepository.save(InventoryEntity.builder()
+      .name("destinyInv")
+      .accountId(UUID.fromString(accId))
+    .build());
+
+    UUID refId1 = UUID.randomUUID();
+    UUID refId2 = UUID.randomUUID();
+    List<ProductToCopyDTO> productsToCopyDTO = List.of(
+      new ProductToCopyDTO(refId1.toString(), 4),
+      new ProductToCopyDTO(refId2.toString(), 6)
+    );
     
-    when(inventoryService.copyProducts(List.of(input), UUID.fromString(inv.getId()))).thenReturn(true);
-    configJwtMock("user", "role", false, List.of(
-      InventoryPermsDTO.builder()
-        .idOfInventoryReferenced(inv.getId())
-        .permissions(List.of(Permissions.addProducts))
-      .build()
-    ));
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+      .idOfInventoryReferenced(savedInv.getId().toString())
+      .permissions(List.of(Permissions.addProducts))
+    .build()));
 
     Map<String, Object> variables = Map.of(
-      "products", List.of(Map.of(
-        "refId", input.getRefId(),
-        "stock", input.getStock()
-      )),
-      "idTo", inv.getId()
+      "products", productsToCopyDTO,
+      "idTo", savedInv.getId().toString()
     );
 
     String query = """
@@ -546,32 +619,34 @@ public class ControllerTest {
       }
     """;
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).variables(variables).execute().path("copyProducts").entity(Boolean.class).isEqualTo(true);
 
-    verify(inventoryService).copyProducts(List.of(input), UUID.fromString(inv.getId()));
+    assertTrue(
+      productInInvRepository.findByReferenceIdAndInventoryId(refId1, savedInv.getId()).isPresent() &&
+      productInInvRepository.findByReferenceIdAndInventoryId(refId2, savedInv.getId()).isPresent()
+    );
   }
 
   @Test
   void copyProducts_deniedIfHasWrongPerm() {
+    UUID existingInvId = UUID.randomUUID();
     ProductToCopyDTO input = ProductToCopyDTO.builder()
       .refId(UUID.randomUUID().toString())
       .stock(4)
     .build();
     
-    configJwtMock("user", "role", false, List.of(
-      InventoryPermsDTO.builder()
-        .idOfInventoryReferenced(inv.getId())
-        .permissions(List.of(Permissions.editInventory))
-      .build()
-    ));
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+      .idOfInventoryReferenced(existingInvId.toString())
+      .permissions(List.of(Permissions.editProducts))
+    .build()));
 
     Map<String, Object> variables = Map.of(
       "products", List.of(Map.of(
         "refId", input.getRefId(),
         "stock", input.getStock()
       )),
-      "idTo", inv.getId()
+      "idTo", existingInvId.toString()
     );
 
     String query = """
@@ -580,64 +655,70 @@ public class ControllerTest {
       }
     """;
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).variables(variables).execute().errors()
     .satisfy(errors -> {
       assertFalse(errors.isEmpty());
+      assertTrue(errors.size() == 1);
       assertTrue(errors.get(0).getMessage().contains("Forbidden"));
     });
-
-    verify(inventoryService, never()).copyProducts(anyList(), any());
   }
 
   // TODO: test for every method, should deny if no user account is logged
 
   @Test
   void editStockOfProduct_allowIfHasRightPerm() {
+    InventoryEntity savedInv = inventoryRepository.save(InventoryEntity.builder()
+      .name("inv")
+      .accountId(UUID.fromString(accId))
+    .build());
+
     UUID refId = UUID.randomUUID();
-    when(inventoryService.editStockOfProduct(2, refId, UUID.fromString(inv.getId()))).thenReturn(true);
-    configJwtMock("user", "role", false, List.of(
-      InventoryPermsDTO.builder()
-        .idOfInventoryReferenced(inv.getId())
-        .permissions(List.of(Permissions.editInventory))
-      .build()
-    ));
+    ProductInInvEntity savedProductInInv = productInInvRepository.save(ProductInInvEntity.builder()
+      .referenceId(refId)
+      .stock(4)
+      .isAvailable(true)
+      .inventory(savedInv)
+    .build());
+    
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+      .idOfInventoryReferenced(savedInv.getId().toString())
+      .permissions(List.of(Permissions.editInventory))
+    .build()));
 
     String query = """
       mutation {
         editStockOfProduct(relativeNewStock: 2, productRefId: "%s", invId: "%s")
       }
-    """.formatted(refId.toString(), inv.getId());
+    """.formatted(refId.toString(), savedInv.getId().toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().path("editStockOfProduct").entity(Boolean.class).isEqualTo(true);
 
-    verify(inventoryService).editStockOfProduct(2, refId, UUID.fromString(inv.getId()));
+    assertTrue(productInInvRepository.findById(savedProductInInv.getId()).get().getStock() == 6);
   }
 
   @Test
   void editStockOfProduct_deniedIfHasWrongPerm() {
+    UUID invId = UUID.randomUUID();
     UUID refId = UUID.randomUUID();
-    configJwtMock("user", "role", false, List.of(
-      InventoryPermsDTO.builder()
-        .idOfInventoryReferenced(inv.getId())
-        .permissions(List.of(Permissions.addProducts))
-      .build()
-    ));
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+      .idOfInventoryReferenced(invId.toString())
+      .permissions(List.of(Permissions.addProducts))
+    .build()));
 
     String query = """
       mutation {
         editStockOfProduct(relativeNewStock: 2, productRefId: "%s", invId: "%s")
       }
-    """.formatted(refId.toString(), inv.getId());
+    """.formatted(refId.toString(), invId.toString());
 
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken()).build()
+    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().errors()
     .satisfy(errors -> {
       assertFalse(errors.isEmpty());
+      assertTrue(errors.size() == 1);
       assertTrue(errors.get(0).getMessage().contains("Forbidden"));
     });
-
-    verify(inventoryService, never()).editStockOfProduct(anyInt(), any(), any());
   }
 }

@@ -3,13 +3,12 @@ package com.nahuelgg.inventory_app.inventories.configs;
 import java.io.IOException;
 import java.util.List;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nahuelgg.inventory_app.inventories.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO.InventoryPermsDTO;
 import com.nahuelgg.inventory_app.inventories.services.JwtService;
 import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal;
@@ -27,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtRequestFilterConfig  extends OncePerRequestFilter {
   private final JwtService jwtService;
-  private final ObjectMapper objectMapper;
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -41,14 +39,13 @@ public class JwtRequestFilterConfig  extends OncePerRequestFilter {
 
     try {
       String accountUsername = jwtService.getClaim(token, claims -> claims.getSubject());
-      String accountId = jwtService.getClaim(token, claim -> claim.get("accountId", String.class));
-      String userName = jwtService.getClaim(token, claim -> claim.get("userName", String.class));
-      String userRole = jwtService.getClaim(token, claim -> claim.get("userRole", String.class));
-      boolean isAdmin = jwtService.getClaim(token, claim -> claim.get("isAdmin", Boolean.class));
-      List<InventoryPermsDTO> userPermsDTO = objectMapper.convertValue(
-        jwtService.getClaim(token, claim -> claim.get("userPerms", List.class)), 
-        new TypeReference<List<InventoryPermsDTO>>() {}
-      );
+      JwtClaimsDTO tokenClaims = jwtService.mapTokenClaims(token);
+
+      String accountId = tokenClaims.getAccountId();
+      String userName = tokenClaims.getUserName();
+      String userRole = tokenClaims.getUserRole();
+      boolean isAdmin = tokenClaims.isAdmin();
+      List<InventoryPermsDTO> userPermsDTO = tokenClaims.getUserPerms();
 
       List<PermsForInv> userPerms = userPermsDTO != null ? userPermsDTO.stream().map(
         permDto -> new PermsForInv(permDto.getIdOfInventoryReferenced(), permDto.getPermissions())
@@ -66,12 +63,13 @@ public class JwtRequestFilterConfig  extends OncePerRequestFilter {
           .user(new UserSigned(userName, userRole, isAdmin, userPerms))
         .build();
 
-        UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
-          newAuthData, token, List.of()
+        PreAuthenticatedAuthenticationToken newAuth = new PreAuthenticatedAuthenticationToken(
+          newAuthData, null, List.of()
         );
         SecurityContextHolder.getContext().setAuthentication(newAuth);
       }
     } catch (Exception e) {
+      System.out.println("Error al registrar el token: " + e.getMessage());
       SecurityContextHolder.clearContext();
     }
 
