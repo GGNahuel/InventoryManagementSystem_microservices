@@ -34,6 +34,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
+import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.LoginDTO;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
@@ -168,14 +169,8 @@ public class AccountControllerTest {
     String password = "password";
     String adminPassword = "adminPassword";
 
-    String url = UriComponentsBuilder.fromUriString("/account/register")
-      .queryParam("username", username)
-      .queryParam("password", password)
-      .queryParam("passwordRepeated", password)
-      .queryParam("adminPassword", adminPassword)
-      .queryParam("adminPasswordRepeated", adminPassword)
-    .toUriString();
-    ResponseEntity<ResponseDTO> response = restTemplate.exchange(url, HttpMethod.POST, null, ResponseDTO.class);
+    HttpEntity<AccountRegistrationDTO> entity = new HttpEntity<>(new AccountRegistrationDTO(username, password, password, adminPassword, adminPassword));
+    ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account/register", HttpMethod.POST, entity, ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(201), response.getStatusCode());
     
     Optional<AccountEntity> accountSaved = accountRepository.findByUsername(username);

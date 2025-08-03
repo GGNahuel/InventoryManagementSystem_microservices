@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
+import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.entities.AccountEntity;
@@ -65,7 +66,14 @@ public class AccountService_Impl implements AccountService {
   }
 
   @Override @Transactional
-  public AccountDTO create(String username, String password, String passwordRepeated, String adminPassword, String adminPasswordRepeated) {
+  public AccountDTO create(AccountRegistrationDTO info) {
+    checkFieldsHasContent(new Field("información de creación de la cuenta", info));
+    String username = info.getUsername();
+    String password = info.getPassword();
+    String passwordRepeated = info.getPasswordRepeated();
+    String adminPassword = info.getAdminPassword();
+    String adminPasswordRepeated = info.getAdminPasswordRepeated();
+
     checkFieldsHasContent(
       new Field("nombre de usuario", username), new Field("contraseña", password), new Field("contraseña de admin", adminPassword),
       new Field("repetición de contraseña", passwordRepeated), new Field("repetición de contraseña de admin", adminPasswordRepeated)

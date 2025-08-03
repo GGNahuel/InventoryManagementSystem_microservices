@@ -27,6 +27,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.client.RestTemplate;
 
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
+import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.entities.AccountEntity;
@@ -135,22 +136,31 @@ public class AccountServiceTest {
     when(repository.save(any())).thenReturn(acc);
     when(encoder.encode(anyString())).thenReturn("encrypted");
 
-    AccountDTO result = service.create(username, password, passwordRepeated, adminPassword, adminPasswordRepeated);
+    AccountDTO result = service.create(AccountRegistrationDTO.builder()
+      .username(username)
+      .password(password)
+      .passwordRepeated(passwordRepeated)
+      .adminPassword(adminPassword)
+      .adminPasswordRepeated(adminPasswordRepeated)
+    .build());
 
     assertEquals(accDTO, result);
   }
 
   @Test
   void create_throwsEmptyFieldInImportantOnes() {
-    assertThrows(EmptyFieldException.class, () -> service.create("user", null, "password", "123", "123"));
-    assertThrows(EmptyFieldException.class, () -> service.create("", "password", "password", "123", "123"));
-    assertThrows(EmptyFieldException.class, () -> service.create("user", "password", "password", null, "123"));
+    assertThrows(EmptyFieldException.class, () -> service.create(new AccountRegistrationDTO("user", null, "password", "123", "123")));
+    assertThrows(EmptyFieldException.class, () -> service.create(new AccountRegistrationDTO("", "password", "password", "123", "123")));
+    assertThrows(EmptyFieldException.class, () -> service.create(new AccountRegistrationDTO("user", "password", "password", null, "123")));
   }
 
   @Test
   void create_throwsInvalidValue() {
     assertThrows(InvalidValueException.class, () ->
-      service.create("user", "123", "456", "admin", "admin")
+      service.create(new AccountRegistrationDTO("user", "123", "456", "admin", "admin"))
+    );
+    assertThrows(InvalidValueException.class, () ->
+      service.create(new AccountRegistrationDTO("user", "123", "123", "admin", "456"))
     );
   }
 

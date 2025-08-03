@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.services.AccountService;
@@ -45,12 +46,9 @@ public class AccountController {
   }
 
   @PostMapping("/register")
-  public ResponseEntity<ResponseDTO> create(
-    @RequestParam String username, @RequestParam String password, @RequestParam String passwordRepeated, 
-    @RequestParam String adminPassword, @RequestParam String adminPasswordRepeated
-  ) {
+  public ResponseEntity<ResponseDTO> create(@RequestBody AccountRegistrationDTO info) {
     return new ResponseEntity<>(
-      new ResponseDTO(201, null, service.create(username, password, passwordRepeated, adminPassword, adminPasswordRepeated)),
+      new ResponseDTO(201, null, service.create(info)),
       HttpStatus.CREATED
     );
   }
