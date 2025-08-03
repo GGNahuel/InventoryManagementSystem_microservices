@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 public class AccountDTO {
   private String id;
   private String username;
-  private List<String> idsOfInventoryReferred;
+  private List<String> inventoryReferenceIds;
   private List<UserDTO> users;
 }

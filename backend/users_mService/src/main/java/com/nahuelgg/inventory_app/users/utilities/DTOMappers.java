@@ -44,7 +44,6 @@ public class DTOMappers {
     String permissionsString = mapSpecificPermissions(dto.getPermissions());
 
     return PermissionsForInventoryEntity.builder()
-      .id(dto.getId() != null ? UUID.fromString(dto.getId()) : null)
       .permissions(permissionsString)
       .inventoryReference(mapInventoryRef(dto.getIdOfInventoryReferenced()))
     .build();

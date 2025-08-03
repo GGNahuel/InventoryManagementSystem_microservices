@@ -47,7 +47,6 @@ public class DTOMappersTest {
   .build();
 
   PermissionsForInventoryDTO perm = PermissionsForInventoryDTO.builder()
-    .id(permE.getId().toString())
     .permissions(List.of(Permissions.editProducts, Permissions.addProducts))
     .idOfInventoryReferenced(invRef.getInventoryIdReference().toString())
   .build();

@@ -14,7 +14,6 @@ public class EntityMappers {
   
   public PermissionsForInventoryDTO mapPerms(PermissionsForInventoryEntity e) {
     return PermissionsForInventoryDTO.builder()
-      .id(e.getId().toString())
       .permissions(Arrays.asList((e.getPermissions().split(","))).stream().map(
         permString -> Permissions.valueOf(permString)
       ).toList())
@@ -39,7 +38,7 @@ public class EntityMappers {
     return AccountDTO.builder()
       .id(e.getId().toString())
       .username(e.getUsername())
-      .idsOfInventoryReferred(e.getInventoriesReferences() != null ? 
+      .inventoryReferenceIds(e.getInventoriesReferences() != null ? 
         e.getInventoriesReferences().stream().map(
           idRefEntity -> idRefEntity.getInventoryIdReference().toString()
         ).toList() 

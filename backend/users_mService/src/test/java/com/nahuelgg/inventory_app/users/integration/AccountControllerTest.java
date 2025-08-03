@@ -120,7 +120,7 @@ public class AccountControllerTest {
       .users(loggedAccount.getUsers().stream().map(
         userEntity -> eMappers.mapUser(userEntity)
       ).collect(Collectors.toList()))
-      .idsOfInventoryReferred(new ArrayList<>())
+      .inventoryReferenceIds(new ArrayList<>())
     .build();
 
     token = authData.getToken();

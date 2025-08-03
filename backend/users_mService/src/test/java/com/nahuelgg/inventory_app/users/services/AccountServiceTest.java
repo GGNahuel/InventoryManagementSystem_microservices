@@ -87,7 +87,6 @@ public class AccountServiceTest {
       .inventoryIdReference(UUID.randomUUID())
     .build();
     PermissionsForInventoryDTO perm = PermissionsForInventoryDTO.builder()
-      .id(UUID.randomUUID().toString())
       .permissions(List.of(Permissions.editProducts))
       .idOfInventoryReferenced(invRef.getInventoryIdReference().toString())
     .build();
@@ -173,7 +172,6 @@ public class AccountServiceTest {
       .inventoryIdReference(UUID.randomUUID())
     .build();
     PermissionsForInventoryDTO perm = PermissionsForInventoryDTO.builder()
-      .id(UUID.randomUUID().toString())
       .permissions(List.of(Permissions.editProducts))
       .idOfInventoryReferenced(invRef.getInventoryIdReference().toString())
     .build();
@@ -184,7 +182,6 @@ public class AccountServiceTest {
     .build();
 
     PermissionsForInventoryEntity mappedPerm = PermissionsForInventoryEntity.builder()
-      .id(UUID.fromString(perm.getId()))
       .permissions("editProducts")
       .inventoryReference(invRef)
     .build();
@@ -267,7 +264,7 @@ public class AccountServiceTest {
 
     InventoryRefEntity savedRef = InventoryRefEntity.builder().id(UUID.randomUUID()).inventoryIdReference(inventoryId).build();
     AccountDTO expected = accDTO.toBuilder()
-      .idsOfInventoryReferred(List.of(inventoryId.toString()))
+      .inventoryReferenceIds(List.of(inventoryId.toString()))
     .build();
 
     when(repository.findById(acc.getId())).thenReturn(Optional.of(acc));
