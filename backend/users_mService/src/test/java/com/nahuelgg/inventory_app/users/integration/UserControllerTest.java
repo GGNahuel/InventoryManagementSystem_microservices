@@ -340,7 +340,7 @@ public class UserControllerTest {
       "/user/delete?id=" + userToDelete.getId().toString() + "&accountId=" + loggedAccount.getId().toString(),
       HttpMethod.DELETE, new HttpEntity<>(generateHeaderWithToken()), ResponseDTO.class
     );
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+    assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
   }
 
   @Test

@@ -62,9 +62,6 @@ public class UserController {
   @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
   public ResponseEntity<ResponseDTO> delete(@RequestParam String id, @RequestParam String accountId) {
     service.delete(UUID.fromString(id), UUID.fromString(accountId));
-    return new ResponseEntity<>(
-      new ResponseDTO(200, null, null),
-      HttpStatus.OK
-    );
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 }
