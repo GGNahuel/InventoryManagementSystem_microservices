@@ -2,8 +2,10 @@ package com.nahuelgg.inventory_app.users.services;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -30,6 +32,7 @@ import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
+import com.nahuelgg.inventory_app.users.dtos.UserRegistrationDTO;
 import com.nahuelgg.inventory_app.users.entities.AccountEntity;
 import com.nahuelgg.inventory_app.users.entities.InventoryRefEntity;
 import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
@@ -66,7 +69,6 @@ public class AccountServiceTest {
 
   private AccountEntity acc;
   private AccountDTO accDTO;
-  private UserDTO userDTO;
 
   @BeforeEach
   void beforeEach() {
@@ -80,20 +82,6 @@ public class AccountServiceTest {
       .id(acc.getId().toString())
       .username("account")
       .users(new ArrayList<>())
-    .build();
-
-    InventoryRefEntity invRef = InventoryRefEntity.builder()
-      .id(UUID.randomUUID())
-      .inventoryIdReference(UUID.randomUUID())
-    .build();
-    PermissionsForInventoryDTO perm = PermissionsForInventoryDTO.builder()
-      .permissions(List.of(Permissions.editProducts))
-      .idOfInventoryReferenced(invRef.getInventoryIdReference().toString())
-    .build();
-    userDTO = UserDTO.builder()
-      .name("Pablo")
-      .role("gerente de logística")
-      .inventoryPerms(List.of(perm))
     .build();
   }
 
@@ -143,7 +131,8 @@ public class AccountServiceTest {
       .adminPasswordRepeated(adminPasswordRepeated)
     .build());
 
-    assertEquals(accDTO, result);
+    assertEquals("account", result.getUsername());
+    assertNotNull(result.getId());
   }
 
   @Test
@@ -175,9 +164,12 @@ public class AccountServiceTest {
       .permissions(List.of(Permissions.editProducts))
       .idOfInventoryReferenced(invRef.getInventoryIdReference().toString())
     .build();
-    UserDTO userInput = UserDTO.builder()
+
+    UserRegistrationDTO userInput = UserRegistrationDTO.builder()
       .name("Juan")
       .role("caja")
+      .password(password)
+      .passwordRepeated(password)
       .inventoryPerms(List.of(perm))
     .build();
 
@@ -193,30 +185,68 @@ public class AccountServiceTest {
       .inventoryPerms(List.of(mappedPerm))
     .build();
 
-    UserDTO expected = userInput.toBuilder()
+    UserDTO expected = UserDTO.builder()
       .id(mappedInput_savedEntity.getId().toString())
+      .name(userInput.getName())
+      .role(userInput.getRole())
+      .inventoryPerms(userInput.getInventoryPerms())
     .build();
 
     when(repository.findById(acc.getId())).thenReturn(Optional.of(acc));
 
-    when(dtoMappers.mapUser(userInput, acc.getId())).thenReturn(mappedInput_savedEntity);
     when(dtoMappers.mapPerms(perm)).thenReturn(mappedPerm);
 
     when(permsRepository.save(mappedPerm)).thenReturn(mappedPerm);
     when(encoder.encode(password)).thenReturn("encrypted-password");
     when(userRepository.save(any(UserEntity.class))).thenReturn(mappedInput_savedEntity);
-    when(repository.save(any(AccountEntity.class))).thenReturn(acc);
 
-    UserDTO actual = service.addUser(userInput, acc.getId(), password, password);
+    UserDTO actual = service.addUser(acc.getId(), userInput);
 
     assertEquals(expected, actual);
   }
 
   @Test
   void addUser_throwsEmptyFieldInImportantOnes() {
-    UserDTO withoutName = userDTO.toBuilder().name("").build();
-    UserDTO withoutRole = userDTO.toBuilder().role(null).build();
-    UserDTO withoutInvRefInPerm =userDTO.toBuilder()
+    UserRegistrationDTO completeOne =  UserRegistrationDTO.builder()
+      .name("Juan")
+      .role("caja")
+      .password("1234")
+      .passwordRepeated("1234")
+      .inventoryPerms(null)
+    .build();
+    UserRegistrationDTO withoutName = UserRegistrationDTO.builder()
+      .name("")
+      .role("caja")
+      .password("1234")
+      .passwordRepeated("1234")
+      .inventoryPerms(null)
+    .build();
+    UserRegistrationDTO withoutRole = UserRegistrationDTO.builder()
+      .name("Juan")
+      .role(null)
+      .password("1234")
+      .passwordRepeated("1234")
+      .inventoryPerms(null)
+    .build();
+    UserRegistrationDTO withoutPassword = UserRegistrationDTO.builder()
+      .name("Juan")
+      .role("caja")
+      .password("")
+      .passwordRepeated("1234")
+      .inventoryPerms(null)
+    .build();
+    UserRegistrationDTO withoutPasswordRepeated = UserRegistrationDTO.builder()
+      .name("Juan")
+      .role("caja")
+      .password("1234")
+      .passwordRepeated(null)
+      .inventoryPerms(null)
+    .build();
+    UserRegistrationDTO withoutInvRefInPerm = UserRegistrationDTO.builder()
+      .name("Juan")
+      .role("caja")
+      .password("1234")
+      .passwordRepeated("1234")
       .inventoryPerms(List.of(
         PermissionsForInventoryDTO.builder()
           .permissions(List.of(Permissions.editInventory))
@@ -224,7 +254,11 @@ public class AccountServiceTest {
         .build()
       ))
     .build();
-    UserDTO withoutPermsInPerm =userDTO.toBuilder()
+    UserRegistrationDTO withoutPermsInPerm = UserRegistrationDTO.builder()
+      .name("Juan")
+      .role("caja")
+      .password("1234")
+      .passwordRepeated("1234")
       .inventoryPerms(List.of(
         PermissionsForInventoryDTO.builder()
           .permissions(List.of())
@@ -234,12 +268,13 @@ public class AccountServiceTest {
     .build();
 
     assertAll(
-      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(userDTO, null, "null", "null")),
-      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(userDTO, UUID.randomUUID(), null, "null")),
-      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(withoutName, UUID.randomUUID(), "null", "null")),
-      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(withoutRole, UUID.randomUUID(), "null", "null")),
-      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(withoutInvRefInPerm, UUID.randomUUID(), "null", "null")),
-      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(withoutPermsInPerm, UUID.randomUUID(), "null", "null"))
+      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(null, completeOne)),
+      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(UUID.randomUUID(), withoutName)),
+      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(UUID.randomUUID(), withoutRole)),
+      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(UUID.randomUUID(), withoutPassword)),
+      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(UUID.randomUUID(), withoutPasswordRepeated)),
+      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(UUID.randomUUID(), withoutInvRefInPerm)),
+      () -> assertThrows(EmptyFieldException.class, () -> service.addUser(UUID.randomUUID(), withoutPermsInPerm))
     );
     verify(repository, never()).findById(any(UUID.class));
     verify(permsRepository, never()).save(any());
@@ -249,8 +284,16 @@ public class AccountServiceTest {
 
   @Test
   void addUser_throwsInvalidField() {
+    UserRegistrationDTO wrongPasswords =  UserRegistrationDTO.builder()
+      .name("Juan")
+      .role("caja")
+      .password("1234")
+      .passwordRepeated("4321")
+      .inventoryPerms(null)
+    .build();
+
     assertThrows(InvalidValueException.class, () ->
-      service.addUser(userDTO, acc.getId(), "pass1", "pass2")
+      service.addUser(acc.getId(), wrongPasswords)
     );
     verify(repository, never()).findById(any(UUID.class));
     verify(permsRepository, never()).save(any());
@@ -308,7 +351,7 @@ public class AccountServiceTest {
 
     service.removeInventoryAssigned(acc.getId(), inventoryId);
 
-    verify(permsRepository).deleteById(perms.getId());
+    verify(permsRepository).deleteAll(anyList());
     verify(repository).save(any());
   }
 

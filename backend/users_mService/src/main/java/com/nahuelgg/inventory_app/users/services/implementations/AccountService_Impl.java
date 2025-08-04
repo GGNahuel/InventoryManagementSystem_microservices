@@ -17,6 +17,7 @@ import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
+import com.nahuelgg.inventory_app.users.dtos.UserRegistrationDTO;
 import com.nahuelgg.inventory_app.users.entities.AccountEntity;
 import com.nahuelgg.inventory_app.users.entities.InventoryRefEntity;
 import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
@@ -98,15 +99,15 @@ public class AccountService_Impl implements AccountService {
   }
 
   @Override @Transactional
-  public UserDTO addUser(UserDTO user, UUID accountId, String passwordForNewUser, String passwordRepeated) {
-    checkFieldsHasContent(new Field("usuario a agregar", user));
+  public UserDTO addUser(UUID accountId, UserRegistrationDTO info) {
+    checkFieldsHasContent(new Field("usuario a agregar", info));
     checkFieldsHasContent(
-      new Field("nombre del usuario", user.getName()), new Field("rol/puesto del usuario", user.getRole()),
+      new Field("nombre del usuario", info.getName()), new Field("rol/puesto del usuario", info.getRole()),
       new Field("id de cuenta a asociar", accountId),
-      new Field("contraseña para el usuario", passwordForNewUser), new Field("repetición de contraseña", passwordRepeated)
+      new Field("contraseña para el usuario", info.getPassword()), new Field("repetición de contraseña", info.getPasswordRepeated())
     );
-    if (user.getInventoryPerms() != null && !user.getInventoryPerms().isEmpty()) {
-      for (PermissionsForInventoryDTO perm : user.getInventoryPerms()) {
+    if (info.getInventoryPerms() != null && !info.getInventoryPerms().isEmpty()) {
+      for (PermissionsForInventoryDTO perm : info.getInventoryPerms()) {
         checkFieldsHasContent(
           new Field("inventario de referemcia", perm.getIdOfInventoryReferenced()),
           new Field("permisos", perm.getPermissions())
@@ -114,10 +115,10 @@ public class AccountService_Impl implements AccountService {
       }
     }
 
-    if (!passwordForNewUser.equals(passwordRepeated))
+    if (!info.getPassword().equals(info.getPasswordRepeated()))
       throw new InvalidValueException("Las contraseñas para el nuevo usuario no coinciden");
 
-    if (userRepository.findByNameAndAssociatedAccountId(user.getName(), accountId).isPresent())
+    if (userRepository.findByNameAndAssociatedAccountId(info.getName(), accountId).isPresent())
       throw new InvalidValueException("Ya existe un usuario con ese nombre asociado a esta cuenta");
 
     AccountEntity parentAccount = repository.findById(accountId).orElseThrow(
@@ -125,25 +126,23 @@ public class AccountService_Impl implements AccountService {
     );
 
     List<PermissionsForInventoryEntity> permsEntities = new ArrayList<>();
-    if (user.getInventoryPerms() != null) {
-      for (int i = 0; i < user.getInventoryPerms().size(); i++) {
-        PermissionsForInventoryDTO permsDto = user.getInventoryPerms().get(i);
+    if (info.getInventoryPerms() != null) {
+      for (int i = 0; i < info.getInventoryPerms().size(); i++) {
+        PermissionsForInventoryDTO permsDto = info.getInventoryPerms().get(i);
 
         permsEntities.add(permsRepository.save(dtoMappers.mapPerms(permsDto)));
       }
     }
 
     UserEntity savedUser = userRepository.save(UserEntity.builder()
-      .name(user.getName())
-      .role(user.getRole())
-      .password(encoder.encode(passwordForNewUser))
+      .name(info.getName())
+      .role(info.getRole())
+      .password(encoder.encode(info.getPassword()))
       .associatedAccount(parentAccount)
       .isAdmin(false)
       .inventoryPerms(permsEntities)
     .build());
 
-    parentAccount.getUsers().add(savedUser);
-    repository.save(parentAccount);
     return entityMappers.mapUser(savedUser);
   }
 

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
-import com.nahuelgg.inventory_app.users.dtos.UserDTO;
+import com.nahuelgg.inventory_app.users.dtos.UserRegistrationDTO;
 import com.nahuelgg.inventory_app.users.services.AccountService;
 
 import lombok.RequiredArgsConstructor;
@@ -55,12 +55,9 @@ public class AccountController {
 
   @PostMapping("/add-user")
   @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
-  public ResponseEntity<ResponseDTO> addUser(
-    @RequestBody UserDTO user, @RequestParam String accountId,
-    @RequestParam String password, @RequestParam String passwordRepeated
-  ) {
+  public ResponseEntity<ResponseDTO> addUser(@RequestBody UserRegistrationDTO user, @RequestParam String accountId) {
     return new ResponseEntity<>(
-      new ResponseDTO(200, null, service.addUser(user, UUID.fromString(accountId), password, passwordRepeated)),
+      new ResponseDTO(200, null, service.addUser(UUID.fromString(accountId), user)),
       HttpStatus.OK
     );
   }

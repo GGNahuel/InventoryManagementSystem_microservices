@@ -13,3 +13,4 @@ public interface UserService {
   void delete(UUID id, UUID accountId);
 }
 // TODO: ver cómo hacer que los users solo puedan editar productos con ciertas categorías?
+// TODO: agregar método para editar o borrar permiso en usuario

@@ -6,12 +6,13 @@ import java.util.UUID;
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
+import com.nahuelgg.inventory_app.users.dtos.UserRegistrationDTO;
 
 public interface AccountService {
   List<AccountDTO> getAll();
   AccountDTO getById(UUID id);
   AccountDTO create(AccountRegistrationDTO info);
-  UserDTO addUser(UserDTO user, UUID accountId, String passwordForNewUser, String passwordRepeated);
+  UserDTO addUser(UUID accountId, UserRegistrationDTO info);
   AccountDTO assignInventory(UUID accountId, UUID inventoryId);
   void removeInventoryAssigned(UUID accountId, UUID inventoryId);
   void delete(UUID id);
