@@ -60,18 +60,10 @@ public class AuthenticationServiceTest {
   void clear() {
     SecurityContextHolder.clearContext();
   }
-  
-  @Test
-  void logins_deniedWhenInvalidLoginType() {
-    LoginDTO loginToAcc = new LoginDTO(username, password, false);
-    LoginDTO loginToUser = new LoginDTO(username, password, true);
-    assertThrows(RuntimeException.class, () -> authenticationService.login(loginToAcc));
-    assertThrows(RuntimeException.class, () -> authenticationService.login(loginToUser));
-  }
 
   @Test
   void loginAccount_success() {
-    LoginDTO login = new LoginDTO(username, password, true);
+    LoginDTO login = new LoginDTO(username, password);
 
     AccountEntity acc = new AccountEntity();
     acc.setId(accountId);
@@ -89,7 +81,7 @@ public class AuthenticationServiceTest {
 
   @Test
   void loginAccount_deniedIfAccountIsAlreadyLogged() {
-    LoginDTO login = new LoginDTO(username, password, true);
+    LoginDTO login = new LoginDTO(username, password);
 
     SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(username, password));
     assertThrows(RuntimeException.class, () -> authenticationService.login(login));
@@ -101,7 +93,7 @@ public class AuthenticationServiceTest {
 
   @Test
   void loginAsUser_success() {
-    LoginDTO login = new LoginDTO("subUser", password, false);
+    LoginDTO login = new LoginDTO("subUser", password);
     ContextAuthenticationPrincipal currentAuth = ContextAuthenticationPrincipal.builder()
       .account(new AccountSigned(username, password))
     .build();
@@ -130,7 +122,7 @@ public class AuthenticationServiceTest {
 
   @Test
   void loginAsUser_deniedIfUserIsAlreadyLogged() {
-    LoginDTO login = new LoginDTO("subUser", password, false);
+    LoginDTO login = new LoginDTO("subUser", password);
     ContextAuthenticationPrincipal currentAuth = ContextAuthenticationPrincipal.builder()
       .account(new AccountSigned(username, password))
       .user(new UserSigned("name", "role", false, List.of()))

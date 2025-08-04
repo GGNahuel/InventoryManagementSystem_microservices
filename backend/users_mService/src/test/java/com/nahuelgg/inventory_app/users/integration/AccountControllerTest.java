@@ -111,7 +111,7 @@ public class AccountControllerTest {
   @Test
   @DirtiesContext
   void getById() {
-    AuthData authData = authenticator.authenticate(new LoginDTO("user", "password", false));
+    AuthData authData = authenticator.authenticate(new LoginDTO("user", "password"));
     AccountEntity loggedAccount = authData.getAccountSaved();
     
     AccountDTO expected = AccountDTO.builder()
@@ -150,7 +150,7 @@ public class AccountControllerTest {
     assertEquals(HttpStatusCode.valueOf(403), notLoggedResponse.getStatusCode(), "No tendría que permitir si no hay autenticación");
 
 
-    token = authenticator.authenticate(new LoginDTO("loggedAccount", "1234", false)).getToken();
+    token = authenticator.authenticate(new LoginDTO("loggedAccount", "1234")).getToken();
     ResponseEntity<ResponseDTO> notEqualsIdsResponse = restTemplate.exchange(
       "/account/id/" + anotherAccount.getId().toString(), HttpMethod.GET,
       new HttpEntity<>(generateHeaderWithToken()),
@@ -187,7 +187,7 @@ public class AccountControllerTest {
   void addUser_success() {
     UserDTO user = UserDTO.builder().name("user").role("role").build();
     
-    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("user", "1234", false));
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("user", "1234"));
     AccountEntity loggedAccount = authData.getAccountSaved();
     token = authData.getToken();
 
@@ -215,8 +215,8 @@ public class AccountControllerTest {
     UserDTO inputUser = UserDTO.builder().name("user").role("role").build();
 
     AuthData authData = authenticator.authenticateWithUserToo(
-      new LoginDTO("accountUsername", "1234", false),
-      new LoginDTO("loggedUser", "1234", false), 
+      new LoginDTO("accountUsername", "1234"),
+      new LoginDTO("loggedUser", "1234"), 
       "notAdmin", null
     );
     AccountEntity loggedAccount = authData.getAccountSaved();    
@@ -246,7 +246,7 @@ public class AccountControllerTest {
       .inventoriesReferences(new ArrayList<>())
     .build());
 
-    AuthData authData = authenticator.authenticate(new LoginDTO("loggedAccount", "1234", false));
+    AuthData authData = authenticator.authenticate(new LoginDTO("loggedAccount", "1234"));
     token = authData.getToken();
 
     String url = UriComponentsBuilder.fromUriString("/account/add-user")
@@ -266,7 +266,7 @@ public class AccountControllerTest {
   void assignInventory_success() {
     UUID refInvId = UUID.randomUUID();
 
-    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234", false));
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234"));
     AccountEntity loggedAcc = authData.getAccountSaved();
     token = authData.getToken();
 
@@ -293,8 +293,8 @@ public class AccountControllerTest {
     UUID refInvId = UUID.randomUUID();
     
     AuthData authData = authenticator.authenticateWithUserToo(
-      new LoginDTO("accountUsername", "1234", false),
-      new LoginDTO("loggedUser", "1234", false), 
+      new LoginDTO("accountUsername", "1234"),
+      new LoginDTO("loggedUser", "1234"), 
       "notAdmin", null
     );
     token = authData.getToken();
@@ -324,7 +324,7 @@ public class AccountControllerTest {
       .inventoriesReferences(new ArrayList<>())
     .build());
     
-    token = authenticator.authenticate(new LoginDTO("loggedAccount", "1234", false)).getToken();
+    token = authenticator.authenticate(new LoginDTO("loggedAccount", "1234")).getToken();
 
     String url = UriComponentsBuilder.fromUriString("/account/add-inventory")
       .queryParam("accountId", anotherAccount.getId().toString())
@@ -348,7 +348,7 @@ public class AccountControllerTest {
       .inventoryIdReference(invId)
     .build());
     
-    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234", false));
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234"));
     AccountEntity loggedAcc = authData.getAccountSaved();
     token = authData.getToken();
 
@@ -379,8 +379,8 @@ public class AccountControllerTest {
   void removeInventoryAssigned_deniedIfNotAdmin() {
     UUID refInvId = UUID.randomUUID();
     AuthData authData = authenticator.authenticateWithUserToo(
-      new LoginDTO("accountUsername", "1234", false),
-      new LoginDTO("loggedUser", "1234", false), 
+      new LoginDTO("accountUsername", "1234"),
+      new LoginDTO("loggedUser", "1234"), 
       "notAdmin", null
     );
     token = authData.getToken();
@@ -404,7 +404,7 @@ public class AccountControllerTest {
       .inventoriesReferences(new ArrayList<>())
     .build());
 
-    token = authenticator.authenticate(new LoginDTO("accountUsername", "1234", false)).getToken();
+    token = authenticator.authenticate(new LoginDTO("accountUsername", "1234")).getToken();
 
     String url = UriComponentsBuilder.fromUriString("/account/remove-inventory")
       .queryParam("accountId", anotherAccount.getId().toString())
@@ -417,7 +417,7 @@ public class AccountControllerTest {
   @Test
   @DirtiesContext
   void delete() {
-    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234", false));
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234"));
     AccountEntity loggedAccount = authData.getAccountSaved();
     token = authData.getToken();
 
@@ -455,8 +455,8 @@ public class AccountControllerTest {
   @DirtiesContext
   void delete_deniedIfNotAdmin() {
     AuthData authData = authenticator.authenticateWithUserToo(
-      new LoginDTO("accountUsername", "1234", false),
-      new LoginDTO("loggedUser", "1234", false), 
+      new LoginDTO("accountUsername", "1234"),
+      new LoginDTO("loggedUser", "1234"), 
       "notAdmin", null
     );
     AccountEntity loggedAccount = authData.getAccountSaved();
@@ -484,7 +484,7 @@ public class AccountControllerTest {
       .password("1234")
     .build());
 
-    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234", false));
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("account", "1234"));
     token = authData.getToken();
 
     String url = UriComponentsBuilder.fromUriString("/account/delete")

@@ -72,7 +72,6 @@ public class AuthenticationForTesting {
   }
 
   /**
-   * (Los valores del booleano en los loginDTO que se ingresan no influyen en el método)
    * @param claimsForToken - campo requerido si se quiere iniciar sesión con cualquier usuario
    * @param accountInfo - <I>campo completo requerido</I>
    * @param userInfo - en caso de que se quiera iniciar sesión con un usuario, distinto al de admin.

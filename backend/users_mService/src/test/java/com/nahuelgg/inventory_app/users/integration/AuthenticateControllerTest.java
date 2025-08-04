@@ -73,7 +73,7 @@ public class AuthenticateControllerTest {
   @Test
   void loginAccount_successWithoutToken() {
     registerAccountWithUser();
-    LoginDTO input = new LoginDTO(accUsername, accPassword, true);
+    LoginDTO input = new LoginDTO(accUsername, accPassword);
 
     HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input);
     ResponseEntity<TokenDTO> response = restTemplate.exchange("/authenticate/login/account", HttpMethod.POST, httpEntity, TokenDTO.class);
@@ -84,7 +84,7 @@ public class AuthenticateControllerTest {
   @Test
   void loginAccount_successWithEmptyToken() {
     registerAccountWithUser();
-    LoginDTO input = new LoginDTO(accUsername, accPassword, true);
+    LoginDTO input = new LoginDTO(accUsername, accPassword);
 
     String emptyToken = jwtService.generateEmptyToken();
     HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken(emptyToken));
@@ -96,7 +96,7 @@ public class AuthenticateControllerTest {
   @Test
   void loginAsUser_success() {
     // Primero se loguea la cuenta únicamente, y luego se crea un usuario asociado a esa cuenta sin loguearlo todavía
-    AuthData authData = authenticator.authenticate(new LoginDTO(accUsername, accPassword, false));
+    AuthData authData = authenticator.authenticate(new LoginDTO(accUsername, accPassword));
     AccountEntity loggedAccount = authData.getAccountSaved();
     userRepository.save(UserEntity.builder()
       .name(userName)
@@ -108,7 +108,7 @@ public class AuthenticateControllerTest {
     .build());
 
     // Preparación del llamado para loguear al usuario creado
-    LoginDTO input = new LoginDTO(userName, userPassword, false);
+    LoginDTO input = new LoginDTO(userName, userPassword);
 
     HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken(authData.getToken()));
     ResponseEntity<TokenDTO> response = restTemplate.exchange("/authenticate/login/user", HttpMethod.POST, httpEntity, TokenDTO.class);
@@ -120,7 +120,7 @@ public class AuthenticateControllerTest {
 
   @Test
   void loginAsUser_deniedIfNotLogged() {
-    LoginDTO input = new LoginDTO(userName, userPassword, false);
+    LoginDTO input = new LoginDTO(userName, userPassword);
 
     HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken(jwtService.generateEmptyToken()));
     ResponseEntity<TokenDTO> response = restTemplate.exchange("/authenticate/login/user", HttpMethod.POST, httpEntity, TokenDTO.class);
@@ -129,7 +129,7 @@ public class AuthenticateControllerTest {
 
   @Test
   void logout_success() {
-    AuthData authData = authenticator.authenticate(new LoginDTO(accUsername, accPassword, false));
+    AuthData authData = authenticator.authenticate(new LoginDTO(accUsername, accPassword));
 
     ResponseEntity<TokenDTO> response = restTemplate.exchange(
       "/authenticate/logout/account", HttpMethod.POST, 
@@ -152,8 +152,8 @@ public class AuthenticateControllerTest {
   @Test
   void logoutUser_success() {
     AuthData authData = authenticator.authenticateWithUserToo(
-      new LoginDTO(accUsername, accPassword, false),
-      new LoginDTO(userName, userPassword, false),
+      new LoginDTO(accUsername, accPassword),
+      new LoginDTO(userName, userPassword),
       "role", null
     );
 
@@ -166,7 +166,7 @@ public class AuthenticateControllerTest {
 
   @Test
   void logoutUser_deniedIfNotLogged() {
-    AuthData authData = authenticator.authenticate(new LoginDTO(accUsername, accPassword, false));
+    AuthData authData = authenticator.authenticate(new LoginDTO(accUsername, accPassword));
 
     ResponseEntity<TokenDTO> response = restTemplate.exchange(
       "/authenticate/logout/user", HttpMethod.POST, 

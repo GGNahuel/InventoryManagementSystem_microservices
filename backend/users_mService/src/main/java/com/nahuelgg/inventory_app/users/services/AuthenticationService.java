@@ -46,11 +46,7 @@ public class AuthenticationService {
   public TokenDTO login(LoginDTO info) {
     String username = info.getUsername();
 
-    checkFieldsHasContent(new Field("tipo de login", info.isAccountLogin()));
     checkFieldsHasContent(new Field("nombre de cuenta", username), new Field("contraseña", info.getPassword()));
-    
-    if (!info.isAccountLogin())
-      throw new RuntimeException("El tipo de datos enviados no pertenece al login de cuenta");
 
     Authentication currentAuthInContext = SecurityContextHolder.getContext().getAuthentication();
     if (currentAuthInContext.getPrincipal() instanceof ContextAuthenticationPrincipal)
@@ -79,11 +75,7 @@ public class AuthenticationService {
   public TokenDTO loginAsUser(LoginDTO info) {
     String userUsername = info.getUsername();
     
-    checkFieldsHasContent(new Field("tipo de login", info.isAccountLogin()));
     checkFieldsHasContent(new Field("nombre de cuenta", userUsername), new Field("contraseña", info.getPassword()));
-    
-    if (info.isAccountLogin())
-    throw new RuntimeException("El tipo de datos enviados no pertenece al login de usuario");
     
     // Verificación y extracción de los datos necesarios para armar el nuevo Principal del Authentication del SecurityContext y el JWT
     Authentication currentAuthInContext = SecurityContextHolder.getContext().getAuthentication();

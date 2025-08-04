@@ -76,8 +76,8 @@ public class UserControllerTest {
   }
 
   @Test
-  void getById_successd() throws Exception {
-    AuthData authData = authenticator.authenticate(new LoginDTO("username", "1234", false));
+  void getById_success() throws Exception {
+    AuthData authData = authenticator.authenticate(new LoginDTO("username", "1234"));
     AccountEntity loggedAccount = authData.getAccountSaved();
     token = authData.getToken();
 
@@ -117,7 +117,7 @@ public class UserControllerTest {
     );
     assertEquals(HttpStatusCode.valueOf(403), notAuthenticatedResponse.getStatusCode());
     
-    token = authenticator.authenticate(new LoginDTO("loggedAccount", "1234", false)).getToken();
+    token = authenticator.authenticate(new LoginDTO("loggedAccount", "1234")).getToken();
     ResponseEntity<ResponseDTO> notEqualsIdsResponse = restTemplate.exchange(
       "/user/id/" + UUID.randomUUID() + "?accountId=" + UUID.randomUUID().toString(),
       HttpMethod.GET,
@@ -129,7 +129,7 @@ public class UserControllerTest {
 
   @Test
   void edit_success() {
-    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("username", "1234", false));
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("username", "1234"));
     AccountEntity loggedAccount = authData.getAccountSaved();
 
     UserEntity userToEdit = userRepository.save(UserEntity.builder()
@@ -171,8 +171,8 @@ public class UserControllerTest {
     .build();
 
     AuthData authData = authenticator.authenticateWithUserToo(
-      new LoginDTO("accountUsername", "1234", false),
-      new LoginDTO("loggedUser", "1234", false), 
+      new LoginDTO("accountUsername", "1234"),
+      new LoginDTO("loggedUser", "1234"), 
       "notAdmin", null
     );
 
@@ -195,7 +195,7 @@ public class UserControllerTest {
       .role("role")
     .build();
 
-    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("accountUsername", "1234", false));
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("accountUsername", "1234"));
 
     token = authData.getToken();
 
@@ -221,7 +221,7 @@ public class UserControllerTest {
       .permissions(List.of(Permissions.editInventory))
     .build();
     
-    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("username", "1234", false));
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("username", "1234"));
     AccountEntity loggedAccount = authData.getAccountSaved();
     token = authData.getToken();
 
@@ -275,8 +275,8 @@ public class UserControllerTest {
     .build();
 
     AuthData authData = authenticator.authenticateWithUserToo(
-      new LoginDTO("accountUsername", "1234", false),
-      new LoginDTO("loggedUser", "1234", false), 
+      new LoginDTO("accountUsername", "1234"),
+      new LoginDTO("loggedUser", "1234"), 
       "notAdmin", null
     );
     token = authData.getToken();
@@ -299,7 +299,7 @@ public class UserControllerTest {
       .permissions(List.of(Permissions.editInventory))
     .build();
 
-    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("username", "1234", false));
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("username", "1234"));
     token = authData.getToken();
 
     String url = UriComponentsBuilder.fromUriString("/user/add-perms")
@@ -317,7 +317,7 @@ public class UserControllerTest {
   @Test
   @DirtiesContext
   void delete_success() {
-    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("username", "1234", false));
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("username", "1234"));
     AccountEntity loggedAccount = authData.getAccountSaved();
 
     UserEntity userToDelete = userRepository.save(UserEntity.builder()
@@ -346,8 +346,8 @@ public class UserControllerTest {
   @Test
   void delete_deniedIfNotAdmin() {
     AuthData authData = authenticator.authenticateWithUserToo(
-      new LoginDTO("accountUsername", "1234", false),
-      new LoginDTO("loggedUser", "1234", false), 
+      new LoginDTO("accountUsername", "1234"),
+      new LoginDTO("loggedUser", "1234"), 
       "notAdmin", null
     );
     token = authData.getToken();
@@ -361,7 +361,7 @@ public class UserControllerTest {
 
   @Test
   void delete_deniedIfTryWithAnotherAccount() {
-    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("username", "1234", false));
+    AuthData authData = authenticator.authenticateWithAdminToo(new LoginDTO("username", "1234"));
     token = authData.getToken();
 
     ResponseEntity<ResponseDTO> response = restTemplate.exchange(
