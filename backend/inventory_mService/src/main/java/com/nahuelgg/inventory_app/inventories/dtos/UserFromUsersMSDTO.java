@@ -19,7 +19,6 @@ public class UserFromUsersMSDTO {
 
   @Data @Builder @AllArgsConstructor
   public static class InventoryPermsDTO {
-    private String id;
     private List<Permissions> permissions;
     private String idOfInventoryReferenced;
   }

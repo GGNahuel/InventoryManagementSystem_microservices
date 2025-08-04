@@ -20,7 +20,6 @@ public class JwtClaimsDTO {
 
   @Data @Builder @AllArgsConstructor @NoArgsConstructor
   public static class PermissionsForInventoryDTO {
-    private String id;
     private List<Permissions> permissions;
     private String idOfInventoryReferenced;
   }
