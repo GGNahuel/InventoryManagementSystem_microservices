@@ -34,8 +34,20 @@ public class AuthorizationService {
     if (auth.getUser() == null) return false;
     if (auth.getUser().isAdmin()) return true;
     if (auth.getUser().getPerms() == null) return false;
+    
+    if (
+      (
+        perm.equals(Permissions.editProductReferences.toString()) && 
+        auth.getUser().getPerms().stream().anyMatch(permDto -> permDto.getPerms().contains(Permissions.editProductReferences))
+      ) || (
+        perm.equals(Permissions.deleteProductReferences.toString()) && 
+        auth.getUser().getPerms().stream().anyMatch(permDto -> permDto.getPerms().contains(Permissions.deleteProductReferences))
+      )
+    ) return true;
 
-    PermsForInv permObject = auth.getUser().getPerms().stream().filter(permDto -> permDto.getInventoryReferenceId().equals(invId)).findFirst().orElse(null);
+    PermsForInv permObject = auth.getUser().getPerms().stream().filter(
+      permDto -> permDto.getInventoryReferenceId().equals(invId))
+    .findFirst().orElse(null);
     return permObject != null && permObject.getPerms().contains(Permissions.valueOf(perm));
   }
 

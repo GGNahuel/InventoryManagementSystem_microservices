@@ -65,20 +65,19 @@ public class ProductController {
   }
   
   @PutMapping("/edit")
-  @PreAuthorize("@authorizationService.checkUserHasPerm('editProducts', #invId) && @authorizationService.checkActionIsToLoggedAccount(#accountId)")
-  public ResponseEntity<ResponseDTO<ProductDTO>> update(@RequestBody ProductDTO product, @RequestParam String invId, @RequestParam String accountId) {
+  @PreAuthorize("@authorizationService.checkUserHasPerm('editProductReferences', '') && @authorizationService.checkActionIsToLoggedAccount(#accountId)")
+  public ResponseEntity<ResponseDTO<ProductDTO>> update(@RequestBody ProductDTO product, @RequestParam String accountId) {
     ResponseDTO<ProductDTO> response = new ResponseDTO<>(200, null, service.update(product));
     
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
   
-  @DeleteMapping("")
-  @PreAuthorize("@authorizationService.checkUserHasPerm('deleteProducts', #invId) && @authorizationService.checkActionIsToLoggedAccount(#accountId)")
-  public ResponseEntity<ResponseDTO<String>> delete(@RequestParam String id, @RequestParam String invId, @RequestParam String accountId) {
+  @DeleteMapping("/delete")
+  @PreAuthorize("@authorizationService.checkUserHasPerm('deleteProductReferences', '') && @authorizationService.checkActionIsToLoggedAccount(#accountId)")
+  public ResponseEntity<ResponseDTO<String>> delete(@RequestParam String id, @RequestParam String accountId) {
     service.delete(UUID.fromString(id));
-    ResponseDTO<String> response = new ResponseDTO<>(200, null, "Producto eliminado con éxito");
 
-    return new ResponseEntity<>(response, HttpStatus.OK);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @DeleteMapping("/delete-by-account")

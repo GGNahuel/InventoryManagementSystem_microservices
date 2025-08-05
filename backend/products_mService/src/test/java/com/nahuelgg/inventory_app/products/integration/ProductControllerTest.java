@@ -245,7 +245,7 @@ public class ProductControllerTest {
 
     String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced(invId)
-      .permissions(List.of(Permissions.editProducts))
+      .permissions(List.of(Permissions.editProductReferences))
     .build()));
 
     HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
@@ -331,16 +331,16 @@ public class ProductControllerTest {
 
     String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced(invId)
-      .permissions(List.of(Permissions.deleteProducts))
+      .permissions(List.of(Permissions.deleteProductReferences))
     .build()));
 
-    String uri = "/product?id=" + productToDelete.getId().toString() + "&invId=" + invId + "&accountId=" + accId.toString();
+    String uri = "/product/delete?id=" + productToDelete.getId().toString() + "&invId=" + invId + "&accountId=" + accId.toString();
     HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, request, 
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+    assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
 
     assertTrue(productRepository.findById(productToDelete.getId()).isEmpty());
   }
@@ -356,13 +356,13 @@ public class ProductControllerTest {
 
     String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
 
-    String uri = "/product?id=" + productToDelete.getId().toString() + "&invId=" + invId + "&accountId=" + accId.toString();
+    String uri = "/product/delete?id=" + productToDelete.getId().toString() + "&invId=" + invId + "&accountId=" + accId.toString();
     HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, request,
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+    assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
 
     assertTrue(productRepository.findById(productToDelete.getId()).isEmpty());
   }
@@ -372,7 +372,7 @@ public class ProductControllerTest {
     String anotherInvId = UUID.randomUUID().toString();
     String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
 
-    String uri = "/product?id=" + UUID.randomUUID().toString() + "&invId=" + anotherInvId + "&accountId=" + accId.toString();
+    String uri = "/product/delete?id=" + UUID.randomUUID().toString() + "&invId=" + anotherInvId + "&accountId=" + accId.toString();
     HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, request,
