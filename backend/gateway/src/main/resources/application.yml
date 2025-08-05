@@ -30,7 +30,7 @@ spring:
             - id: products-service
               uri: http://api-products:8081
               predicates:
-                - Path=/product/**,/e2e/products-service/**
+                - Path=/product/edit,/product/delete,/e2e/products-service/**
               filters:
                 - AuthenticationFilter
 
