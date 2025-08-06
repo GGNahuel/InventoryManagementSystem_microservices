@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.nahuelgg.inventory_app.inventories.enums.Permissions;
 import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal;
+import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal.AccountSigned;
 import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal.PermsForInv;
 
 @Service
@@ -36,7 +37,7 @@ public class AuthorizationService {
 
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !(authentication.getPrincipal() instanceof ContextAuthenticationPrincipal)) return false;
-    
+
     ContextAuthenticationPrincipal auth = (ContextAuthenticationPrincipal) authentication.getPrincipal();
     if (auth.getUser() == null) return false;
     if (auth.getUser().isAdmin()) return true;
@@ -44,5 +45,20 @@ public class AuthorizationService {
 
     PermsForInv permObject = auth.getUser().getPerms().stream().filter(permDto -> permDto.getInventoryReferenceId().equals(invId)).findFirst().orElse(null);
     return permObject != null && permObject.getPerms().contains(perm);
+  }
+
+  public boolean checkActionIsToLoggedAccount(String accountId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !(authentication.getPrincipal() instanceof ContextAuthenticationPrincipal)) return false;
+    
+    ContextAuthenticationPrincipal auth = (ContextAuthenticationPrincipal) authentication.getPrincipal();
+    AccountSigned accountSigned = auth.getAccount();
+    if (accountSigned == null || accountSigned.getUsername() == null) return false;
+
+    return accountSigned.getId().equals(accountId);
+  }
+
+  public boolean checkAccountIdAndUserPerm(String accountId, Permissions perm, String invId) {
+    return checkUserHasPerm(perm, invId) && checkActionIsToLoggedAccount(accountId);
   }
 }
