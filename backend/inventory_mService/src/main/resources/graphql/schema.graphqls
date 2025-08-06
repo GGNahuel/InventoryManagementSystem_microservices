@@ -27,6 +27,7 @@ type Mutation {
   editProductInInventory(product: EditProductInput!, invId: ID!, accountId: ID!): ProductInInventory
   copyProducts(products: [ProductToCopyInput]!, idTo: ID!, accountId: ID!): Boolean
   editStockOfProduct(relativeNewStock: Int!, productRefId: ID!, invId: ID!, accountId: ID!): Boolean
+  deleteProductsInInventory(productRefIds: [ID]!, invId: ID!, accountId: ID!): Boolean
 }
 
 

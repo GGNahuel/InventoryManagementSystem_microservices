@@ -106,7 +106,7 @@ public class InventoryController {
     if (!authorizationService.checkAccountIdAndUserPerm(accountId, Permissions.addProducts, invId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
   
-    return service.addProduct(product, UUID.fromString(invId));
+    return service.addProduct(product, UUID.fromString(invId), UUID.fromString(accountId));
   }
 
   @MutationMapping
@@ -114,7 +114,7 @@ public class InventoryController {
     if (authorizationService.checkAccountIdAndUserPerm(accountId, Permissions.editProducts, invId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
       
-    return null;
+    return service.editProductInInventory(product, UUID.fromString(invId), UUID.fromString(accountId));
   }
 
   @MutationMapping
@@ -131,5 +131,16 @@ public class InventoryController {
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
 
     return service.editStockOfProduct(relativeNewStock, UUID.fromString(productRefId), UUID.fromString(invId));
+  }
+
+  @MutationMapping
+  public boolean deleteProductsInInventory(@Argument List<String> productRefIds, @Argument String invId, @Argument String accountId) {
+    if (!authorizationService.checkAccountIdAndUserPerm(accountId, Permissions.deleteProducts, invId))
+      throw new AccessDeniedException("No tiene permisos para realizar esta acción");
+
+    return service.deleteProductInInventory(
+      productRefIds.stream().map(string -> UUID.fromString(string)).toList(),
+      UUID.fromString(invId), UUID.fromString(accountId)
+    );
   }
 }

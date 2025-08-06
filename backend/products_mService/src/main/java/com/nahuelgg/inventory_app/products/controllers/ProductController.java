@@ -109,4 +109,13 @@ public class ProductController {
       HttpStatus.OK
     ); 
   }
+
+  // TODO: agregar test de los métodos common
+  @DeleteMapping("/delete-by-ids/common-perm")
+  @PreAuthorize("@authorizationService.checkUserHasPerm('deleteProducts', #invId) && @authorizationService.checkActionIsToLoggedAccount(#accountId)")
+  public ResponseEntity<ResponseDTO<String>> deleteInternal(@RequestParam List<String> ids, @RequestParam String invId, @RequestParam String accountId) {
+    service.deleteByIds(ids.stream().map(id -> UUID.fromString(id)).toList());
+
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
 }

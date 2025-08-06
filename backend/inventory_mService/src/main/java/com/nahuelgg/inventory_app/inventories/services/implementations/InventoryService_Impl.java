@@ -205,7 +205,6 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public boolean removeUser(UUID userId, UUID accountId) {
-    System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     List<InventoryEntity> invs = repository.findByAccountId(accountId);
     for (InventoryEntity inv : invs) {
       System.out.println(inv.toString());
@@ -223,13 +222,13 @@ public class InventoryService_Impl implements InventoryService {
   }
 
   @Override @Transactional
-  public ProductInInvDTO addProduct(ProductInputDTO productInput, UUID invId) {
+  public ProductInInvDTO addProduct(ProductInputDTO productInput, UUID invId, UUID accountId) {
     // TODO: (optional) agregar validación de si ese producto ya está creado y agregado al inventario, necesitaría un cambio en la DB de products?
     InventoryEntity inv = repository.findById(invId).orElseThrow(
       () -> new RuntimeException("Inv not found")
     );
       
-    String baseUrl = "http://api-products:8081/product?invId=" + invId.toString();
+    String baseUrl = "http://api-products:8081/product?invId=%s&accountId=%s".formatted(invId.toString(), accountId.toString());
     ProductFromProductsMSDTO productCreated = (ProductFromProductsMSDTO) makeRestRequest(
       baseUrl, HttpMethod.POST, mappers.mapProductInput(productInput))
     .getData();
@@ -246,7 +245,7 @@ public class InventoryService_Impl implements InventoryService {
   }
 
   @Override
-  public ProductInInvDTO editProductInInventory(EditProductInputDTO product, UUID invId, String accountId) {
+  public ProductInInvDTO editProductInInventory(EditProductInputDTO product, UUID invId, UUID accountId) {
     repository.findById(invId).orElseThrow(
       () -> new RuntimeException("Inv not found")
     );
@@ -256,17 +255,17 @@ public class InventoryService_Impl implements InventoryService {
 
     ProductFromProductsMSDTO editedProduct;
 
-    if (productInvRepository.findReferenceIdsExclusiveToInventory(invId, UUID.fromString(accountId)).contains(productToEdit.getReferenceId())) {
-      String baseUrl = "http://api-products:8081/product/edit/common-perm?invId=%s&accountId=%s".formatted(invId.toString(), accountId);
+    if (productInvRepository.findReferenceIdsExclusiveToInventory(invId, accountId).contains(productToEdit.getReferenceId())) {
+      String baseUrl = "http://api-products:8081/product/edit/common-perm?invId=%s&accountId=%s".formatted(invId.toString(), accountId.toString());
 
       editedProduct = (ProductFromProductsMSDTO) makeRestRequest(
-        baseUrl, HttpMethod.POST, product.mapToProductFromProductService(accountId)
+        baseUrl, HttpMethod.POST, product.mapToProductFromProductService(accountId.toString())
       ).getData();
     } else {
-      String baseUrl = "http://api-products:8081/product?invId=" + invId.toString();
+      String baseUrl = "http://api-products:8081/product?invId=%s&accountId=%s".formatted(invId.toString(), accountId.toString());
 
       editedProduct = (ProductFromProductsMSDTO) makeRestRequest(
-        baseUrl, HttpMethod.POST, product.mapToProductFromProductService(accountId)
+        baseUrl, HttpMethod.POST, product.mapToProductFromProductService(accountId.toString())
       ).getData();
         
       productToEdit.setReferenceId(UUID.fromString(editedProduct.getId()));
@@ -275,6 +274,8 @@ public class InventoryService_Impl implements InventoryService {
     
     return mappers.mapProductsFromMSToDTO(editedProduct, productToEdit);
   }
+
+  //TODO: chequear si en los llamados internos se pasan todos los parametros, incluidos el accId
 
   @Override @Transactional
   public boolean copyProducts(List<ProductToCopyDTO> products, UUID idTo) {
@@ -311,6 +312,40 @@ public class InventoryService_Impl implements InventoryService {
     return true;
   }
 
+  @Override
+  public boolean deleteProductInInventory(List<UUID> productRefIds, UUID invId, UUID accountId) {
+    InventoryEntity inv = repository.findById(invId).orElseThrow(
+      () -> new RuntimeException("inv not found")
+    );
+    
+    List<ProductInInvEntity> productsInInv = inv.getProducts();
+    List<UUID> pRefIdsInInventory = productsInInv.stream().map(pInInv -> pInInv.getReferenceId()).toList();
+
+    if (!productRefIds.stream().allMatch(
+      pRefId -> pRefIdsInInventory.contains(pRefId)
+    )) throw new RuntimeException("Uno de los productos enviados para borrar no se encuentra en el inventario seleccionado. %s"
+      .formatted(productRefIds.stream().filter(pRefId -> !pRefIdsInInventory.contains(pRefId)).toList().toString())
+    );
+
+    List<String> refIdsOfExclusiveProducts = productInvRepository.findReferenceIdsExclusiveToInventory(invId, accountId).stream().map(
+      uuid -> uuid.toString()
+    ).toList();
+    if (!refIdsOfExclusiveProducts.isEmpty()) {
+      String url = UriComponentsBuilder.fromUriString("http://api-products:8081/product/delete-by-ids/common-perm")
+        .queryParam("ids", refIdsOfExclusiveProducts)
+        .queryParam("invId", invId.toString())
+        .queryParam("accountId", accountId.toString())
+      .toUriString();
+      makeRestRequest(url, HttpMethod.DELETE, null);
+    }
+
+    List<ProductInInvEntity> psInInvToDelete = productsInInv.stream().filter(
+      pInInv -> productRefIds.contains(pInInv.getReferenceId())
+    ).toList();
+    productInvRepository.deleteAll(psInInvToDelete);
+    return true;
+  }
+
   @Override @Transactional
   public boolean delete(UUID id, UUID accountId) {
     InventoryEntity inv = repository.findById(id).orElseThrow(
@@ -325,9 +360,10 @@ public class InventoryService_Impl implements InventoryService {
     makeRestRequest(completeUrlToUsers, HttpMethod.DELETE, null);
     
     List<UUID> refIdsToDelete = productInvRepository.findReferenceIdsExclusiveToInventory(id, accountId);
-    String baseUrlToProducts = "http://api-products:8081/delete-by-ids";
+    String baseUrlToProducts = "http://api-products:8081/product/delete-by-ids";
     String completeUrlToProducts = UriComponentsBuilder.fromUriString(baseUrlToProducts)
       .queryParam("ids", refIdsToDelete.toArray())
+      .queryParam("accountId", accountId.toString())
     .toUriString();
     makeRestRequest(completeUrlToProducts, HttpMethod.DELETE, null);
     
