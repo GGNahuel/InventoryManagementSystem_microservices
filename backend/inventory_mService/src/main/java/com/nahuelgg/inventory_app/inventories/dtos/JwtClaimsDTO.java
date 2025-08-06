@@ -2,7 +2,7 @@ package com.nahuelgg.inventory_app.inventories.dtos;
 
 import java.util.List;
 
-import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO.InventoryPermsDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.UserFromUsersMSDTO.InventoryPermsDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

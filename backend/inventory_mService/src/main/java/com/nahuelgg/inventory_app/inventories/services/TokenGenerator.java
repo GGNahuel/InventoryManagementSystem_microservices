@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.inventories.dtos.JwtClaimsDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO.InventoryPermsDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.UserFromUsersMSDTO.InventoryPermsDTO;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

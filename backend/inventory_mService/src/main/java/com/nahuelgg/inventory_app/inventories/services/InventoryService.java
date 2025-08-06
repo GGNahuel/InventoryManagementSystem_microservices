@@ -3,10 +3,10 @@ package com.nahuelgg.inventory_app.inventories.services;
 import java.util.List;
 import java.util.UUID;
 
-import com.nahuelgg.inventory_app.inventories.dtos.InventoryDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductInInvDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductInputDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductToCopyDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductInputDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductToCopyDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 
 public interface InventoryService {
   InventoryDTO getById(UUID id);

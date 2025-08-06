@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
-import com.nahuelgg.inventory_app.inventories.dtos.InventoryDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
 import com.nahuelgg.inventory_app.inventories.entities.UserReferenceEntity;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;

@@ -31,13 +31,13 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nahuelgg.inventory_app.inventories.dtos.AccountFromUsersMSDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.InventoryDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductFromProductsMSDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductInInvDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductToCopyDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ResponseDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO.InventoryPermsDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.AccountFromUsersMSDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ProductFromProductsMSDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ResponseDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.UserFromUsersMSDTO.InventoryPermsDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductToCopyDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
 import com.nahuelgg.inventory_app.inventories.entities.UserReferenceEntity;
@@ -359,7 +359,7 @@ public class ControllerTest {
 
     String query = """
       mutation {
-        deleteByAccountId(id: "%s")
+        deleteByAccountId(accountId: "%s")
       }
     """.formatted(accId.toString());
 
@@ -377,7 +377,7 @@ public class ControllerTest {
 
     String query = """
       mutation {
-        deleteByAccountId(id: "%s")
+        deleteByAccountId(accountId: "%s")
       }
     """.formatted(accId.toString());
 

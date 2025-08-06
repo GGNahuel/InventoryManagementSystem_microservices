@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.nahuelgg.inventory_app.inventories.dtos.JwtClaimsDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO.InventoryPermsDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.UserFromUsersMSDTO.InventoryPermsDTO;
 import com.nahuelgg.inventory_app.inventories.services.JwtService;
 import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal.AccountSigned;

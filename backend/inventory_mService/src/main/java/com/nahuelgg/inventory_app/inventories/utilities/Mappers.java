@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.nahuelgg.inventory_app.inventories.dtos.InventoryDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductFromProductsMSDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductInInvDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductInputDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ProductFromProductsMSDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductInputDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
 

@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.inventories.dtos;
+package com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs;
 
 import java.util.List;
 

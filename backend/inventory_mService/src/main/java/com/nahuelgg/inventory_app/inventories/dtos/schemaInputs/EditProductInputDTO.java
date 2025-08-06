@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.inventories.dtos;
+package com.nahuelgg.inventory_app.inventories.dtos.schemaInputs;
 
 import java.util.List;
 
@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
-public class ProductInputDTO {
+public class EditProductInputDTO {
+  private String refId;
   private String name;
   private String brand;
   private String model;

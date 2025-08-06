@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.inventories.dtos;
+package com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

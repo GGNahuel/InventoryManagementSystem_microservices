@@ -22,7 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.inventories.dtos.JwtClaimsDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.UserFromUsersMSDTO.InventoryPermsDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.UserFromUsersMSDTO.InventoryPermsDTO;
 import com.nahuelgg.inventory_app.inventories.enums.Permissions;
 
 import io.jsonwebtoken.Claims;
