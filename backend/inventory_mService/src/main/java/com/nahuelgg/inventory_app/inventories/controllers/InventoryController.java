@@ -9,10 +9,11 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 
-import com.nahuelgg.inventory_app.inventories.dtos.InventoryDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductInInvDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductInputDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.ProductToCopyDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.EditProductInputDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductInputDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductToCopyDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.enums.Permissions;
 import com.nahuelgg.inventory_app.inventories.services.AuthorizationService;
 import com.nahuelgg.inventory_app.inventories.services.InventoryService;
@@ -27,15 +28,15 @@ public class InventoryController {
 
   // Queries
   @QueryMapping
-  public InventoryDTO getById(@Argument String id) {
-    if (!authorizationService.checkAccountIsLogged())
+  public InventoryDTO getById(@Argument String id, @Argument String accountId) {
+    if (!authorizationService.checkAccountIsLogged() || !authorizationService.checkActionIsToLoggedAccount(accountId))
       throw new AccessDeniedException("Necesita iniciar sesión para realizar esta acción");
     return service.getById(UUID.fromString(id));
   }
 
   @QueryMapping
   public List<InventoryDTO> getByAccount(@Argument String accountId) {
-    if (!authorizationService.checkAccountIsLogged())
+    if (!authorizationService.checkAccountIsLogged() || !authorizationService.checkActionIsToLoggedAccount(accountId))
       throw new AccessDeniedException("Necesita iniciar sesión para realizar esta acción");
     return service.getByAccount(UUID.fromString(accountId));
   }
@@ -44,7 +45,7 @@ public class InventoryController {
   public List<InventoryDTO> searchProductsInInventories(
     @Argument String name, @Argument String brand, @Argument String model, @Argument List<String> categories, @Argument String accountId
   ) {
-    if (!authorizationService.checkAccountIsLogged())
+    if (!authorizationService.checkAccountIsLogged() || !authorizationService.checkActionIsToLoggedAccount(accountId))
       throw new AccessDeniedException("Necesita iniciar sesión para realizar esta acción");
     return service.searchProductsInInventories(name, brand, model, categories, UUID.fromString(name));
   }
@@ -52,40 +53,40 @@ public class InventoryController {
   // Basic mutations
   @MutationMapping
   public InventoryDTO create(@Argument String name, @Argument String accountId) {
-    if (!authorizationService.checkUserIsAdmin())
+    if (!authorizationService.checkUserIsAdmin() || !authorizationService.checkActionIsToLoggedAccount(accountId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
 
     return service.create(name, UUID.fromString(accountId));
   }
 
   @MutationMapping
-  public boolean edit(@Argument String invId, @Argument String name) {
-    if (!authorizationService.checkUserIsAdmin())
+  public boolean edit(@Argument String invId, @Argument String name, @Argument String accountId) {
+    if (!authorizationService.checkUserIsAdmin() || !authorizationService.checkActionIsToLoggedAccount(accountId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
 
     return service.edit(UUID.fromString(invId), name);
   }
 
   @MutationMapping
-  public boolean delete(@Argument String id) {
-    if (!authorizationService.checkUserIsAdmin())
+  public boolean delete(@Argument String id, @Argument String accountId) {
+    if (!authorizationService.checkUserIsAdmin() || !authorizationService.checkActionIsToLoggedAccount(accountId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
 
     return service.delete(UUID.fromString(id));
   }
 
   @MutationMapping
-  public boolean deleteByAccountId(@Argument String id) {
-    if (!authorizationService.checkUserIsAdmin())
+  public boolean deleteByAccountId(@Argument String accountId) {
+    if (!authorizationService.checkUserIsAdmin() || !authorizationService.checkActionIsToLoggedAccount(accountId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
 
-    return service.deleteByAccountId(UUID.fromString(id));
+    return service.deleteByAccountId(UUID.fromString(accountId));
   }
 
   // User mutations
   @MutationMapping
-  public boolean addUser(@Argument String userId, @Argument String invId) {
-    if (!authorizationService.checkUserIsAdmin())
+  public boolean addUser(@Argument String userId, @Argument String invId, @Argument String accountId) {
+    if (!authorizationService.checkUserIsAdmin() || !authorizationService.checkActionIsToLoggedAccount(accountId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
   
     return service.addUser(UUID.fromString(userId), UUID.fromString(invId));
@@ -93,7 +94,7 @@ public class InventoryController {
 
   @MutationMapping
   public boolean removeUser(@Argument String userId, @Argument String accountId) {
-    if (!authorizationService.checkUserIsAdmin())
+    if (!authorizationService.checkUserIsAdmin() || !authorizationService.checkActionIsToLoggedAccount(accountId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
   
     return service.removeUser(UUID.fromString(userId), UUID.fromString(accountId));
@@ -101,24 +102,32 @@ public class InventoryController {
 
   // Product mutations
   @MutationMapping
-  public ProductInInvDTO addProduct(@Argument ProductInputDTO product, @Argument String invId) {
-    if (!authorizationService.checkUserHasPerm(Permissions.addProducts, invId))
+  public ProductInInvDTO addProduct(@Argument ProductInputDTO product, @Argument String invId, @Argument String accountId) {
+    if (!authorizationService.checkAccountIdAndUserPerm(accountId, Permissions.addProducts, invId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
   
     return service.addProduct(product, UUID.fromString(invId));
   }
 
   @MutationMapping
-  public boolean copyProducts(@Argument List<ProductToCopyDTO> products, @Argument String idTo) {
-    if (!authorizationService.checkUserHasPerm(Permissions.addProducts, idTo))
+  public ProductInInvDTO editProductInInventory(@Argument EditProductInputDTO product, @Argument String invId, @Argument String accountId) {
+    if (authorizationService.checkAccountIdAndUserPerm(accountId, Permissions.editProducts, invId))
+      throw new AccessDeniedException("No tiene permisos para realizar esta acción");
+      
+    return null;
+  }
+
+  @MutationMapping
+  public boolean copyProducts(@Argument List<ProductToCopyDTO> products, @Argument String idTo, @Argument String accountId) {
+    if (!authorizationService.checkAccountIdAndUserPerm(accountId, Permissions.addProducts, idTo))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
   
     return service.copyProducts(products, UUID.fromString(idTo));
   }
 
   @MutationMapping
-  public boolean editStockOfProduct(@Argument int relativeNewStock, @Argument String productRefId, @Argument String invId) {
-    if (!authorizationService.checkUserHasPerm(Permissions.editInventory, invId))
+  public boolean editStockOfProduct(@Argument int relativeNewStock, @Argument String productRefId, @Argument String invId, @Argument String accountId) {
+    if (!authorizationService.checkAccountIdAndUserPerm(accountId, Permissions.editInventory, invId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
 
     return service.editStockOfProduct(relativeNewStock, UUID.fromString(productRefId), UUID.fromString(invId));

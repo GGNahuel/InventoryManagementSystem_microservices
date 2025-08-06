@@ -1,5 +1,5 @@
 type Query {
-  getById(id: ID!): Inventory
+  getById(id: ID!, accountId: ID!): Inventory
   getByAccount(accountId: ID!): [Inventory]
   searchProductsInInventories(
     name: String, 
@@ -16,16 +16,17 @@ type Query {
 
 type Mutation {
   create(name: String!, accountId: ID!): Inventory
-  edit(invId: ID!, name: String!): Boolean
-  delete(id: ID!): Boolean
-  deleteByAccountId(id: ID!): Boolean
+  edit(invId: ID!, name: String!, accountId: ID!): Boolean
+  delete(id: ID!, accountId: ID!): Boolean
+  deleteByAccountId(accountId: ID!): Boolean
 
-  addUser(userId: ID!, invId: ID!): Boolean
+  addUser(userId: ID!, invId: ID!, accountId: ID!): Boolean
   removeUser(userId: ID!, accountId: ID!): Boolean
 
-  addProduct(product: ProductInput!, invId: ID!): ProductInInventory
-  copyProducts(products: [ProductToCopyInput]!, idTo: ID!): Boolean
-  editStockOfProduct(relativeNewStock: Int!, productRefId: ID!, invId: ID!): Boolean
+  addProduct(product: ProductInput!, invId: ID!, accountId: ID!): ProductInInventory
+  editProductInInventory(product: EditProductInput!, invId: ID!, accountId: ID!): ProductInInventory
+  copyProducts(products: [ProductToCopyInput]!, idTo: ID!, accountId: ID!): Boolean
+  editStockOfProduct(relativeNewStock: Int!, productRefId: ID!, invId: ID!, accountId: ID!): Boolean
 }
 
 
