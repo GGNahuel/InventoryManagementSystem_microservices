@@ -129,8 +129,8 @@ public class RepositoriesTest {
 
   @Test
   void productInInvRepository_findByReferenceAndNotRepeatedInOtherInvs() {   
-    assertIterableEquals(List.of(p2.getReferenceId()), productInInvRepository.findReferenceIdsExclusiveToInventory(inv1.getId()));
-    assertIterableEquals(List.of(), productInInvRepository.findReferenceIdsExclusiveToInventory(inv2.getId()));
+    assertIterableEquals(List.of(p2.getReferenceId()), productInInvRepository.findReferenceIdsExclusiveToInventory(inv1.getId(), accId1));
+    assertIterableEquals(List.of(), productInInvRepository.findReferenceIdsExclusiveToInventory(inv2.getId(), accId1));
   }
 
   @Test

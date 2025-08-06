@@ -72,7 +72,7 @@ public class InventoryController {
     if (!authorizationService.checkUserIsAdmin() || !authorizationService.checkActionIsToLoggedAccount(accountId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
 
-    return service.delete(UUID.fromString(id));
+    return service.delete(UUID.fromString(id), UUID.fromString(accountId));
   }
 
   @MutationMapping

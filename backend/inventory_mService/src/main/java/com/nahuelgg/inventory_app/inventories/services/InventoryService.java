@@ -3,6 +3,7 @@ package com.nahuelgg.inventory_app.inventories.services;
 import java.util.List;
 import java.util.UUID;
 
+import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.EditProductInputDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductInputDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductToCopyDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
@@ -16,12 +17,13 @@ public interface InventoryService {
   
   InventoryDTO create(String name, UUID accountId);
   boolean edit(UUID id, String name);
-  boolean delete(UUID id);
+  boolean delete(UUID id, UUID accountId);
   boolean deleteByAccountId(UUID id);
 
   boolean addUser(UUID userId, UUID invId);
   boolean removeUser(UUID userId, UUID accountId);
   ProductInInvDTO addProduct(ProductInputDTO product, UUID invID);
+  ProductInInvDTO editProductInInventory(EditProductInputDTO product, UUID invId, String accountId);
   boolean copyProducts(List<ProductToCopyDTO> products, UUID idTo);
   boolean editStockOfProduct(int relativeNewStock, UUID productRefId, UUID invId);
 }
