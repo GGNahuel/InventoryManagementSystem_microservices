@@ -71,6 +71,14 @@ public class ProductController {
     
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
+
+  @PutMapping("/edit/common-perm")
+  @PreAuthorize("@authorizationService.checkUserHasPerm('editProducts', #invId) && @authorizationService.checkActionIsToLoggedAccount(#accountId)")
+  public ResponseEntity<ResponseDTO<ProductDTO>> updateInternal(@RequestBody ProductDTO product, @RequestParam String invId, @RequestParam String accountId) {
+    ResponseDTO<ProductDTO> response = new ResponseDTO<>(200, null, service.update(product));
+    
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
   
   @DeleteMapping("/delete")
   @PreAuthorize("@authorizationService.checkUserHasPerm('deleteProductReferences', '') && @authorizationService.checkActionIsToLoggedAccount(#accountId)")

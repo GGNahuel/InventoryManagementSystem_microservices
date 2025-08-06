@@ -20,6 +20,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.AccountFromUsersMSDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ProductFromProductsMSDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ResponseDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.EditProductInputDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductInputDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductToCopyDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
@@ -229,7 +230,9 @@ public class InventoryService_Impl implements InventoryService {
     );
       
     String baseUrl = "http://api-products:8081/product?invId=" + invId.toString();
-    ProductFromProductsMSDTO productCreated = (ProductFromProductsMSDTO) makeRestRequest(baseUrl, HttpMethod.POST, mappers.mapProductInput(productInput)).getData();
+    ProductFromProductsMSDTO productCreated = (ProductFromProductsMSDTO) makeRestRequest(
+      baseUrl, HttpMethod.POST, mappers.mapProductInput(productInput))
+    .getData();
 
     int checkedStock = productInput.getStock() != null ? productInput.getStock() : 0;
     ProductInInvEntity newProductInv = productInvRepository.save(ProductInInvEntity.builder()
@@ -240,6 +243,37 @@ public class InventoryService_Impl implements InventoryService {
     .build());
 
     return mappers.mapProductsFromMSToDTO(productCreated, newProductInv);
+  }
+
+  @Override
+  public ProductInInvDTO editProductInInventory(EditProductInputDTO product, UUID invId, String accountId) {
+    repository.findById(invId).orElseThrow(
+      () -> new RuntimeException("Inv not found")
+    );
+    ProductInInvEntity productToEdit = productInvRepository.findByReferenceIdAndInventoryId(UUID.fromString(product.getRefId()), invId).orElseThrow(
+      () -> new RuntimeException("Producto a editar no encontrado")
+    );
+
+    ProductFromProductsMSDTO editedProduct;
+
+    if (productInvRepository.findReferenceIdsExclusiveToInventory(invId, UUID.fromString(accountId)).contains(productToEdit.getReferenceId())) {
+      String baseUrl = "http://api-products:8081/product/edit/common-perm?invId=%s&accountId=%s".formatted(invId.toString(), accountId);
+
+      editedProduct = (ProductFromProductsMSDTO) makeRestRequest(
+        baseUrl, HttpMethod.POST, product.mapToProductFromProductService(accountId)
+      ).getData();
+    } else {
+      String baseUrl = "http://api-products:8081/product?invId=" + invId.toString();
+
+      editedProduct = (ProductFromProductsMSDTO) makeRestRequest(
+        baseUrl, HttpMethod.POST, product.mapToProductFromProductService(accountId)
+      ).getData();
+        
+      productToEdit.setReferenceId(UUID.fromString(editedProduct.getId()));
+      productInvRepository.save(productToEdit);
+    }
+    
+    return mappers.mapProductsFromMSToDTO(editedProduct, productToEdit);
   }
 
   @Override @Transactional
@@ -278,26 +312,26 @@ public class InventoryService_Impl implements InventoryService {
   }
 
   @Override @Transactional
-  public boolean delete(UUID id) {
+  public boolean delete(UUID id, UUID accountId) {
     InventoryEntity inv = repository.findById(id).orElseThrow(
       () -> new RuntimeException("")
     );
     
     String baseUrlToUsers = "http://api-users:8082/account/remove-inventory";
     String completeUrlToUsers = UriComponentsBuilder.fromUriString(baseUrlToUsers)
-      .queryParam("accountId", inv.getAccountId().toString()) // esto lo tendría que extraer del JWT
+      .queryParam("accountId", inv.getAccountId().toString())
       .queryParam("invId", inv.getId().toString())
     .toUriString();
-    //restTemplate.exchange(completeUrlToUsers, HttpMethod.DELETE, new HttpEntity<>(setTokenInHeader()),)
     makeRestRequest(completeUrlToUsers, HttpMethod.DELETE, null);
     
-    List<UUID> refIdsToDelete = productInvRepository.findReferenceIdsExclusiveToInventory(id);
+    List<UUID> refIdsToDelete = productInvRepository.findReferenceIdsExclusiveToInventory(id, accountId);
     String baseUrlToProducts = "http://api-products:8081/delete-by-ids";
     String completeUrlToProducts = UriComponentsBuilder.fromUriString(baseUrlToProducts)
       .queryParam("ids", refIdsToDelete.toArray())
     .toUriString();
     makeRestRequest(completeUrlToProducts, HttpMethod.DELETE, null);
     
+    productInvRepository.deleteAll(productInvRepository.findByInventory(inv));
     repository.deleteById(id);
     return true;
   }

@@ -395,7 +395,8 @@ public class InventoryServiceTest {
   @Test
   void delete_makeRightCalls() {
     when(inventoryRepository.findById(invEntity1.getId())).thenReturn(Optional.of(invEntity1));
-    when(productInInvRepository.findReferenceIdsExclusiveToInventory(invEntity1.getId())).thenReturn(List.of(pInInvEntity1.getReferenceId()));
+    when(productInInvRepository.findByInventory(invEntity1)).thenReturn(List.of(pInInvEntity1));
+    when(productInInvRepository.findReferenceIdsExclusiveToInventory(invEntity1.getId(), accId)).thenReturn(List.of(pInInvEntity1.getReferenceId()));
 
     setContextAuth();
     when(restTemplate.exchange(anyString(), any(), any(), ArgumentMatchers.<Class<ResponseDTO>>any())).thenReturn(
@@ -405,7 +406,7 @@ public class InventoryServiceTest {
       )
     );
     
-    inventoryService.delete(invEntity1.getId());
+    inventoryService.delete(invEntity1.getId(), accId);
 
     ArgumentCaptor<String> usedUrls = ArgumentCaptor.forClass(String.class);
     verify(restTemplate, times(2)).exchange(usedUrls.capture(), any(), any(), ArgumentMatchers.<Class<ResponseDTO>>any());
@@ -415,6 +416,7 @@ public class InventoryServiceTest {
     assertTrue(listOfUrls.get(1).contains(pInInvEntity1.getReferenceId().toString()));
 
     verify(inventoryRepository).deleteById(invEntity1.getId());
+    verify(productInInvRepository).deleteAll(List.of(pInInvEntity1));
   }
 
   @Test
