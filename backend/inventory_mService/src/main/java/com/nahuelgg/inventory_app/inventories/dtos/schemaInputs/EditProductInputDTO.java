@@ -19,7 +19,6 @@ public class EditProductInputDTO {
   private String description;
   private Integer unitPrice;
   private List<String> categories;
-  private Integer stock;
 
   public ProductFromProductsMSDTO mapToProductFromProductService (String accountId) {
     return ProductFromProductsMSDTO.builder()

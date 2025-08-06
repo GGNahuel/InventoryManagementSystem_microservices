@@ -61,6 +61,16 @@ input ProductInput {
   stock: Int!
 }
 
+input EditProductInput {
+  refId: ID!
+  name: String!
+  brand: String!
+  model: String
+  description: String
+  unitPrice: Int!
+  categories: [String]
+}
+
 input ProductToCopyInput {
   refId: ID!
   stock: Int!
