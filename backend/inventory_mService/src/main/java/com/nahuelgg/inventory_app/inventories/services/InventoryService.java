@@ -21,8 +21,8 @@ public interface InventoryService {
   boolean delete(UUID id, UUID accountId);
   boolean deleteByAccountId(UUID id);
 
-  boolean addUser(UUID userId, UUID invId);
-  boolean removeUser(UUID userId, UUID accountId);
+  /* boolean addUser(UUID userId, UUID invId);
+  boolean removeUser(UUID userId, UUID accountId); */
 
   ProductInInvDTO addProduct(ProductInputDTO product, UUID invID, UUID accountId);
   ProductInInvDTO editProductInInventory(EditProductInputDTO product, UUID invId, UUID accountId);

@@ -1,9 +1,7 @@
 package com.nahuelgg.inventory_app.inventories.services.implementations;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -27,7 +25,6 @@ import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
-import com.nahuelgg.inventory_app.inventories.entities.UserReferenceElement;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
 import com.nahuelgg.inventory_app.inventories.services.InventoryService;
@@ -47,7 +44,7 @@ public class InventoryService_Impl implements InventoryService {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     if (auth == null)
       throw new RuntimeException("No se encontró autenticación para realizar la operación");
-    
+
     HttpHeaders header = new HttpHeaders();
     String tokenFromAuth = (String) auth.getCredentials();
     header.setBearerAuth(tokenFromAuth);
@@ -154,9 +151,6 @@ public class InventoryService_Impl implements InventoryService {
     AccountFromUsersMSDTO account = (AccountFromUsersMSDTO) makeRestRequest(completeUrl, HttpMethod.PATCH, null).getData();
 
     inv.setAccountId(UUID.fromString(account.getId()));
-    inv.setUserReferences(account.getUsers() != null ? account.getUsers().stream().map(
-      userFromMicroservice -> UserReferenceElement.builder().referenceId(UUID.fromString(userFromMicroservice.getId())).build()
-    ).toList() : new ArrayList<>());
 
     return mappers.mapInvEntity(repository.save(inv), List.of());
   }
@@ -168,41 +162,6 @@ public class InventoryService_Impl implements InventoryService {
     );
     inv.setName(name);
     repository.save(inv);
-    return true;
-  }
-
-  @Override @Transactional
-  public boolean addUser(UUID userId, UUID invId) {
-    InventoryEntity inv = repository.findById(invId).orElseThrow(
-      () -> new RuntimeException("")
-    );
-    List<UserReferenceElement> userRefs = inv.getUserReferences();
-
-    if (userRefs.stream().anyMatch(uRefEntity -> uRefEntity.getReferenceId() == userId)) 
-      return false;
-
-    userRefs.add(UserReferenceElement.builder().referenceId(userId).build());
-    inv.setUserReferences(userRefs);
-
-    repository.save(inv);
-    return true;
-  }
-
-  @Override @Transactional
-  public boolean removeUser(UUID userId, UUID accountId) {
-    List<InventoryEntity> invs = repository.findByAccountId(accountId);
-    for (InventoryEntity inv : invs) {
-      System.out.println(inv.toString());
-      System.out.println(inv.getUserReferences().stream().filter(
-        userRefEntity -> userRefEntity.getReferenceId() != userId 
-      ).collect(Collectors.toList()).toString());
-
-      inv.setUserReferences(inv.getUserReferences().stream().filter(
-        userRefEntity -> !(userRefEntity.getReferenceId().equals(userId))
-      ).collect(Collectors.toList()));
-    }
-    repository.saveAll(invs);
-
     return true;
   }
 

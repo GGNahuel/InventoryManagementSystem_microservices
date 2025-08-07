@@ -13,6 +13,5 @@ public class InventoryDTO {
   private String id;
   private String name;
   private String accountId;
-  private List<String> usersIds;
   private List<ProductInInvDTO> products;
 }

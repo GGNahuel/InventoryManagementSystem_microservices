@@ -20,7 +20,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
-import com.nahuelgg.inventory_app.inventories.entities.UserReferenceElement;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
@@ -40,7 +39,7 @@ public class RepositoriesTest {
     userRef1 = UUID.randomUUID(), userRef2 = UUID.randomUUID();
   InventoryEntity inv1, inv2, inv3;
   ProductInInvEntity p1, p2, p3, p4;
-  UserReferenceElement user1, user2;
+  //UserReferenceElement user1, user2;
 
   @BeforeEach
   void setUp() {
@@ -80,17 +79,17 @@ public class RepositoriesTest {
       .inventory(inv3)
     .build());
 
-    user1 = UserReferenceElement.builder().referenceId(userRef1).build();
-    user2 = UserReferenceElement.builder().referenceId(userRef2).build();
+    // user1 = UserReferenceElement.builder().referenceId(userRef1).build();
+    // user2 = UserReferenceElement.builder().referenceId(userRef2).build();
 
     inv1.setProducts(new ArrayList<>(List.of(p1, p2)));
-    inv1.setUserReferences(new ArrayList<>(List.of(user1, user2)));
+    // inv1.setUserReferences(new ArrayList<>(List.of(user1, user2)));
 
     inv2.setProducts(new ArrayList<>(List.of(p3)));
-    inv2.setUserReferences(new ArrayList<>(List.of(user2)));
+    // inv2.setUserReferences(new ArrayList<>(List.of(user2)));
 
     inv3.setProducts(new ArrayList<>(List.of(p4)));
-    inv3.setUserReferences(new ArrayList<>(List.of()));
+    // inv3.setUserReferences(new ArrayList<>(List.of()));
 
     inventoryRepository.saveAll(List.of(inv1, inv2, inv3));
   }

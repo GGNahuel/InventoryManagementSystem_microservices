@@ -53,9 +53,6 @@ public class Mappers {
       .id(inv.getId().toString())
       .name(inv.getName())
       .accountId(inv.getAccountId().toString())
-      .usersIds(inv.getUserReferences().stream().map(
-        userRefModel -> userRefModel.getReferenceId().toString()
-      ).toList())
       .products(productsMapped)
     .build();
   }

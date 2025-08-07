@@ -9,8 +9,3 @@ type ProductInInvEntity {
 type InvEntity {
   id: ID!
 }
-
-type UserRef {
-  id: ID!
-  referenceId: ID!
-}

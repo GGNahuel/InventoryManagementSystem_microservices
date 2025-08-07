@@ -38,7 +38,7 @@ import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
-import com.nahuelgg.inventory_app.inventories.entities.UserReferenceElement;
+// import com.nahuelgg.inventory_app.inventories.entities.UserReferenceElement;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
 import com.nahuelgg.inventory_app.inventories.services.implementations.InventoryService_Impl;
@@ -111,7 +111,7 @@ public class InventoryServiceTest {
       .name("inventory1")
       .accountId(accId)
       .products(new ArrayList<>(List.of(pInInvEntity1, pInInvEntity2)))
-      .userReferences(new ArrayList<>())
+      // .userReferences(new ArrayList<>())
     .build();
     
     invDTO1 = InventoryDTO.builder()
@@ -119,7 +119,7 @@ public class InventoryServiceTest {
       .name("inventory1")
       .accountId(accId.toString())
       .products(new ArrayList<>(List.of(pInInvDTO1, pInInvDTO2)))
-      .usersIds(new ArrayList<>())
+      // .usersIds(new ArrayList<>())
     .build();
 
     pInInvEntity1.setInventory(invEntity1);
@@ -197,13 +197,13 @@ public class InventoryServiceTest {
       .id(firstSave.getId())
       .name(name)
       .accountId(accId)
-      .userReferences(List.of())
+      // .userReferences(List.of())
     .build();
     InventoryDTO expected = InventoryDTO.builder()
       .id(lastSave.getId().toString())
       .name(name)
       .accountId(accId.toString())
-      .usersIds(List.of())
+      // .usersIds(List.of())
       .products(List.of())
     .build();
 
@@ -248,7 +248,7 @@ public class InventoryServiceTest {
     verify(inventoryRepository).save(any(InventoryEntity.class));
   }
 
-  @Test
+  /* @Test
   void addUser_saveUserRefEntityAndChangesInInvEntity() {
     UUID userRefId = UUID.randomUUID();
     UserReferenceElement newUser = UserReferenceElement.builder().referenceId(userRefId).build();
@@ -296,7 +296,7 @@ public class InventoryServiceTest {
     ArgumentCaptor<List<InventoryEntity>> savedList = ArgumentCaptor.forClass(List.class);
     verify(inventoryRepository).saveAll(savedList.capture());
     assertIterableEquals(expectedChanges, savedList.getValue());
-  }
+  } */
 
   @Test
   void addProduct_saveRightEntitiesAndMakeRightCall() {
@@ -351,7 +351,7 @@ public class InventoryServiceTest {
       .id(destinyInvId)
       .name("inventory2")
       .accountId(accId)
-      .userReferences(invEntity1.getUserReferences())
+      // .userReferences(invEntity1.getUserReferences())
       .products(new ArrayList<>())
     .build();
 

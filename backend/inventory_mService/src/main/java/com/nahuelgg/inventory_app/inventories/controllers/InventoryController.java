@@ -83,23 +83,6 @@ public class InventoryController {
     return service.deleteByAccountId(UUID.fromString(accountId));
   }
 
-  // User mutations
-  @MutationMapping
-  public boolean addUser(@Argument String userId, @Argument String invId, @Argument String accountId) {
-    if (!authorizationService.checkUserIsAdmin() || !authorizationService.checkActionIsToLoggedAccount(accountId))
-      throw new AccessDeniedException("No tiene permisos para realizar esta acción");
-  
-    return service.addUser(UUID.fromString(userId), UUID.fromString(invId));
-  }
-
-  @MutationMapping
-  public boolean removeUser(@Argument String userId, @Argument String accountId) {
-    if (!authorizationService.checkUserIsAdmin() || !authorizationService.checkActionIsToLoggedAccount(accountId))
-      throw new AccessDeniedException("No tiene permisos para realizar esta acción");
-  
-    return service.removeUser(UUID.fromString(userId), UUID.fromString(accountId));
-  }
-
   // Product mutations
   @MutationMapping
   public ProductInInvDTO addProduct(@Argument ProductInputDTO product, @Argument String invId, @Argument String accountId) {

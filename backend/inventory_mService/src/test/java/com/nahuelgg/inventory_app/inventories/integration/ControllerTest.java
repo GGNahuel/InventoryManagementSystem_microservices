@@ -40,7 +40,6 @@ import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
-import com.nahuelgg.inventory_app.inventories.entities.UserReferenceElement;
 import com.nahuelgg.inventory_app.inventories.enums.Permissions;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
@@ -89,7 +88,6 @@ public class ControllerTest {
       .id(invToSearch.getId().toString())
       .name(invToSearch.getName())
       .accountId(accId)
-      .usersIds(new ArrayList<>())
       .products(new ArrayList<>())
     .build();
 
@@ -101,7 +99,7 @@ public class ControllerTest {
 
     String query = """
       query {
-        getById(id: "%s") {
+        getById(id: "%s", accountId: "%s") {
           id
           name
           accountId
@@ -111,7 +109,7 @@ public class ControllerTest {
           }
         }
       }    
-    """.formatted(invToSearch.getId().toString());
+    """.formatted(invToSearch.getId().toString(), accId);
 
     Response response = graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute();
@@ -379,103 +377,6 @@ public class ControllerTest {
         deleteByAccountId(accountId: "%s")
       }
     """.formatted(accId.toString());
-
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
-      .document(query).execute().errors()
-    .satisfy(errors -> {
-      assertFalse(errors.isEmpty());
-      assertTrue(errors.size() == 1);
-      assertTrue(errors.get(0).getMessage().contains("Forbidden"));
-    });
-  }
-
-  // Users related endpoints
-  @Test
-  void addUser_allowedIfUserIsAdmin() {
-    UUID refUserId = UUID.randomUUID();
-    InventoryEntity savedInv = inventoryRepository.save(InventoryEntity.builder()
-      .name("inv")
-      .accountId(UUID.fromString(accId))
-    .build());
-
-    String token = tokenGenerator.generateAdminToken(accUsername, accId);
-
-    String query = """
-      mutation {
-        addUser(userId: "%s", invId: "%s")
-      }
-    """.formatted(refUserId.toString(), savedInv.getId().toString());
-
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
-      .document(query).execute().path("addUser").entity(Boolean.class).isEqualTo(true);
-
-    InventoryEntity invWithChanges = inventoryRepository.findById(savedInv.getId()).get();
-    assertFalse(invWithChanges.getUserReferences().isEmpty());
-    assertEquals(refUserId, invWithChanges.getUserReferences().get(0).getReferenceId());
-  }
-
-  @Test
-  void addUser_denyIfNotAdmin() {
-    UUID userId = UUID.randomUUID();
-    String token = tokenGenerator.generateUserToken(accUsername, accId, null);
-
-    String query = """
-      mutation {
-        addUser(userId: "%s", invId: "%s")
-      }
-    """.formatted(userId.toString(), UUID.randomUUID().toString());
-
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
-      .document(query).execute().errors()
-    .satisfy(errors -> {
-      assertFalse(errors.isEmpty());
-      assertTrue(errors.size() == 1);
-      assertTrue(errors.get(0).getMessage().contains("Forbidden"));
-    });
-  }
-
-  @Test
-  void removeUser_allowedIfUserIsAdmin() {
-    UUID refUserId = UUID.randomUUID();
-    UserReferenceElement userReferenceToRemove = UserReferenceElement.builder().referenceId(refUserId).build();
-    InventoryEntity savedInvWithUser1 = inventoryRepository.save(InventoryEntity.builder()
-      .name("inv1")
-      .accountId(UUID.fromString(accId))
-      .userReferences(new ArrayList<>(List.of(userReferenceToRemove)))
-    .build());
-    InventoryEntity savedInvWithUser2 = inventoryRepository.save(InventoryEntity.builder()
-      .name("inv2")
-      .accountId(UUID.fromString(accId))
-      .userReferences(new ArrayList<>(List.of(userReferenceToRemove)))
-    .build());
-
-    String token = tokenGenerator.generateAdminToken(accUsername, accId);
-
-    String query = """
-      mutation {
-        removeUser(userId: "%s", accountId: "%s")
-      }
-    """.formatted(refUserId.toString(), accId.toString());
-
-    graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
-      .document(query).execute().path("removeUser").entity(Boolean.class).isEqualTo(true);
-
-    InventoryEntity inv1WithChanges = inventoryRepository.findById(savedInvWithUser1.getId()).get();
-    InventoryEntity inv2WithChanges = inventoryRepository.findById(savedInvWithUser2.getId()).get();
-    assertTrue(inv1WithChanges.getUserReferences().stream().noneMatch(userRefEntity -> userRefEntity.getReferenceId().equals(refUserId)));
-    assertTrue(inv2WithChanges.getUserReferences().stream().noneMatch(userRefEntity -> userRefEntity.getReferenceId().equals(refUserId)));
-  }
-
-  @Test
-  void remove_denyIfNotAdmin() {
-    UUID refUserId = UUID.randomUUID();
-    String token = tokenGenerator.generateUserToken(accUsername, accId, null);
-
-    String query = """
-      mutation {
-        removeUser(userId: "%s", accountId: "%s")
-      }
-    """.formatted(refUserId.toString(), accId.toString());
 
     graphQlTester.mutate().url("http://localhost:" + port + "/graphql").headers(generateHeaderWithToken(token)).build()
       .document(query).execute().errors()
