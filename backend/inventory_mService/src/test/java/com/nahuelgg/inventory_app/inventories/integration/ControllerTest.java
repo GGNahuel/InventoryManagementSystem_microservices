@@ -40,11 +40,10 @@ import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
-import com.nahuelgg.inventory_app.inventories.entities.UserReferenceEntity;
+import com.nahuelgg.inventory_app.inventories.entities.UserReferenceElement;
 import com.nahuelgg.inventory_app.inventories.enums.Permissions;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
-import com.nahuelgg.inventory_app.inventories.repositories.UserReferenceRepository;
 import com.nahuelgg.inventory_app.inventories.services.JwtService;
 import com.nahuelgg.inventory_app.inventories.services.TokenGenerator;
 
@@ -57,7 +56,6 @@ public class ControllerTest {
   @Autowired TokenGenerator tokenGenerator;
 
   @Autowired InventoryRepository inventoryRepository;
-  @Autowired UserReferenceRepository userReferenceRepository;
   @Autowired ProductInInvRepository productInInvRepository;
 
   @MockitoBean RestTemplate restCaller;
@@ -412,8 +410,8 @@ public class ControllerTest {
       .document(query).execute().path("addUser").entity(Boolean.class).isEqualTo(true);
 
     InventoryEntity invWithChanges = inventoryRepository.findById(savedInv.getId()).get();
-    assertFalse(invWithChanges.getUsers().isEmpty());
-    assertEquals(refUserId, invWithChanges.getUsers().get(0).getReferenceId());
+    assertFalse(invWithChanges.getUserReferences().isEmpty());
+    assertEquals(refUserId, invWithChanges.getUserReferences().get(0).getReferenceId());
   }
 
   @Test
@@ -439,18 +437,16 @@ public class ControllerTest {
   @Test
   void removeUser_allowedIfUserIsAdmin() {
     UUID refUserId = UUID.randomUUID();
-    UserReferenceEntity userReferenceToRemove = userReferenceRepository.save(UserReferenceEntity.builder()
-      .referenceId(refUserId)
-    .build());
+    UserReferenceElement userReferenceToRemove = UserReferenceElement.builder().referenceId(refUserId).build();
     InventoryEntity savedInvWithUser1 = inventoryRepository.save(InventoryEntity.builder()
       .name("inv1")
       .accountId(UUID.fromString(accId))
-      .users(new ArrayList<>(List.of(userReferenceToRemove)))
+      .userReferences(new ArrayList<>(List.of(userReferenceToRemove)))
     .build());
     InventoryEntity savedInvWithUser2 = inventoryRepository.save(InventoryEntity.builder()
       .name("inv2")
       .accountId(UUID.fromString(accId))
-      .users(new ArrayList<>(List.of(userReferenceToRemove)))
+      .userReferences(new ArrayList<>(List.of(userReferenceToRemove)))
     .build());
 
     String token = tokenGenerator.generateAdminToken(accUsername, accId);
@@ -466,8 +462,8 @@ public class ControllerTest {
 
     InventoryEntity inv1WithChanges = inventoryRepository.findById(savedInvWithUser1.getId()).get();
     InventoryEntity inv2WithChanges = inventoryRepository.findById(savedInvWithUser2.getId()).get();
-    assertTrue(inv1WithChanges.getUsers().stream().noneMatch(userRefEntity -> userRefEntity.getReferenceId().equals(refUserId)));
-    assertTrue(inv2WithChanges.getUsers().stream().noneMatch(userRefEntity -> userRefEntity.getReferenceId().equals(refUserId)));
+    assertTrue(inv1WithChanges.getUserReferences().stream().noneMatch(userRefEntity -> userRefEntity.getReferenceId().equals(refUserId)));
+    assertTrue(inv2WithChanges.getUserReferences().stream().noneMatch(userRefEntity -> userRefEntity.getReferenceId().equals(refUserId)));
   }
 
   @Test

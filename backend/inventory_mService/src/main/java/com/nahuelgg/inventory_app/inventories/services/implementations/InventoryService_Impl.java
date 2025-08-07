@@ -27,30 +27,21 @@ import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
-import com.nahuelgg.inventory_app.inventories.entities.UserReferenceEntity;
+import com.nahuelgg.inventory_app.inventories.entities.UserReferenceElement;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
-import com.nahuelgg.inventory_app.inventories.repositories.UserReferenceRepository;
 import com.nahuelgg.inventory_app.inventories.services.InventoryService;
 import com.nahuelgg.inventory_app.inventories.utilities.Mappers;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class InventoryService_Impl implements InventoryService {
   private final InventoryRepository repository;
   private final ProductInInvRepository productInvRepository;
-  private final UserReferenceRepository userRefRepository;
   private final RestTemplate restTemplate;
   private final Mappers mappers = new Mappers();
-
-  public InventoryService_Impl(
-    InventoryRepository repository, ProductInInvRepository productInInvRepository, UserReferenceRepository userRefRepository,
-    RestTemplate restTemplate
-  ) {
-    this.repository = repository;
-    this.productInvRepository = productInInvRepository;
-    this.userRefRepository = userRefRepository;
-    this.restTemplate = restTemplate;
-  }
 
   private HttpHeaders setTokenToOtherServicesRequests() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -163,12 +154,8 @@ public class InventoryService_Impl implements InventoryService {
     AccountFromUsersMSDTO account = (AccountFromUsersMSDTO) makeRestRequest(completeUrl, HttpMethod.PATCH, null).getData();
 
     inv.setAccountId(UUID.fromString(account.getId()));
-    inv.setUsers(account.getUsers() != null ? account.getUsers().stream().map(
-      u -> userRefRepository.findByReferenceId(UUID.fromString(u.getId())).orElse(
-        userRefRepository.save(
-          UserReferenceEntity.builder().referenceId(UUID.fromString(u.getId())).build()
-        )
-      )
+    inv.setUserReferences(account.getUsers() != null ? account.getUsers().stream().map(
+      userFromMicroservice -> UserReferenceElement.builder().referenceId(UUID.fromString(userFromMicroservice.getId())).build()
     ).toList() : new ArrayList<>());
 
     return mappers.mapInvEntity(repository.save(inv), List.of());
@@ -189,15 +176,13 @@ public class InventoryService_Impl implements InventoryService {
     InventoryEntity inv = repository.findById(invId).orElseThrow(
       () -> new RuntimeException("")
     );
-    List<UserReferenceEntity> userRefs = inv.getUsers();
+    List<UserReferenceElement> userRefs = inv.getUserReferences();
 
     if (userRefs.stream().anyMatch(uRefEntity -> uRefEntity.getReferenceId() == userId)) 
       return false;
 
-    userRefs.add(userRefRepository.save(
-      UserReferenceEntity.builder().referenceId(userId).build()
-    ));
-    inv.setUsers(userRefs);
+    userRefs.add(UserReferenceElement.builder().referenceId(userId).build());
+    inv.setUserReferences(userRefs);
 
     repository.save(inv);
     return true;
@@ -208,11 +193,11 @@ public class InventoryService_Impl implements InventoryService {
     List<InventoryEntity> invs = repository.findByAccountId(accountId);
     for (InventoryEntity inv : invs) {
       System.out.println(inv.toString());
-      System.out.println(inv.getUsers().stream().filter(
+      System.out.println(inv.getUserReferences().stream().filter(
         userRefEntity -> userRefEntity.getReferenceId() != userId 
       ).collect(Collectors.toList()).toString());
 
-      inv.setUsers(inv.getUsers().stream().filter(
+      inv.setUserReferences(inv.getUserReferences().stream().filter(
         userRefEntity -> !(userRefEntity.getReferenceId().equals(userId))
       ).collect(Collectors.toList()));
     }

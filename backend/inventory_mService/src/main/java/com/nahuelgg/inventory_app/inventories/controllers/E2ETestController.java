@@ -8,10 +8,8 @@ import org.springframework.stereotype.Controller;
 
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
-import com.nahuelgg.inventory_app.inventories.entities.UserReferenceEntity;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
-import com.nahuelgg.inventory_app.inventories.repositories.UserReferenceRepository;
 import com.nahuelgg.inventory_app.inventories.utilities.Mappers;
 
 import lombok.RequiredArgsConstructor;
@@ -22,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 public class E2ETestController {
   private final InventoryRepository inventoryRepository;
   private final ProductInInvRepository pInInvRepository;
-  private final UserReferenceRepository userReferenceRepository;
   
   private final Mappers mapper = new Mappers();
 
@@ -36,9 +33,5 @@ public class E2ETestController {
   @QueryMapping
   public List<ProductInInvEntity> getAllProductsInInv() {
     return pInInvRepository.findAll();
-  }
-
-  @QueryMapping List<UserReferenceEntity> getAllUserReferences() {
-    return userReferenceRepository.findAll();
   }
 }

@@ -3,7 +3,6 @@ package com.nahuelgg.inventory_app.inventories.repositories;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -21,7 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
-import com.nahuelgg.inventory_app.inventories.entities.UserReferenceEntity;
+import com.nahuelgg.inventory_app.inventories.entities.UserReferenceElement;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
@@ -29,13 +28,11 @@ import com.nahuelgg.inventory_app.inventories.entities.UserReferenceEntity;
 public class RepositoriesTest {
   private final InventoryRepository inventoryRepository;
   private final ProductInInvRepository productInInvRepository;
-  private final UserReferenceRepository userReferenceRepository;
 
   @Autowired
-  public RepositoriesTest(InventoryRepository iRepository, ProductInInvRepository pRepository, UserReferenceRepository uRepository) {
+  public RepositoriesTest(InventoryRepository iRepository, ProductInInvRepository pRepository) {
     this.inventoryRepository = iRepository;
     this.productInInvRepository = pRepository;
-    this.userReferenceRepository = uRepository;
   }
 
   UUID accId1 = UUID.randomUUID(), accId2 = UUID.randomUUID(), 
@@ -43,7 +40,7 @@ public class RepositoriesTest {
     userRef1 = UUID.randomUUID(), userRef2 = UUID.randomUUID();
   InventoryEntity inv1, inv2, inv3;
   ProductInInvEntity p1, p2, p3, p4;
-  UserReferenceEntity user1, user2;
+  UserReferenceElement user1, user2;
 
   @BeforeEach
   void setUp() {
@@ -83,21 +80,17 @@ public class RepositoriesTest {
       .inventory(inv3)
     .build());
 
-    user1 = userReferenceRepository.save(UserReferenceEntity.builder()
-      .referenceId(userRef1)
-    .build());
-    user2 = userReferenceRepository.save(UserReferenceEntity.builder()
-      .referenceId(userRef2)
-    .build());
+    user1 = UserReferenceElement.builder().referenceId(userRef1).build();
+    user2 = UserReferenceElement.builder().referenceId(userRef2).build();
 
     inv1.setProducts(new ArrayList<>(List.of(p1, p2)));
-    inv1.setUsers(new ArrayList<>(List.of(user1, user2)));
+    inv1.setUserReferences(new ArrayList<>(List.of(user1, user2)));
 
     inv2.setProducts(new ArrayList<>(List.of(p3)));
-    inv2.setUsers(new ArrayList<>(List.of(user2)));
+    inv2.setUserReferences(new ArrayList<>(List.of(user2)));
 
     inv3.setProducts(new ArrayList<>(List.of(p4)));
-    inv3.setUsers(new ArrayList<>(List.of()));
+    inv3.setUserReferences(new ArrayList<>(List.of()));
 
     inventoryRepository.saveAll(List.of(inv1, inv2, inv3));
   }
@@ -131,11 +124,5 @@ public class RepositoriesTest {
   void productInInvRepository_findByReferenceAndNotRepeatedInOtherInvs() {   
     assertIterableEquals(List.of(p2.getReferenceId()), productInInvRepository.findReferenceIdsExclusiveToInventory(inv1.getId(), accId1));
     assertIterableEquals(List.of(), productInInvRepository.findReferenceIdsExclusiveToInventory(inv2.getId(), accId1));
-  }
-
-  @Test
-  void userRefRepository_findByReferenceId() {
-    assertEquals(Optional.of(user1), userReferenceRepository.findByReferenceId(userRef1));
-    assertNotEquals(Optional.of(user1), userReferenceRepository.findByReferenceId(userRef2));
   }
 }

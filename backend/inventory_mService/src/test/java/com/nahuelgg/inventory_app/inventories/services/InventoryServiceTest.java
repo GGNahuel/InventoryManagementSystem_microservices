@@ -38,10 +38,9 @@ import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
-import com.nahuelgg.inventory_app.inventories.entities.UserReferenceEntity;
+import com.nahuelgg.inventory_app.inventories.entities.UserReferenceElement;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
-import com.nahuelgg.inventory_app.inventories.repositories.UserReferenceRepository;
 import com.nahuelgg.inventory_app.inventories.services.implementations.InventoryService_Impl;
 import com.nahuelgg.inventory_app.inventories.utilities.Mappers;
 
@@ -49,7 +48,6 @@ import com.nahuelgg.inventory_app.inventories.utilities.Mappers;
 public class InventoryServiceTest {
   @Mock InventoryRepository inventoryRepository;
   @Mock ProductInInvRepository productInInvRepository;
-  @Mock UserReferenceRepository userReferenceRepository;
   @Mock RestTemplate restTemplate;
 
   @InjectMocks InventoryService_Impl inventoryService;
@@ -113,7 +111,7 @@ public class InventoryServiceTest {
       .name("inventory1")
       .accountId(accId)
       .products(new ArrayList<>(List.of(pInInvEntity1, pInInvEntity2)))
-      .users(new ArrayList<>())
+      .userReferences(new ArrayList<>())
     .build();
     
     invDTO1 = InventoryDTO.builder()
@@ -199,7 +197,7 @@ public class InventoryServiceTest {
       .id(firstSave.getId())
       .name(name)
       .accountId(accId)
-      .users(List.of())
+      .userReferences(List.of())
     .build();
     InventoryDTO expected = InventoryDTO.builder()
       .id(lastSave.getId().toString())
@@ -253,11 +251,10 @@ public class InventoryServiceTest {
   @Test
   void addUser_saveUserRefEntityAndChangesInInvEntity() {
     UUID userRefId = UUID.randomUUID();
-    UserReferenceEntity newUser = UserReferenceEntity.builder().id(UUID.randomUUID()).referenceId(userRefId).build();
+    UserReferenceElement newUser = UserReferenceElement.builder().referenceId(userRefId).build();
 
     when(inventoryRepository.findById(invEntity1.getId())).thenReturn(Optional.of(invEntity1));
-    ArgumentCaptor<UserReferenceEntity> userRefSaved = ArgumentCaptor.forClass(UserReferenceEntity.class);
-    when(userReferenceRepository.save(userRefSaved.capture())).thenReturn(newUser);
+    ArgumentCaptor<UserReferenceElement> userRefSaved = ArgumentCaptor.forClass(UserReferenceElement.class);
 
     inventoryService.addUser(userRefId, invEntity1.getId());
 
@@ -265,32 +262,26 @@ public class InventoryServiceTest {
 
     ArgumentCaptor<InventoryEntity> invSaved = ArgumentCaptor.forClass(InventoryEntity.class);
     verify(inventoryRepository).save(invSaved.capture());
-    assertTrue(invSaved.getValue().getUsers().contains(newUser));
+    assertTrue(invSaved.getValue().getUserReferences().contains(newUser));
   }
 
   @Test
   void removeUser_makeRightChanges() {
-    UserReferenceEntity userToRemove = UserReferenceEntity.builder()
-      .id(UUID.randomUUID())
-      .referenceId(UUID.randomUUID())
-    .build();
-    UserReferenceEntity user2 = UserReferenceEntity.builder()
-      .id(UUID.randomUUID())
-      .referenceId(UUID.randomUUID())
-    .build();
+    UserReferenceElement userToRemove = UserReferenceElement.builder().referenceId(UUID.randomUUID()).build();
+    UserReferenceElement user2 = UserReferenceElement.builder().referenceId(UUID.randomUUID()).build();
 
     InventoryEntity anotherInv = InventoryEntity.builder()
       .id(UUID.randomUUID())
       .name("inventory2")
       .accountId(accId)
-      .users(new ArrayList<>(List.of(userToRemove, user2)))
+      .userReferences(new ArrayList<>(List.of(userToRemove, user2)))
       .products(List.of())
     .build();
-    invEntity1.getUsers().add(user2);
+    invEntity1.getUserReferences().add(user2);
 
     List<InventoryEntity> expectedChanges = List.of(invEntity1, anotherInv).stream().map(
       invEnt -> {
-        invEnt.setUsers(invEnt.getUsers().stream().filter(
+        invEnt.setUserReferences(invEnt.getUserReferences().stream().filter(
           user -> user.getReferenceId() != userToRemove.getReferenceId()
         ).toList());
 
@@ -300,7 +291,7 @@ public class InventoryServiceTest {
 
     when(inventoryRepository.findByAccountId(accId)).thenReturn(List.of(invEntity1, anotherInv));
 
-    inventoryService.removeUser(userToRemove.getId(), accId);
+    inventoryService.removeUser(userToRemove.getReferenceId(), accId);
 
     ArgumentCaptor<List<InventoryEntity>> savedList = ArgumentCaptor.forClass(List.class);
     verify(inventoryRepository).saveAll(savedList.capture());
@@ -338,7 +329,7 @@ public class InventoryServiceTest {
       )
     );
 
-    inventoryService.addProduct(productToCreate, invEntity1.getId());
+    inventoryService.addProduct(productToCreate, invEntity1.getId(), accId);
 
     assertEquals(expectedSaved, pInInvSaved.getValue());
 
@@ -360,7 +351,7 @@ public class InventoryServiceTest {
       .id(destinyInvId)
       .name("inventory2")
       .accountId(accId)
-      .users(invEntity1.getUsers())
+      .userReferences(invEntity1.getUserReferences())
       .products(new ArrayList<>())
     .build();
 
