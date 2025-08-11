@@ -25,10 +25,9 @@ public class ProductEntity {
   private String brand;
   private String model;
   private String description;
-  @Column(nullable = false)
-  private UUID accountId;
-  @Column(nullable = false)
   private Double unitPrice;
   @ElementCollection(fetch = FetchType.EAGER)
   private List<String> categories;
+  @Column(nullable = false)
+  private UUID accountId;
 }

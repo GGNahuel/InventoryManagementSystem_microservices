@@ -92,6 +92,10 @@ public class InventoryService_Impl implements InventoryService {
     return mappers.mapInvEntity(inv, productsFromMS);
   }
 
+  // TODO: al obtener datos de los productos, revisar en el servicio de ellos que los productos existan sin arrojar error
+  // ya que pudieron haber sido eliminadas mediante el permiso deleteProductReferences
+  // siendo ese el caso éste servicio debería eliminar las productInInv entities que estén relacionadas
+  // por ejemplo se podría envíar un valor especial
   @Override @Transactional(readOnly = true)
   public List<InventoryDTO> getByAccount(UUID accountId) {
     return repository.findByAccountId(accountId).stream().map(
@@ -150,6 +154,7 @@ public class InventoryService_Impl implements InventoryService {
     .toUriString();
     AccountFromUsersMSDTO account = (AccountFromUsersMSDTO) makeRestRequest(completeUrl, HttpMethod.PATCH, null).getData();
 
+    // cambiar esto
     inv.setAccountId(UUID.fromString(account.getId()));
 
     return mappers.mapInvEntity(repository.save(inv), List.of());
