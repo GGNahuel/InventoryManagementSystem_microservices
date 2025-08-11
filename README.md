@@ -1,10 +1,10 @@
-# API para gestión de inventarios de productos
-#### Versión 1.0
-Api diseñada para que usuarios puedan registrarse y crear distintos inventarios que pueden llenar con productos según lo requieran.
+# Proyecto de gestión de inventarios de productos
+#### Versión 1.0, fecha de lanzamiento Agosto de 2025
+Sistema de APIs diseñado para que usuarios puedan registrarse y crear distintos inventarios que pueden llenar con productos según lo requieran.
 
 Trabaja con base de datos y seguridad a traves de autenticaciones y autorizaciones. Las cuentas creadas por defecto crean un sub-usuario *admin* que, además de poder crear inventarios, también puede registrar a otros sub-usuarios y otorgarle distintos permisos que pueden variar para cada inventario. Permisos como el de agregar productos, eliminarlos, editar el inventario, entre otros.
 
-> #### Ejemplo de uso de la api: 
+> #### Ejemplo de uso: 
 >
 >  Una cuenta (usuario) representa una cadena de tiendas de ropa. Esta puede tener un inventario por cada sucursal que tenga. Así cada sucursal (inventario) tendrá su propia lista de productos. 
 >
@@ -14,8 +14,8 @@ Trabaja con base de datos y seguridad a traves de autenticaciones y autorizacion
 - [Instrucciones de instalación y requisitos para ejecución local](#instrucciones-de-instalación-y-requisitos-para-ejecución-local)
 - [Autenticación y autorización](#autenticación-y-autorización)
 
-### Casos de uso, funcionalidades
-* En primera instancia los usuarios pueden registrar una cuenta y posteriormente iniciar sesión en la API.
+### Funcionalidades generales
+* En primera instancia los usuarios pueden registrar una cuenta y posteriormente iniciar sesión en la aplicación.
 
 * Al registrarla se pide, además de los datos de ingreso de la cuenta, los datos que se usarían para el inicio de sesión del sub-usuario admin.
 
@@ -42,11 +42,278 @@ Trabaja con base de datos y seguridad a traves de autenticaciones y autorizacion
 
 * El cliente se comunicará con la API Gateway, la cual redirigirá la solicitud al servicio que corresponda.
 
-### Estructura y fundamentación general
-### Tecnologías y herramientas aplicadas
+## Fundamentación del diseño y arquitectura de software
+Como se mencionó antes, la idea de este proyecto es brindar una solución del lado del servidor segura y eficaz que permita a usuarios, o grupo de personas, trabajar con inventarios de una forma práctica. Pensada principalmente para negocios u organizaciones. En donde es probable que sean varias personas las que accedan a estos inventarios, pero en donde no todas ellas podrían realizar las mismas acciones sobre los datos que alojan.
+
+Entonces, este sistema de APIs debería poder brindarle al cliente:
+* La posibilidad de registrar y "loguear" usuarios al sistema de forma segura.
+* La opción de crear uno o más inventarios y llenarlos con los datos de los productos o items que necesiten los usuarios.
+* La alternativa de que las cuentas puedan tener distintos sub-usuarios. Siendo uno el que se encargaría de asignar los permisos para el resto, permitiendo así distintos niveles de acceso a los datos asociados a la cuenta.
+* La decisión de los datos que desea obtener de las solicitudes.
+* Que los permisos asignados puedan variar según el inventario, en el caso que hayan varios en la misma cuenta.
+
+Y en cuánto al trabajo interno del sistema, éste debería:
+* Poder guardar los datos de forma persistente en él.
+* Guardar datos sensibles de forma segura, por ejemplo encriptando contraseñas y validando los parámetros que ingresan en las solicitudes.
+* Trabajar con autenticaciones y autorizaciones en sus operaciones.
+* Validar, además de los permisos del sub-usuario, que las acciones que una cuenta quiera realizar sean sobre los datos asociados a ella únicamente.
+* Tener en cuenta la posibilidad de extensión, tanto de nuevas funciones como de las iniciales.
+* Ser fácil de entender, mantener y escalar.
+
+### Estilo arquitectónico
+Viendo las necesidades se concluyó que los sistemas monolíticos tradicionales no ofrecían la flexibilidad, escalabilidad ni la facilidad de mantenimiento necesarias para este caso. Especialmente considerando la proyección de crecimiento y la necesidad de integrar futuros módulos, aún siendo este inicialmente un proyecto de demostración.
+
+Para dar solución, se optó por una **arquitectura de microservicios**, donde cada funcionalidad principal se implementa como un servicio independiente. Esto permite:
+
+* El escalado y mantenimiento independiente para cada servicio.
+* Despliegue individual sin afectar a los demás.
+* Aislamiento de fallos: si un servicio falla, el resto puede seguir funcionando.
+* Posibilidad de usar distintos tipos de API según las necesidades. Por ejemplo GraphQL para dar esa flexibilidad al cliente de obtener solo los datos que requiera, y Rest para cuando es necesario enviar y/o recibir todos los datos.
+
+Esto constaría de:
+* Comunicación sincrónica vía HTTP (REST/GraphQL). Por el momento no se requiere de comunicación asincrónica, u orientada a eventos, ya que las funcionalidades iniciales necesitan que los datos se procesen para poder validar y seguir la operación en el trabajo interno.
+* API Gateway como punto de entrada único.
+* Uso de JWT para autenticación y autorización distribuida.
+
+### Modelo de dominio
+Teniendo esto en cuenta lo que se busca la aplicación permita, ésta giraría entorno a estas 3 entidades principalmente: <u>Cuentas</u> (en donde se registrarían los usuarios), <u>Inventarios y Productos</u>.
+
+Como se mencionó es probable que en un negocio, o empresa, no se desee que cualquiera con acceso a la cuenta pueda realizar grandes cambios en los datos, entonces se decidió agregar una cuarta entidad: <u>Usuarios</u> (sub-usuarios). La cual guardaría los permisos para las distintas acciones que se puedan realizar sobre los inventarios y sus productos.
+
+Además también es probable que, según las necesidades del usuario, se requiera que el mismo producto esté en distintos inventarios diferenciándose únicamente por características relacionadas a los mismos. Como cantidad en stock, disponibilidad, y más atributos que podrían estar a futuro. Pensando en esto se dividieron los datos de los productos en dos entidades: Productos en inventario y Productos de referencia.
+
+**Representación gráfica del modelo:**
+![alt text](docs/resources/image.png)
+
+### Productos
+* #### Productos de referencia
+  
+  Encargados de almacenar los datos principales de un producto, o item. Éstos son referenciados en los distintos inventarios, mediante *Producto en inventario* Permitiendo que los mismos datos estén en más de uno, y que si esta referencia se modifica el cambio se vea reflejado en todos los inventarios que posean esta referencia.
+
+  Atributos:
+  * Nombre
+  * Marca
+  * Modelo
+  * Descripción
+  * Precio unitario
+  * Categorías
+
+* #### Productos en inventario
+
+  Encargados de guardar la referencia al producto para obtener sus datos principales y almacenar los datos que refieren a ese producto en el inventario asignado.
+
+  Atributos:
+  * Producto de referencia
+  * Stock
+  * Disponibilidad
+
+### Inventarios
+Encargados de gestionar los datos de los productos asociados a él.
+
+Atributos:
+* Nombre
+* Lista de Productos en inventario
+
+### Cuentas
+Guarda los datos que se usarán para iniciar sesión y mostrar los inventarios asociados a ella. Además es la que permite guardar dentro a los usuarios (sub-usuarios).
+
+Atributos:
+* Nombre de usuario
+* Contraseña
+* Lista de Inventarios
+* Lista de Usuarios
+
+### Usuarios (sub-usuarios)
+Como la aplicación posee un "doble login" ésta entidad también guardará sus propios datos de acceso. Además de eso posee un rol, que es más descriptivo que funcional para autorización, y los permisos que éste posee para cada inventario.
+
+Atributos:
+* Nombre del sub-usuario (se usará como username para el login)
+* Contraseña
+* Nombre del rol
+* Permisos por inventario
+  * Permisos
+  * Inventario en donde se aplican los permisos
+
+### Resumen de tecnologías y herramientas elegidas
+| Tecnología / herramienta | Comentario adicional |
+| - | - |
+| Java y Spring Boot | <p>El uso de este conjunto aporta varias facilidades.</p> <p>Por el lado del lenguaje, Java, brinda la madurez y soporte que posee, además de que es común su uso en sistemas empresariales.</p> <p>Y con respecto a Spring Boot, éste brinda la facilidad de sus configuraciones automáticas en sus componentes y del despliegue de aplicaciones Java. También ofrece distintos módulos que se requerían en este proyecto. Pensando principalmente en el de seguridad, Spring Security; además de otros que sirven para desarrollar gateways, APIs REST y GraphQL, y trabajo con bases de datos relacionales.</p> |
+| Spring security | Fundamental para manejar las autenticaciones, autorizaciones, y los tokens que se usarán y verificarán en cada solicitud que entre a la aplicación. |
+| JWT | Elegido debido a qué es una de las formas más seguras de manejar autenticaciones y autorizaciones en un sistema de microservicios. |
+| API Rest | <p>Usada para los servicios de usuarios y de productos, debido a la facilidad de uso y que además para estos no se requería que los datos enviados u obtenidos sean menos.</p><p>Para el caso del servicio de usuarios, es necesario que siempre se reciban los datos completos, ya que esto incluiría los datos de acceso o de permisos a la app.</p><p>Y para el servicio de productos no se vió necesario ya que la obtención de estos datos sería mediante el servicio de inventarios.</p> |
+| API GraphQL | Elegida para el servicio de inventarios. Con la fundamentación de que a traves de éste el cliente obtendría los datos de los productos, eligiendo qué datos mostrar y cuáles no. |
+| API Gateway | Al tener una estructura de microservicios, con endpoints tanto externos, con los que se comunica el cliente, como internos, los que usan los microservicios para comunicarse entre sí, se vió la necesidad de implementar una API Gateway. La cual filtraría los endpoints accesibles y redirigiría al servicio que corresponda. |
+| Base de datos relacional: MySQL | Elegida en principio debido a que permite relaciones entre las entidades definidas. Aunque es probable que en versiones futuras, por escalabilidad y rapidez para manejar los datos, se use una base de datos noSQL. Ya que como las entidades están divididas en microservicios y cada uno no posee muchas no es tan necesaria una SQL. |
+| Docker | Se eligió usarlo debido a las ventajas que Docker y sus contenedores ofrecen a la hora de probar, desarrollar, y desplegar una aplicación en distintos entornos. |
+
+### Componentes y patron arquitectónico
+Consta de **5** microservicios en total, 3 principales y otros 2 adicionales. Siendo los principales: el microservicio relacionado con usuarios, el relacionado con inventarios y el relacionado con productos; cada uno exponiendo su propia API al sistema completo y manejando su propia base de datos. Los dos adicionales son, por un lado la API Gateway y por el otro uno encargado únicamente de hacer pruebas *end to end* (e2e), levantando contenedores temporales gracias a **test containers**.
+
+Todos los microservicios son proyectos de Spring boot, a excepción del de pruebas e2e en el que no es necesario y alcanza solo con el uso de **Maven** y su manejo de dependencias.
+
+Los 3 principales usan el **patrón de arquitectura basado en capas**, lo que significa que cada capa tiene su función en específico y solo se comunica con la capa inferior o superior a ella. Esto debido a la facilidad de su implementación y costes de desarrollo. Está armado de la siguiente forma:
+* Capa de controladores: Encargados de recibir las solicitudes, procesar sus datos antes de emplear la lógica de negocio, y armar la respuesta que recibirá el cliente.
+
+  > Antes de llegar al controlador, las solicitudes pasan por un filtro de seguridad. De esto se hablará más adelante en el [flujo de las solicitudes]().
+
+* Capa de negocio: En esta se realiza todo el procesamiento lógico que se requiera para poder realizar la operación que se solicitó. Validará, creará, y/u obtendrá los datos necesarios para que esto se realice con éxito empleando la capa de repositorio y los distintos componentes de la aplicación.
+
+* Capa de repositorio: Esta solo se encargará de realizar las solicitudes a la base de datos, ya sean de lectura o escritura.
+
+* Capa de la base de datos: Representa la base de datos MySQL en sí.
+
+Además cuenta con módulos transversales como autenticación y autorización, implementados mediante Spring Security, y con filtros que validan tokens JWT y roles antes de delegar el procesamiento a las capas del sistema.
+
+<br>
+
+A continuación se describirá cada componente siguiendo el modelo de dominio planteado, explicando cuál es la función de cada uno, cómo está compuesta su base de datos y su fundamentación.
+
+#### Microservicio de Usuarios
+Expone una API Rest que, además de registrar y manejar los datos de cuentas y sub-usuarios, se encarga también de todo lo relacionado a autenticación y autorización a nivel global. Es decir, validación de usuarios y contraseñas, encriptado de ellas, logins, y generación de los JWT.
+
+En su base de datos se encuentran las siguientes entidades:
+
+**AccountEntity**: Representa la cuenta. Guardando datos relacionados a su autenticación, los sub-usuarios que contiene y también una referencia a los inventarios que tiene creados.
+* id
+* username
+* password
+* lista users (Relación 1 a muchos con UserEntity)
+* lista inventoryReferences (Colección de elementos InventoryRefElement manejada por JPA)
+
+**UserEntity**: Representa a los sub-usuarios. También guarda datos relacionados a su autenticación y los permisos que éste posee para cada inventario.
+* id
+* name
+* role (El rol es descriptivo, no influye en las autorizaciones de la aplicación)
+* isAdmin (Este booleano se usa para armar el token y dar prioridad a este atributo en lugar de a los permisos cuando se hace la autorización a algún método u operación)
+* associatedAccount (Relación Muchos a 1 con AccountEntity)
+* lista inventoryPerms (Relación 1 a muchos con PermissionsForInventoryEntity)
+
+**PermissionsForInventoryEntity**: Entidades que representan los permisos que un usuario tendría para un inventario en específico.
+* id
+* permissions (Cadena de texto formateada en base a una lista de permisos)
+* inventoryReference (Colección de elementos InventoryRefElement manejada por JPA)
+
+**InventoryRefElement**: Objeto que guarda la id que pertenece al inventario en su respectiva base de datos y microservicio. No es una entidad ya que, aunque sí tiene relaciones con entidades, no tiene la necesidad, al menos por el momento, de tener su propia lógica de negocio dentro de este microservicio ni de tener consultas personalizadas. Por el momento es suficiente con sumar o filtrar las ids de referencia en la cuenta y validar que esa id esté presente en la cuenta a la hora de agregar un permiso.
+
+Es un objeto y no una id únicamente, o lista de ellas, debido a que en un futuro éste podría agregar nuevos atributos cómo fecha de agregado u otras según se requiera.
+* referenceId
+
+#### Microservicio de Inventarios
+Api con GraphQL también con su propia base de datos sql. Se la define con graphQL porque es la que se comunica con el cliente principalmente, *salvo para cuestiones de autenticación o usuarios, o cosas específicas de los productos*. Por lo que permitiría devolver solo los datos solicitados en la request y no realizar ni over-fetching ni under-fetching, optimizando así la información que viaja entre solicitudes.
+
+Se encarga de manejar cuestiones de los productos que hay en cada inventario. Agregar, editar, borrar, copiar, modificar el stock, etc. Se vincula principalmente con el microservicio de productos para obtener la información específica de cada uno.
+
+Consta de 2 entidades en su base de datos:
+**InventoryEntity**: Los inventarios se identifican en base a su nombre y una lista de productos en inventario. Lista que contiene la info relacionada al producto en ese inventario particular, además de la referencia.
+* id
+* name
+* accountId (Se guarda la id de la cuenta a la que pertenece el inventario)
+* products (Relación 1 a muchos con ProductInInvEntity)
+
+**ProductInInvEntity**: Como ya se mencionó anteriormente, estos representan a un producto como elemento de un inventario, no al producto en sí.
+* id
+* referenceId (Id de la entidad guardada en el microservicio de productos)
+* stock
+* isAvailable (Depende del stock, serviría para filtrado si el cliente lo requiere)
+* inventory (Relación muchos a uno con InventoryEntity)
+
+#### Microservicio de Productos
+Este microservicio contiene las operaciones para trabajar con los productos de referencia nombrados en el planteamiento de la aplicación. Con él se comunica internamente el microservicio de inventarios para agregar, editar, o eliminar los datos principales de los productos. Consta de una API rest con su propia base de datos SQL.
+
+Expone únicamente aquellos endpoints que su acción no incluye nada relacionado a los inventarios directamente. Específicamente, cuando el cliente quiere editar o borrar un producto de referencia en cuestión.
+
+Su base de datos consta de una sola entidad.
+
+**ProductEntity**: En donde se guarda la información principal de los productos.
+* id
+* name
+* brand
+* model
+* description
+* unitPrice
+* categories
+* accountId (Id de referencia a la cuenta a la que pertenece este producto)
+
+</br>
+Estos 3 microservicios poseen Spring Security, el cual se utiliza para autorizar endpoints y realizar la validación del Json Web Token en cada solicitud, incluso si el cliente sea otro microservicio del sistema o la propia gateway.
+
+#### Microservicio para la API Gateway
+La gateway es un microservicio sencillo, se encarga de exponer y redirigir las solicitudes a ciertos endpoints. Validando el JWT antes de la redirección a través de un filtro AuthenticationFilter.
+
+#### Microservicio para pruebas end to end (E2E)
+Este consta de un proyecto de maven el cual ejecuta distintas pruebas que cada una realiza una cadena de acciones, imitando el uso que los usuarios le darían. Por ejemplo: crear sesión y e iniciarla; crear inventarios, agregarles productos, editarlos o copiarlos; crear sub-usuarios y asignarle permisos para inventarios ya creados, etc.
+
+Éste microservicio no es necesario para que la app funcione correctamente, sí para verificar que lo haga. Es decir, su implementación no es requerida como tal por otros microservicios.
+
+Para ver cómo ejecutarlas y qué se requiere, revisar [la sección de testing]().
+
+### Flujo de interacción de las solicitudes y entre microservicios
+El flujo presentado a continuación se usa para todas las peticiones sin importar quién sea el cliente, ya sea si es externo al sistema o si es uno de los propios componentes. (A excepción de los puntos relacionados con la Gateway, la cuál solo la usarían los clientes externos).
+
+1. Cliente
+2. API Gateway. Validará, según si el endpoint requiere o no, el token JWT, redirigiendo en caso de éxito al servicio que corresponda.
+3. Servicios. Previo al procesamiento de la operación, la solicitud pasará por un par de filtros de seguridad.
+   1. Primero pasa por uno de autenticación, que además de validar nuevamente el token JWT, asigna en el contexto de seguridad local a ese servicio los datos que llegan en ese token.
+   2. Posteriormente pasa por otro de autorización antes de llegar al controlador. Que revisará si los datos presentes en el contexto de seguridad local tienen los permisos requeridos para el endpoint solicitado.
+   3. Finalmente la solicitud llega a la capa del controlador. La que llamará a la capa de negocio la cual trabajará con los recursos internos para lograr el objetivo de la operación.
+4. Api Gateway. Finalmente se recibe el retorno del re-direccionamiento y se lo envía al cliente.
+
+</br>
+</br>
+
+Ahora se mencionará específicamente cómo, y en qué operaciones, los microservicios interactúan entre sí.
+
+> Aclaración: tener en cuenta que toda operación inicia en la Gateway, por fines prácticos en esta sección se describen las operaciones saltando esa etapa. El cliente debería comunicarse siempre con la API Gateway para realizar cualquier acción en el sistema.
+
+* #### Eliminación de cuenta
+  Se invocará este método desde el **microservicio de usuarios**. Él se encargará de eliminar, además de los sub-usuarios y permisos relacionados, también los inventarios y productos asociados, mediante el llamado a los correspondientes **microservicios**.
+
+* #### Creación de inventario
+  Se realiza mediante el **microservicio de inventarios**. Éste llamará al método de asignación en el **microservicio de usuarios** para añadir la referencia de la nueva entidad. De esta forma ese servicio podría usarla para crear permisos.
+
+* #### Creación de nuevos productos en inventarios
+  Se le pasa los datos del nuevo producto, tanto los que estarían en el *Producto de referencia* como en el *Producto en inventario*, al **microservicio de inventarios**. El cual llamará al **microservicio de productos** para que este cree la nueva entidad y devuelva su id. La que el servicio de inventarios asignará al *producto en inventario* creado.
+
+* #### Obtención de datos de inventario con sus productos
+  Cada vez que se obtiene algún inventario, éste viene con los productos (si es que se los incluye en la request GraphQL). Para obtener esa información usa las ids de referencia guardadas al momento de crear, copiar o editar los productos y las envía a una solicitud GET al **microservicio de productos**.
+
+  > Si no se encuentra algún producto que su id de referencia esté guardada en la base de datos del servicio de inventarios se borrarán todas las entidades ProductInInventory que tengan esa id asociada. Ya que normalmente eso significaría que el producto de referencia fue eliminado directamente en su servicio.
+
+* #### Edición o eliminación de productos en inventarios
+  Salvo que se quiera trabajar directamente sobre los datos exclusivos de los Productos de referencia (si es el caso se llama al **microservicio de productos** en primera y única instancia), se llama al **microservicio de inventarios**. 
+  
+  Éste último, mediante las IDs de referencia, y demás datos si es el caso de edición, comprobará si la referencia guardada en el *producto en inventario* es compartida con otros inventarios en la misma cuenta. Si es el caso solo editará o eliminará las entidades relacionadas al inventario (*producto en inventario*). Caso contrario se editará o eliminará además los datos en el *producto de referencia* llamando al **microservicio de productos** (este llamado es distinto, aunque hacen lo mismo, que cuando se quiere realizar alguna acción directamente sobre los productos. Lo único que cambia es el permiso requerido y que no tendría que afectar a otros inventarios). 
+
+* #### Eliminación de inventario
+  Cuando se elimina un inventario desde el **microservicio de inventarios**, se busca también aquellos productos que no están asociados a ningún otro de la misma cuenta. Posteriormente se llama al endpoint del **microservicio de productos** que se encarga de borrar esos productos en base a la id de referencia, ya que esos solo existen en el inventario a borrar y la permanencia de ellos ya no es necesaria en la base de datos.
+
+  Además el servicio de inventarios llama al **microservicio de usuarios** para remover la id de referencia del mismo en la cuenta asociada. Éste eliminando también aquellos permisos que trabajaban sobre esa id.
+
+### Otros aspectos
+#### Patrones de diseño
+Se utilizaron:
+
+* **Repository Pattern**: para aislar la lógica de acceso a datos.
+* **Service Layer Pattern**: para encapsular reglas de negocio y reutilizarlas.
+* **Data Transfer Object (DTO) Pattern**: para separar modelos internos de lo que se expone al cliente.
+
+#### Patrones y decisiones arquitectónicas
+Se implementaron:
+
+* **API Gateway Pattern**: para centralizar la entrada al sistema y filtrar endpoints destinados a comunicación entre microservicios.
+* **Stateless Authentication Pattern** (implementado con JWT): para manejo de sesión sin estado.
+
+#### Entornos y perfiles
+En el proyecto se encuentran varios perfiles según el entorno para el que esta destinada su ejecución.
+
+El perfil por defecto es el que se usaría en el entorno de producción. El cual por ejemplo construye las imágenes de docker empaquetando los proyectos y luego ejecutando el archivo con extension *jar* que se genera. También usa la base de datos MySQL y variables de entorno definidas en un archivo .env, en dónde se guardarían los valores de las urls a las bases de datos y la clave con la que se firmarían y validarían los tokens jwt.
+
+Luego se encuentra el perfil para desarrollo. En el cual no se empaquetan los servicios, porque sino habría que empaquetar cada vez que se quiera ejecutar alguno, sino que lo hacen a través de spring boot. Además cuenta con utilidades para este entorno, como la de spring devtools, la cual aplica los cambios en el código en tiempo de ejecución (sin necesidad de reiniciar de forma manual).
+
+Luego hay 2 perfiles que se usan solo en entornos de testing. Está el perfil "test" y el "e2e". Con el "test" se usa una **base de datos en memoria, H2**, y aporta algunos componentes que son útiles para las pruebas. De misma forma está el perfil "e2e", que solo se usa en el servicio de pruebas *end to end*, que brinda endpoints o queries graphQL con el mismo fin.
 
 ## Instrucciones de instalación y requisitos para ejecución local
-Todos los servicios de la API están envueltos en contenedores de Docker y orquestados mediante él mismo a través de docker compose. Esto simplifica mucho las acciones necesarias para poder levantar los servicios. Aún así se puede hacerlo sin Docker.
+Todos los servicios del proyecto están envueltos en contenedores de Docker y orquestados mediante él mismo a través de docker compose. Esto simplifica mucho las acciones necesarias para poder levantar los servicios. Aún así se puede hacerlo sin Docker.
 
 ### Variables de entorno
 Ya sea se ejecute con o sin docker es necesario configurar las variables de entorno. Las mismas son las siguientes. (Respetar el uso de mayúsculas cuando es necesario)
@@ -77,24 +344,24 @@ Puede generarse mediante el comando <code>openssl rand -base64 32</code>. O bien
 ### En caso de usar docker
 Para empezar es necesario configurar las [**variables de entorno**](#variables-de-entorno). Para esto se crea un archivo .env en la carpeta raíz del proyecto (a la misma altura que se encuentra el archivo docker-compose.yml).
 
-Teniendo docker en el sistema, y ejecutándose, alcanza con el siguiente comando en la ubicación raíz del proyecto. Esto empaquetará los servicios y ejecutará los archivos .jar de cada uno.
+Teniendo docker en el sistema local, y ejecutándose, alcanza con el siguiente comando en la ubicación raíz del proyecto. Esto empaquetará los servicios y ejecutará los archivos .jar de cada uno.
 
-    #para la primera vez que se quiere levantar la API
+    #para la primera vez que se quiere levantar el proyecto
     docker compose up --build  
 
     #para las siguientes
     docker compose up 
 
-Adicionalmente se puede levantar la API con el perfil de desarrollo. Además de trabajar sin empaquetar la aplicación también, permite ver en tiempo real los cambios que se realicen gracias a spring boot devtools. Los comandos para esto son:
+Adicionalmente se puede levantarlo con el perfil de desarrollo. Además de trabajar sin empaquetar la aplicación también, permite ver en tiempo real los cambios que se realicen gracias a spring boot devtools. Los comandos para esto son:
 
-    #para la primera vez que se quiere levantar la API
+    #para la primera vez que se quiere levantar el proyecto
     docker compose -f docker-compose-dev.yml up --build
 
     #para las siguientes
     docker compose -f docker-compose-dev.yml up
     
 ### En caso de no usar docker
-Si se quiere levantar la api sin docker es necesario contar con los siguientes recursos:
+Si se quiere correr el proyecto sin docker es necesario contar con los siguientes recursos:
 - Este proyecto requiere instalar y tener correctamente configuradas las variables de entorno para **Java JDK** y **Maven**, tanto en Windows como en sistemas basados en Unix (Linux/macOS).
   #### Windows
   Se debe agregar al `Path` del sistema (Variable de entorno) las rutas a:
@@ -152,6 +419,8 @@ El valor del mismo se debe incluir en las solicitudes siguientes dentro de los h
 **El espacio entre "Bearer" y el token es importante que se encuentre, caso contrario no será reconocido.**
 
 ### Sobre el token
+Este no es solamente validado en la API gateway sino que también en cada redirección y llamado interno en cada una de las APIs.
+
 El mismo contiene los siguientes claims (pueden ser nulos depende de los logins o logouts que se hayan hecho):
 ```json
 {
@@ -464,7 +733,7 @@ De forma general un retorno se vería de la siguiente forma:
       "locations": [
         { "line": 1, "column": 1 }
       ],
-      "path": ["nombreOperación con error"],
+      "path": ["nombreOperación con el error mencionado"],
       "extensions": {} // información adicional
     }
   ]
@@ -472,10 +741,10 @@ De forma general un retorno se vería de la siguiente forma:
 ```
 
 #### Queries - operaciones de lectura
-- **getById(id: ID!, accountId: ID!)**: Inventory
+- **getById(id: ID!, accountId: ID!)**: *Inventory*
   
   Busca un inventario por su Id y devuelve el objeto con la información solicitada. En caso de no encontrar devuelve error.
-- **getByAccount(accountId: ID!)**: [Inventory]
+- **getByAccount(accountId: ID!)**: [*Inventory*]
   
   Devuelve una lista de todos los inventarios asociados a una cuenta según su id.
 - **searchProductsInInventories(
@@ -484,12 +753,12 @@ De forma general un retorno se vería de la siguiente forma:
     model: String, 
     categories: [String], 
     accountId: ID!
-  )**: [Inventory]
+  )**: [*Inventory*]
 
   Devuelve una lista de los inventarios que tengan productos que coincidan con la búsqueda, filtrando también estos productos a solo los que concuerden con lo solicitado. Salvo el argumento de la id de la cuenta, el resto son opcionales, pueden ir vacíos o directamente no estar presentes
 
 #### Mutations - operaciones de escritura
-- **create(name: String!, accountId: ID!)**: Inventory
+- **create(name: String!, accountId: ID!)**: *Inventory*
   
   Operación para crear inventarios. Se requiere que sea el sub-user admin quien ejecute esa operación. **name** refiere al nombre que se le asignará al inventario.
 - **edit(invId: ID!, name: String!, accountId: ID!)**: Boolean
@@ -499,15 +768,15 @@ De forma general un retorno se vería de la siguiente forma:
   
   Operación para eliminar inventarios. Se requiere que sea el sub-user admin quien ejecute esa operación.
 
-- **addProduct(product: ProductInput!, invId: ID!, accountId: ID!)**: ProductInInventory
+- **addProduct(product: *ProductInput*!, invId: ID!, accountId: ID!)**: *ProductInInventory*
 
   Agrega un producto al inventario seleccionado, incluyendo el stock.
-- **editProductInInventory(product: EditProductInput!, invId: ID!, accountId: ID!)**: ProductInInventory
+- **editProductInInventory(product: *EditProductInput*!, invId: ID!, accountId: ID!)**: *ProductInInventory*
 
   Esta operación editará el producto seleccionado a través de su id de referencia. No edita el de referencia sino la copia que se encuentra en ese inventario. Es decir, si el producto seleccionado también se encuentra en otros inventarios, la edición solo se verá reflejada en el que pertenece. Esta edición no incluye el stock.
 
   *Si el producto seleccionado se encontraba también en otros inventarios, se creará un nuevo producto de referencia, anulando así la conexión de datos compartida entre los productos*.
-- **copyProducts(products: [ProductToCopyInput]!, idTo: ID!, accountId: ID!)**: Boolean
+- **copyProducts(products: [*ProductToCopyInput*]!, idTo: ID!, accountId: ID!)**: Boolean
 
   Copiará todos los productos seleccionados en base a su id de referencia al inventario de destino. También se deberá definir el nuevo stock para cada producto copiado.
   
@@ -568,103 +837,3 @@ Estos son los objetos que se retornarían y se ingresarían respectivamente a la
       refId: ID!
       stock: Int!
     }
-
-## Microservicios
-### Productos
-Api REST con su propia base de datos sql. Se encargará de solicitudes especificas a productos, como edición y eliminación
-
-Tendrá 2 entidades:
-* Productos
-  * Id
-  * Nombre
-  * Marca
-  * Modelo
-  * Descripción
-  * Precio unitario
-  * Categorías (foreign key, many to many)
-* Categoría
-  * Id
-  * Nombre
-
-Tendrá un crud completo para los productos, y también para las categorías.
-
-### Inventarios
-Api con GraphQL también con su propia base de datos sql. Será con graphQL porque es la que se comunica con el cliente, *salvo para cuestiones de autenticación o usuarios, o cosas específicas de los productos*. Por lo que permitiría devolver solo los datos solicitados y no realizar ni over-fetching ni under-fetching.
-
-Entidades y DTOs
-* Inventario
-  * Id
-  * Cuenta asociada (Id de Cuenta, UUID - *MS usuarios*)
-  * Lista de AssociatedUsers (One to many)
-  * Lista de ProductsInInventory (Many to many)
-* AssociatedUsers
-  * Id
-  * Id del usuario en *MS usuarios*
-* ProductsInInventory
-  * Id
-  * Id del producto en *MS productos*
-  * Stock
-  * Disponibilidad
-  
-* Producto DTO
-  * ...props del producto en *MS productos*
-    * (Categorías como lista de strings con solo sus nombres)
-  * Stock
-  * Disponibilidad
-
-Tendrá un crud solo para la entidad de inventario y la asignación de productos. Lo que refiere a la relación con cuenta y usuarios no será administrado en este micro servicio.
-
-### Usuarios y cuentas
-API REST con implementación de seguridad para autenticación con permisos y roles usando sesiones de usuario
-
-Entidades
-* Cuenta
-  * id
-  * username
-  * password (encriptada)
-  * Id de AssociatedInventories
-  * Usuarios
-* AssociatedInventories
-  * Id
-  * Id del inventario en *MS Inventarios*
-* Usuario
-  * Id
-  * Nombre completo
-  * password (encriptada)
-  * Nombre del rol
-  * Permisos por inventario (one to many)
-* Permisos para inventario
-  * id
-  * associatedInventories (one to one)
-  * Permisos (string formado de valores de un enum)
-
-## Flujo de interacción entre micro-servicios
-### Relacionado a usuarios
-* ### Creación de cuenta
-  Se llama al **ms de usuarios** y éste crea la cuenta. Por defecto creará también un usuario/sub-usuario con rol de admin
-* ### Creación de usuario/sub-usuario para la cuenta
-  Se llama directamente al **ms de usuarios** al método de asignación a la cuenta
-* ### Asignación de permisos a sub-usuario en un inventario específico
-  LLamando al **ms de usuarios**, pasándole la id del usuario y un dto que incluye la id del inventario a asociar, éste se encargará de crear los permisos según el dto. También llamará al **ms de inventarios** para sumar el usuario a la entidad
-* ### Sesiones
-  Todo lo que tenga que ver con sesiones, ya sea de la cuenta o del sub-usuario, o para obtenerla, iniciarla o cerrarla, se llamará al **ms de usuarios**
-* ### Eliminación de cuenta o de usuarios
-  Desde el **ms de usuarios** se invocarán estos métodos. Si se borra una cuenta, este ms se encargará de eliminar también los inventarios y productos asociados a esta llamando a los correspondientes **micro-servicios**. En cambio se se borra un usuario se llamará al **ms de inventarios** para quitar ese usuario de los inventarios asociados a él
-### Relacionado a inventarios y productos
-* ### Creación de inventario y asignación a cuenta
-  Se llama al **ms de inventario** con el body del inventario a crear (nombre del mismo) y el id de la cuenta a asociar, la que está en sesión.
-  
-  Éste llamará al método de asignación de inventario en el **ms de usuarios**. El cuál retornará el DTO de la cuenta, de allí se extraerá la info de usuarios para asignarlos a la nueva entidad de Inventario
-* ### Creación de productos nuevos en inventario
-  Llamando al **ms de inventarios** se le pasa los datos del producto a agregar, la id del inventario y de la cuenta en sesión. El cuál asignará el producto al inventario asignado **revisando *antes*, a través de sus props, que este no haya sido registrado previamente en éste**. Y en caso de que no se haya registrado previamente llamará al **ms de productos** para hacer el registro en su respectiva BdD
-* ### Asignación de productos ya creados y asignados en otro inventario
-  En el **ms de inventarios** habrá un método al que se le pasa una lista de ProductoDTO y dos id de inventario. Una referenciando al inventario de donde se extraen los productos, y la otra al inventario en donde se asignarán. El ms se encargará de crear las entidades y relaciones necesarias.
-* ### Edición de productos
-  Se llama directamente al **ms de productos** pasando un dto del producto a editar
-* ### Eliminación de inventario
-  Cuando se elimina un inventario desde el **ms de inventarios**, se busca también aquellos productos que no están asociados a ningún otro de la misma cuenta. Posteriormente se llama al endpoint del **ms de productos** que se encarga de borrar varios elementos dadas ciertas ids. La búsqueda se hace a través de las referencias de id en el **ms de inventarios**
-  
-## Notas para versiones futuras
-- Usar una apiGateway para exponer ciertos endpoints de cada micro-servicio según corresponda
-- Usar JWT para la autenticación, autorización y comunicación entre micro-servicios
-- Ver la posibilidad de usar base de datos no sql para micro-servicios de inventarios y productos
