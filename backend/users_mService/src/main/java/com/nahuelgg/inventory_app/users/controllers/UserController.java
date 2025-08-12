@@ -48,13 +48,23 @@ public class UserController {
     );
   }
 
-  @PatchMapping("/add-perms")
+  @PatchMapping("/permissions")
   @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
-  public ResponseEntity<ResponseDTO> assignNewPerms(@RequestBody PermissionsForInventoryDTO perm, @RequestParam String id, @RequestParam String accountId)
+  public ResponseEntity<ResponseDTO> managePermissions(@RequestBody PermissionsForInventoryDTO perm, @RequestParam String userId, @RequestParam String accountId)
   throws JsonProcessingException {
     return new ResponseEntity<>(
-      new ResponseDTO(200, null, service.assignNewPerms(perm, UUID.fromString(id), UUID.fromString(accountId))),
+      new ResponseDTO(200, null, service.managePerms(perm, UUID.fromString(userId), UUID.fromString(accountId))),
       HttpStatus.OK
+    );
+  }
+
+  @PatchMapping("/permissions/delete")
+  @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
+  public ResponseEntity<ResponseDTO> deletePermission(@RequestParam String invRefId, @RequestParam String userId, @RequestParam String accountId) {
+    service.deletePerm(UUID.fromString(invRefId), UUID.fromString(userId));
+
+    return new ResponseEntity<>(
+      HttpStatus.NO_CONTENT
     );
   }
 

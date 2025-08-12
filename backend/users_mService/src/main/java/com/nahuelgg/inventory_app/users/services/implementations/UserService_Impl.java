@@ -3,6 +3,7 @@ package com.nahuelgg.inventory_app.users.services.implementations;
 import static com.nahuelgg.inventory_app.users.utilities.Validations.checkFieldsHasContent;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -69,11 +70,15 @@ public class UserService_Impl implements UserService {
   }
 
   @Override @Transactional
-  public UserDTO assignNewPerms(PermissionsForInventoryDTO permission, UUID userId, UUID accountId) throws JsonProcessingException {
-    checkFieldsHasContent(new Field("permiso", permission), new Field("id de usuario", userId), new Field("id de la cuenta", accountId));
+  public UserDTO managePerms(PermissionsForInventoryDTO input, UUID userId, UUID accountId) throws JsonProcessingException {
     checkFieldsHasContent(
-      new Field("lista de permisos", permission.getPermissions()), 
-      new Field("id inventario asociado", permission.getIdOfInventoryReferenced())
+      new Field("permiso", input),
+      new Field("id de usuario", userId),
+      new Field("id de la cuenta", accountId)
+    );
+    checkFieldsHasContent(
+      new Field("lista de permisos", input.getPermissions()), 
+      new Field("id inventario asociado", input.getIdOfInventoryReferenced())
     );
 
     UserEntity user = repository.findById(userId).orElseThrow(
@@ -81,14 +86,43 @@ public class UserService_Impl implements UserService {
     );
 
     List<PermissionsForInventoryEntity> perms = user.getInventoryPerms();
-    PermissionsForInventoryEntity newPerm = permsRepository.save(dtoMappers.mapPerms(permission));
-    perms.add(newPerm);
-    user.setInventoryPerms(perms);
+    PermissionsForInventoryEntity mappedInput = dtoMappers.mapPerms(input);
+    Optional<PermissionsForInventoryEntity> previousPerm = perms.stream().filter(
+      permEntity -> permEntity.getInventoryReference().toString().equals(input.getIdOfInventoryReferenced())
+    ).findFirst();
 
-    return entityMappers.mapUser(repository.save(user));
+    if (previousPerm.isPresent()) {
+      previousPerm.get().setPermissions(mappedInput.getPermissions());
+      PermissionsForInventoryEntity permSaved = permsRepository.save(previousPerm.get());
+
+      // remueve el permiso que se trajo de la base de datos anteriormente y lo vuelve a agregar pero con los cambios
+      perms.removeIf(
+        permEntity -> permEntity.getInventoryReference().equals(permSaved.getInventoryReference())
+      );
+      perms.add(permSaved);
+    } else {
+      perms.add(permsRepository.save(mappedInput));
+    }
+    
+    // setea la nueva lista de permisos según los cambios realizados. Esto para incluirlo en el dto de retorno 
+    // sin tener que hacer otro llamado a la base de datos.
+    user.setInventoryPerms(perms);
+  
+    return entityMappers.mapUser(user);
   }
 
-  // TODO: agregar para eliminar y editar permisos
+  @Override
+  public void deletePerm(UUID inventoryRef, UUID userId) {
+    checkFieldsHasContent(new Field("id de inventario", inventoryRef), new Field("id del sub-usuario", userId));
+
+    PermissionsForInventoryEntity permToDelete = permsRepository.findByInventoryReferenceIdAndUserId(inventoryRef, userId).orElseThrow(
+      () -> new ResourceNotFoundException("permiso", "id de inventario o id de usuario", "invId: %s, userId: %s".formatted(
+        inventoryRef.toString(), userId.toString()
+      ))
+    );
+
+    permsRepository.delete(permToDelete);
+  }
 
   @Override @Transactional
   public void delete(UUID id, UUID accountId) {
