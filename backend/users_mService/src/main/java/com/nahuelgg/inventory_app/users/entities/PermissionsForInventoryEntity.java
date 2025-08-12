@@ -24,6 +24,6 @@ public class PermissionsForInventoryEntity {
   @Column(nullable = false)
   private String permissions;
   
-  @ManyToOne @JoinColumn(nullable = false) // TODO: cambiar a elementCOllection
+  @ManyToOne @JoinColumn(nullable = false)
   private InventoryRefEntity inventoryReference;
 }

@@ -32,5 +32,3 @@ public class AccountEntity {
   @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, mappedBy = "associatedAccount")
   private List<UserEntity> users;
 }
-// TODO: cambiar inventories a ElementCollection, validar cuando se agregan permisos que la id pasada a ese permiso esté dentro de 
-// las Ids que se encuentran en la cuenta

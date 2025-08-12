@@ -13,4 +13,3 @@ public interface UserService {
   void deletePerm(UUID inventoryRef, UUID userId);
   void delete(UUID id, UUID accountId);
 }
-// TODO: ver cómo hacer que los users solo puedan editar productos con ciertas categorías?
