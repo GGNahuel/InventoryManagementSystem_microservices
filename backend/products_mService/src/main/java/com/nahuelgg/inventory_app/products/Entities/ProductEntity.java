@@ -26,7 +26,7 @@ public class ProductEntity {
   private String model;
   private String description;
   private Double unitPrice;
-  @ElementCollection(fetch = FetchType.EAGER)
+  @ElementCollection(fetch = FetchType.EAGER) // TODO: cambiarlo a string y formatearlo con comas, como es con los permisos en usuarios
   private List<String> categories;
   @Column(nullable = false)
   private UUID accountId;

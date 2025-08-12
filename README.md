@@ -182,24 +182,23 @@ En su base de datos se encuentran las siguientes entidades:
 * username
 * password
 * lista users (Relación 1 a muchos con UserEntity)
-* lista inventoryReferences (Colección de elementos InventoryRefElement manejada por JPA)
+* lista inventoryReferences (Relación 1 a muchos con InventoryRefEntity)
 
 **UserEntity**: Representa a los sub-usuarios. También guarda datos relacionados a su autenticación y los permisos que éste posee para cada inventario.
 * id
 * name
 * role (El rol es descriptivo, no influye en las autorizaciones de la aplicación)
 * isAdmin (Este booleano se usa para armar el token y dar prioridad a este atributo en lugar de a los permisos cuando se hace la autorización a algún método u operación)
-* associatedAccount (Relación Muchos a 1 con AccountEntity)
+* associatedAccount (Relación muchos a 1 con AccountEntity)
 * lista inventoryPerms (Relación 1 a muchos con PermissionsForInventoryEntity)
 
 **PermissionsForInventoryEntity**: Entidades que representan los permisos que un usuario tendría para un inventario en específico.
 * id
 * permissions (Cadena de texto formateada en base a una lista de permisos)
-* inventoryReference (Colección de elementos InventoryRefElement manejada por JPA)
+* inventoryReference (relación muchos a 1 con InventoryRefEntity)
 
-**InventoryRefElement**: Objeto que guarda la id que pertenece al inventario en su respectiva base de datos y microservicio. No es una entidad ya que, aunque sí tiene relaciones con entidades, no tiene la necesidad, al menos por el momento, de tener su propia lógica de negocio dentro de este microservicio ni de tener consultas personalizadas. Por el momento es suficiente con sumar o filtrar las ids de referencia en la cuenta y validar que esa id esté presente en la cuenta a la hora de agregar un permiso.
-
-Es un objeto y no una id únicamente, o lista de ellas, debido a que en un futuro éste podría agregar nuevos atributos cómo fecha de agregado u otras según se requiera.
+**InventoryRefEntity**: Entidad que guarda la id que referencia al inventario en su respectiva base de datos y servicio. Se usa como entidad y no como elemento ya que son varias las entidades que usarían las ids.
+* id
 * referenceId
 
 #### Microservicio de Inventarios
@@ -235,7 +234,7 @@ Su base de datos consta de una sola entidad.
 * model
 * description
 * unitPrice
-* categories
+* categories (Se guardará como una cadena de texto, separada cada categoría con ", ", pero en el mapeo a DTO se retornará como lista)
 * accountId (Id de referencia a la cuenta a la que pertenece este producto)
 
 </br>
@@ -594,10 +593,17 @@ Tanto el servicio de usuarios como el de productos devuelven el mismo tipo de fo
   - **Retorno esperado**: Status code 200. Objeto *DTO_subUsuario* dentro del data de *DTO_respuestasGenerales*.
   - **Permisos**: Se requiere el sub-usuario admin.
 
-- **/user/add-perm** Operación para agregar nuevos permisos a un sub-usuario ya existente.
+- **/user/permissions** Operación para agregar o editar permisos asociados a un sub-usuario ya existente. El microservicio detectará según la id del inventario si debe crear o editar.
   - **Método HTTP**: PATCH
-  - **Requerido**: Además del *DTO_permisosPorInventario* como cuerpo de la solicitud, se debe enviar como parámetros de url tanto la id del sub-usuario, como *id*, y la de la cuenta a la que pertenece, como *accountId*.
+  - **Requerido**: Además del *DTO_permisosPorInventario* como cuerpo de la solicitud, se debe enviar como parámetros de url tanto la id del sub-usuario, como *userId*, y la de la cuenta a la que pertenece, como *accountId*.
+    - La lista de permisos que se mandan en el cuerpo del DTO debe incluir los que ya tenía, en caso de que se quiera editar y volver a incluirlos. Ya que se sobrescribirá la lista con la que se ingrese.
   - **Retorno esperado**: Status code 200. Objeto *DTO_subUsuario* dentro del data de *DTO_respuestasGenerales*.
+  - **Permisos**: Se requiere el sub-usuario admin.
+
+- **/user/permissions/delete** Permite borrar los permisos de un sub-usuario asociados a un inventario.
+  - **Método HTTP**: PATCH
+  - **Requerido**: Se necesita la id del inventario como *invRefId* y la del sub-usuario como *userId*. Ademas de la de la cuenta, *accountId* para la validación.
+  - **Retorno esperado**: Status code 204.
   - **Permisos**: Se requiere el sub-usuario admin.
   
 - **/user/delete** Borra un usuario en base a su id. También internamente se borra la relación con los inventarios a los que estaba asociado.
