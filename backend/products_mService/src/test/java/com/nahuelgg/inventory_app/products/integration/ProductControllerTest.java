@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -101,7 +100,7 @@ public class ProductControllerTest {
       .name("Ventilador de techo")
       .brand("marca 1")
       .model("ABC-123")
-      .categories(List.of("electrodomésticos"))
+      .categories("electrodomésticos")
       .accountId(accId)
       .unitPrice(0.0)
     .build());
@@ -109,7 +108,7 @@ public class ProductControllerTest {
       .name("Ventilador")
       .brand("marca 2")
       .model("45AB123")
-      .categories(List.of("electrodomésticos"))
+      .categories("electrodomésticos")
       .accountId(accId)
       .unitPrice(0.0)
     .build());
@@ -117,7 +116,7 @@ public class ProductControllerTest {
       .name("Estufa")
       .brand("marca 1")
       .model("DEF-123")
-      .categories(List.of("electrodomésticos"))
+      .categories("electrodomésticos")
       .accountId(accId)
       .unitPrice(0.0)
     .build());
@@ -389,13 +388,13 @@ public class ProductControllerTest {
       .name("product1")
       .accountId(accId)
       .unitPrice(10.0)
-      .categories(new ArrayList<>())
+      .categories("")
     .build());
     ProductEntity pr2 = productRepository.save(ProductEntity.builder()
       .name("product2")
       .accountId(UUID.randomUUID())
       .unitPrice(8.0)
-      .categories(new ArrayList<>())
+      .categories("")
     .build());
 
     String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());

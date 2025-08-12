@@ -1,6 +1,6 @@
 package com.nahuelgg.inventory_app.users.utilities;
 
-import java.util.Arrays;
+import java.util.List;
 
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
@@ -14,7 +14,7 @@ public class EntityMappers {
   
   public PermissionsForInventoryDTO mapPerms(PermissionsForInventoryEntity e) {
     return PermissionsForInventoryDTO.builder()
-      .permissions(Arrays.asList((e.getPermissions().split(","))).stream().map(
+      .permissions(List.of((e.getPermissions().split(","))).stream().map(
         permString -> Permissions.valueOf(permString)
       ).toList())
       .idOfInventoryReferenced(e.getInventoryReference().getInventoryIdReference().toString())

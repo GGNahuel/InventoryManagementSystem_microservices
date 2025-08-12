@@ -45,7 +45,7 @@ public class ProductServiceTest {
       .name("Ventilador")
       .brand("Marca 1")
       .unitPrice(80.0)
-      .categories(List.of("cat1"))
+      .categories("cat1")
       .accountId(acc1ID)
     .build();
     pr2 = ProductEntity.builder()
@@ -53,7 +53,7 @@ public class ProductServiceTest {
       .name("Ventilador de techo")
       .brand("Marca 2")
       .unitPrice(115.0)
-      .categories(List.of("cat1"))
+      .categories("cat1")
       .accountId(acc1ID)
     .build();
     pr3 = ProductEntity.builder()
@@ -61,7 +61,7 @@ public class ProductServiceTest {
       .name("Abrigo")
       .brand("Marca 3")
       .unitPrice(25.0)
-      .categories(List.of("cat2"))
+      .categories("cat2")
       .accountId(acc2ID)
     .build();
 

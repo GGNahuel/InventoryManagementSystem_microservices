@@ -234,7 +234,7 @@ Su base de datos consta de una sola entidad.
 * model
 * description
 * unitPrice
-* categories (Se guardará como una cadena de texto, separada cada categoría con ", ", pero en el mapeo a DTO se retornará como lista)
+* categories (Se guardará como una cadena de texto, separada cada categoría con ",", pero en el mapeo a DTO se retornará como lista)
 * accountId (Id de referencia a la cuenta a la que pertenece este producto)
 
 </br>
