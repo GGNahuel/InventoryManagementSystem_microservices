@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.AccountFromUsersMSDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ProductFromProductsMSDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ResponseDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.EditProductInputDTO;
@@ -58,7 +56,7 @@ public class InventoryService_Impl implements InventoryService {
       HttpEntity<Object> entity = optionalBody != null ? new HttpEntity<Object>(optionalBody, setTokenToOtherServicesRequests()) : new HttpEntity<>(setTokenToOtherServicesRequests());
 
       response = restTemplate.exchange(url, method, entity, ResponseDTO.class);
-      if (response.getStatusCode() != HttpStatusCode.valueOf(200) && response.getStatusCode() != HttpStatusCode.valueOf(201))
+      if (!response.getStatusCode().is2xxSuccessful())
         throw new RuntimeException(response.getBody().getError().toString());
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -78,8 +76,26 @@ public class InventoryService_Impl implements InventoryService {
     .toUriString();
 
     ResponseDTO responseDto = makeRestRequest(completeUrl, HttpMethod.GET, null);
+    List<ProductFromProductsMSDTO> responseList = (List<ProductFromProductsMSDTO>) responseDto.getData();
 
-    return (List<ProductFromProductsMSDTO>) responseDto.getData();
+    sincroniceProductsBetweenServices(productsId, responseList.stream().map(ProductFromProductsMSDTO::getId).toList());
+
+    return responseList;
+  }
+
+  // al buscar por ids en el microservicio de productos, si llega una id que no corresponde a ningún producto guardado no se devuelve nada para esa entidad,
+  // lo que significa que probablemente el producto haya sido eliminado directamente desde ese microservicio. Por lo que el servicio de inventario tendría
+  // eliminar también los productos con esa referencia.
+  private void sincroniceProductsBetweenServices(List<String> referenceIdsInInv, List<String> referenceIdsObtained) {
+    List<String> idsOfProductInInvToDelete = referenceIdsInInv.stream().filter(
+      refIdInInv -> !referenceIdsObtained.contains(refIdInInv)
+    ).toList();
+
+    for (String refId : idsOfProductInInvToDelete) {
+      List<ProductInInvEntity> productsToDelete = productInvRepository.findByReferenceId(UUID.fromString(refId));
+
+      productInvRepository.deleteAll(productsToDelete);
+    }
   }
 
   @Override @Transactional(readOnly = true)
@@ -92,10 +108,6 @@ public class InventoryService_Impl implements InventoryService {
     return mappers.mapInvEntity(inv, productsFromMS);
   }
 
-  // TODO: al obtener datos de los productos, revisar en el servicio de ellos que los productos existan sin arrojar error
-  // ya que pudieron haber sido eliminadas mediante el permiso deleteProductReferences
-  // siendo ese el caso éste servicio debería eliminar las productInInv entities que estén relacionadas
-  // por ejemplo se podría envíar un valor especial
   @Override @Transactional(readOnly = true)
   public List<InventoryDTO> getByAccount(UUID accountId) {
     return repository.findByAccountId(accountId).stream().map(
@@ -141,7 +153,6 @@ public class InventoryService_Impl implements InventoryService {
   // mutations
   @Override @Transactional
   public InventoryDTO create(String name, UUID accountId) {
-    //TODO: extraer accId del contexto de seguridad
     if (repository.existsByNameAndAccountId(name, accountId))
       throw new RuntimeException("Ya existe un inventario con ese nombre en la cuenta");
 
@@ -152,10 +163,10 @@ public class InventoryService_Impl implements InventoryService {
       .queryParam("accountId", accountId.toString())
       .queryParam("invId", inv.getId().toString())
     .toUriString();
-    AccountFromUsersMSDTO account = (AccountFromUsersMSDTO) makeRestRequest(completeUrl, HttpMethod.PATCH, null).getData();
+    makeRestRequest(completeUrl, HttpMethod.PATCH, null);
 
     // cambiar esto
-    inv.setAccountId(UUID.fromString(account.getId()));
+    inv.setAccountId(accountId);
 
     return mappers.mapInvEntity(repository.save(inv), List.of());
   }
@@ -172,7 +183,6 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public ProductInInvDTO addProduct(ProductInputDTO productInput, UUID invId, UUID accountId) {
-    // TODO: (optional) agregar validación de si ese producto ya está creado y agregado al inventario, necesitaría un cambio en la DB de products?
     InventoryEntity inv = repository.findById(invId).orElseThrow(
       () -> new RuntimeException("Inv not found")
     );
@@ -223,8 +233,6 @@ public class InventoryService_Impl implements InventoryService {
     
     return mappers.mapProductsFromMSToDTO(editedProduct, productToEdit);
   }
-
-  //TODO: chequear si en los llamados internos se pasan todos los parametros, incluidos el accId
 
   @Override @Transactional
   public boolean copyProducts(List<ProductToCopyDTO> products, UUID idTo) {

@@ -18,6 +18,8 @@ public interface ProductInInvRepository extends JpaRepository<ProductInInvEntity
 
   List<ProductInInvEntity> findByInventory(InventoryEntity inventory);
 
+  List<ProductInInvEntity> findByReferenceId(UUID referenceId);
+
   // esta query buscará las ref ids de los productos que estén solamente en el inventario enviado
   // Primero selecciona las entidades que estén asociadas a un solo inventario, luego se fijará si esas entidades seleccionadas se encuentran
   @Query("""
