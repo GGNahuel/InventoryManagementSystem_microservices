@@ -15,32 +15,35 @@ Trabaja con base de datos y seguridad a traves de autenticaciones y autorizacion
 - [Autenticación y autorización](#autenticación-y-autorización)
 
 ### Funcionalidades generales
-* En primera instancia los usuarios pueden registrar una cuenta y posteriormente iniciar sesión en la aplicación.
+* Los usuarios pueden registrar una cuenta e iniciar sesión en la API.
 
-* Al registrarla se pide, además de los datos de ingreso de la cuenta, los datos que se usarían para el inicio de sesión del sub-usuario admin.
+* Durante el registro, también se configuran los datos del sub-usuario administrador principal.
 
-* Los usuarios pueden crear en su cuenta distintos inventarios y llenar cada uno con productos según lo desee.
+* Cada cuenta puede tener múltiples inventarios, que pueden ser creados, editados y eliminados por el sub-usuario administrador.
 
-* Las cuentas pueden tener sub-usuarios con roles y permisos que servirán para sus inventarios. Ejemplo: admin, general, jefe de x categoría, etc.
-  * Por defecto ya viene el sub-usuario de admin creado.
+* Las cuentas permiten la creación de sub-usuarios con nombre de usuario, contraseña y permisos específicos.
+  * Por defecto, se crea un sub-usuario administrador al momento del registro.
+
+* Los sub-usuarios pueden tener distintos roles como "admin", "general", "jefe de categoría", etc.
+
+* Los permisos de cada sub-usuario se asignan por inventario, lo que permite:
+  * Diferentes permisos en cada inventarios.
+  * Mayor control de acceso y acciones por inventario.
   
-* Cada sub-usuario tiene su propio nombre de usuario y contraseña, usados para iniciar sesión en ellos. 
+* El sub-usuario administrador puede:
+  * Gestionar inventarios (crear, eliminar, renombrar).
+  * Crear y configurar sub-usuarios.
+  * Realizar cualquier acción permitida a los sub-usuarios.
 
-* Si solo se inicia sesión de usuario, pero no de sub-usuario, solo se podrán ver los inventarios y su contenido.
+* La sesión puede iniciarse tanto únicamente con la cuenta principal (para visualizar inventarios) como también con un sub-usuario (para operar según sus permisos).
+  * Antes de iniciarla como sub-usuario se debe iniciarla como cuenta.
 
-* El sub-usuario admin es el encargado de crear, nombrar y eliminar estos inventarios si lo desea.
+* Los productos pueden:
+  * Agregarse, editarse, eliminarse.
+  * Buscarse por atributos como nombre, marca, stock, categoría o disponibilidad.
+  * Copiarse entre inventarios, conservando sus atributos generales y permitiendo redefinir atributos específicos como stock y disponibilidad.
 
-* También este admin es quien crea los sub-usuarios asignándoles sus atributos. Como el nombre, la contraseña, y los permisos para cada inventario.
-
-* Finalmente, como admin, también puede hacer todo lo que un sub-usuario podría hacer a través de sus permisos: agregar productos, editarlos, eliminarlos y editar los inventarios.
-
-* Los permisos de cada sub-usuario se asignan por inventario, lo que significa que un sub-usuario puede tener ciertos permisos para uno pero no tenerlos para otro, o tener distintos.
-
-* Los productos registrados en un inventario pueden ser copiados, con sus propiedades, a otro dentro de la misma cuenta. En el inventario al que se copian los productos se debe asignar para cada uno de ellos atributos que corresponden solo a ese inventario, como por ejemplo el stock y disponibilidad.
-
-* Los productos pueden buscarse según sus atributos, como el nombre, marca, stock, categoría y/o disponibilidad.
-
-* El cliente se comunicará con la API Gateway, la cual redirigirá la solicitud al servicio que corresponda.
+* Toda interacción del cliente se realiza a través del API Gateway, que enruta la solicitud al servicio correspondiente.
 
 ## Fundamentación del diseño y arquitectura de software
 Como se mencionó antes, la idea de este proyecto es brindar una solución del lado del servidor segura y eficaz que permita a usuarios, o grupo de personas, trabajar con inventarios de una forma práctica. Pensada principalmente para negocios u organizaciones. En donde es probable que sean varias personas las que accedan a estos inventarios, pero en donde no todas ellas podrían realizar las mismas acciones sobre los datos que alojan.
@@ -83,7 +86,8 @@ Como se mencionó es probable que en un negocio, o empresa, no se desee que cual
 Además también es probable que, según las necesidades del usuario, se requiera que el mismo producto esté en distintos inventarios diferenciándose únicamente por características relacionadas a los mismos. Como cantidad en stock, disponibilidad, y más atributos que podrían estar a futuro. Pensando en esto se dividieron los datos de los productos en dos entidades: Productos en inventario y Productos de referencia.
 
 **Representación gráfica del modelo:**
-![alt text](docs/resources/image.png)
+<div style="display: flex; justify-content: center">
+<img src="docs/resources/image.png" style="max-width: 720px; width: 100%;" alt="Gráfico que muestra cómo las entidades se relacionan entre sí y los atributos que estas tendrían descritos de forma general"/></div>
 
 ### Productos
 * #### Productos de referencia
@@ -837,3 +841,18 @@ Estos son los objetos que se retornarían y se ingresarían respectivamente a la
       refId: ID!
       stock: Int!
     }
+
+## Testing y prueba del sistema
+Para ejecutar las pruebas que se encuentran en los servicios deberá ejecutar el siguiente comando desde la ubicación del servicio.
+```bash
+mvn test
+```
+Este ejecutará tanto las pruebas unitarias como las de integración del servicio. 
+
+*Importante*: para poder ejecutar este comando es necesario que tenga el jdk y maven instalado de forma local. Como alternativa con tener jdk únicamente, y solo para los 3 servicios principales, productos, inventarios, y usuarios, se puede ejecutar lo siguiente: 
+```bash
+./mvnw test
+```
+Lo que implica que usaría el wrapper de maven, lo que ya incluye configuración y scripts para ejecutarlo sin necesidad de tenerlo localmente.
+
+### Prueba con Postman
