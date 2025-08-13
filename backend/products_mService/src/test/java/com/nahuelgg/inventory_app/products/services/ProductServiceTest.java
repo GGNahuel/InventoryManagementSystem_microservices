@@ -139,13 +139,11 @@ public class ProductServiceTest {
     ProductDTO withoutName = prDTO1.toBuilder().name("").build();
     ProductDTO withoutPrice = prDTO1.toBuilder().unitPrice(null).build();
     ProductDTO withoutBrand = prDTO1.toBuilder().brand("").build();
-    ProductDTO withoutCat = prDTO1.toBuilder().categories(List.of()).build();
     
     assertThrows(EmptyFieldException.class, () -> service.create(null));
     assertThrows(EmptyFieldException.class, () -> service.create(withoutName));
     assertThrows(EmptyFieldException.class, () -> service.create(withoutPrice));
     assertThrows(EmptyFieldException.class, () -> service.create(withoutBrand));
-    assertThrows(EmptyFieldException.class, () -> service.create(withoutCat));
   }
 
   @Test

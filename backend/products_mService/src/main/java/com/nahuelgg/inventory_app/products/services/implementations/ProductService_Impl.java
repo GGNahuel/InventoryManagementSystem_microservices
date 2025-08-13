@@ -30,7 +30,7 @@ public class ProductService_Impl implements ProductService {
   public List<ProductDTO> search(String brand, String name, String model, List<String> categoryNames, UUID accountId) {
     checkFieldsHasContent(new Field("id de cuenta", accountId));
     
-    categoryNames = categoryNames.stream().map(ctgry -> URLDecoder.decode(ctgry, StandardCharsets.UTF_8).toLowerCase()).toList();
+    categoryNames = categoryNames != null ? categoryNames.stream().map(ctgry -> URLDecoder.decode(ctgry, StandardCharsets.UTF_8).toLowerCase()).toList() : List.of();
     
     return repository.search(
       brand == null || brand.isBlank() ? null : brand.toLowerCase(),

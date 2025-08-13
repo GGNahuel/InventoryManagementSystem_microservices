@@ -3,7 +3,7 @@ package com.nahuelgg.inventory_app.products.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
@@ -20,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInventoryDTO;
@@ -52,7 +53,7 @@ public class JwtServiceTest {
     extraClaims.put("userName", "user");
     extraClaims.put("userRole", "role");
     extraClaims.put("isAdmin", false);
-    extraClaims.put("userPerms", List.of(Map.of("idOfInventoryReferenced", "inv123", "permissions", List.of("addProducts"))));
+    extraClaims.put("userPerms", "[{'idOfInventoryReferenced': 'inv123','permissions':['addProducts']}]");
 
     token = Jwts.builder()
       .setClaims(extraClaims)
@@ -81,7 +82,7 @@ public class JwtServiceTest {
       .permissions(List.of(Permissions.addProducts))
     .build();
 
-    when(objectMapper.convertValue(any(), eq(PermissionsForInventoryDTO.class))).thenReturn(mockPerm);
+    when(objectMapper.readValue(anyString(), any(TypeReference.class))).thenReturn(List.of(mockPerm));
     JwtClaimsDTO result = jwtService.mapTokenClaims(token);
 
     assertEquals("id123", result.getAccountId());

@@ -18,22 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nahuelgg.inventory_app.products.dtos.ProductDTO;
 import com.nahuelgg.inventory_app.products.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.products.services.ProductService;
-import com.nahuelgg.inventory_app.products.utilities.Constants;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(Constants.endpointPrefix + "/product")
+@RequestMapping("/product")
+@RequiredArgsConstructor
 public class ProductController {
   private final ProductService service;
-
-  public ProductController(ProductService service) {
-    this.service = service;
-  }
-
-  // TODO: sacar esto
-  @GetMapping("")
-  public void exceptionTest() {
-    service.getByIds(List.of());
-  }
 
   @GetMapping("/ids")
   public ResponseEntity<ResponseDTO<List<ProductDTO>>> getByIds(@RequestParam List<String> list) {
@@ -110,7 +102,6 @@ public class ProductController {
     ); 
   }
 
-  // TODO: agregar test de los métodos common
   @DeleteMapping("/delete-by-ids/common-perm")
   @PreAuthorize("@authorizationService.checkUserHasPerm('deleteProducts', #invId) && @authorizationService.checkActionIsToLoggedAccount(#accountId)")
   public ResponseEntity<ResponseDTO<String>> deleteInternal(@RequestParam List<String> ids, @RequestParam String invId, @RequestParam String accountId) {

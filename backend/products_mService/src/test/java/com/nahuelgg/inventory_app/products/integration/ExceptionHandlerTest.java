@@ -27,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -71,9 +72,13 @@ public class ExceptionHandlerTest {
   @Test
   void emptyFieldEx() {
     when(service.getByIds(List.of())).thenThrow(EmptyFieldException.class);
-    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      "/product", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
-      new ParameterizedTypeReference<ResponseDTO<String>>() {}
+    String url = UriComponentsBuilder.fromUriString("/product/ids")
+      .queryParam("list", List.of())
+    .toUriString();
+
+    ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
+      url, HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
+      new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(406), response.getStatusCode());
   }
@@ -81,8 +86,12 @@ public class ExceptionHandlerTest {
   @Test
   void resourceNotFound() {
     when(service.getByIds(List.of())).thenThrow(ResourceNotFoundException.class);
+    String url = UriComponentsBuilder.fromUriString("/product/ids")
+      .queryParam("list", List.of())
+    .toUriString();
+
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      "/product", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
+      url, HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(404), response.getStatusCode());
@@ -99,7 +108,7 @@ public class ExceptionHandlerTest {
     HttpEntity<Map<String, Object>> postEntity = new HttpEntity<>(invalidInput, headers);
 
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      "/product?invId=" + invId, HttpMethod.POST, postEntity,
+      "/product?invId=%s&accountId=%s".formatted(invId, accountId), HttpMethod.POST, postEntity,
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
@@ -109,8 +118,12 @@ public class ExceptionHandlerTest {
   @Test
   void paramTypeMismatch() {
     when(service.getByIds(List.of())).thenThrow(MethodArgumentTypeMismatchException.class);
+    String url = UriComponentsBuilder.fromUriString("/product/ids")
+      .queryParam("list", List.of())
+    .toUriString();
+
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      "/product", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
+      url, HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
@@ -127,8 +140,12 @@ public class ExceptionHandlerTest {
 
   @Test
   void accessDenied() {
+    String url = UriComponentsBuilder.fromUriString("/product/ids")
+      .queryParam("list", List.of())
+    .toUriString();
+
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      "/product", HttpMethod.GET, null,
+      url, HttpMethod.GET, null,
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
@@ -137,8 +154,12 @@ public class ExceptionHandlerTest {
   @Test
   void globalException() {
     when(service.getByIds(List.of())).thenThrow(RuntimeException.class);
+    String url = UriComponentsBuilder.fromUriString("/product/ids")
+      .queryParam("list", List.of())
+    .toUriString();
+
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      "/product", HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
+      url, HttpMethod.GET, new HttpEntity<>(generateHeaderWithToken()),
       new ParameterizedTypeReference<ResponseDTO<String>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());

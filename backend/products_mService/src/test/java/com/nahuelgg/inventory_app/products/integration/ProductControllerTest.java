@@ -75,7 +75,7 @@ public class ProductControllerTest {
     String token = tokenGenerator.generateAccountToken(accUsername, accId.toString());
 
     String uri = UriComponentsBuilder.fromUriString("/product/ids")
-      .queryParam("list", List.of(pr1Id, pr2Id).toArray())
+      .queryParam("list", List.of(pr1Id.toString(), pr2Id.toString()).toArray())
     .toUriString();
     ResponseEntity<ResponseDTO<List<ProductDTO>>> response = restTemplate.exchange(
       uri, HttpMethod.GET, 
@@ -123,8 +123,6 @@ public class ProductControllerTest {
     .build());
 
     String token = tokenGenerator.generateAccountToken(accUsername, accId.toString());
-
-    System.out.println(productRepository.findAll());
 
     String uri = UriComponentsBuilder.fromUriString("/product/search")
       .queryParam("name", "Ventilador")
@@ -250,7 +248,7 @@ public class ProductControllerTest {
 
     HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
-      "/product/edit?invId=" + invId + "&accountId=" + accId.toString(), HttpMethod.PUT, request, 
+      "/product/edit?accountId=" + accId.toString(), HttpMethod.PUT, request, 
       new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
@@ -285,7 +283,7 @@ public class ProductControllerTest {
 
     HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
-      "/product/edit?invId=" + invId + "&accountId=" + accId.toString(), HttpMethod.PUT, request, 
+      "/product/edit?accountId=" + accId.toString(), HttpMethod.PUT, request, 
       new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
@@ -301,8 +299,6 @@ public class ProductControllerTest {
 
   @Test
   void update_denied() {
-    UUID anotherInvId = UUID.randomUUID();
-
     ProductDTO input = ProductDTO.builder()
       .id(UUID.randomUUID().toString())
     .build();
@@ -314,7 +310,101 @@ public class ProductControllerTest {
 
     HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
-      "/product/edit?invId=" + anotherInvId.toString() + "&accountId=" + accId.toString(), HttpMethod.PUT, request, 
+      "/product/edit?accountId=" + accId.toString(), HttpMethod.PUT, request, 
+      new ParameterizedTypeReference<ResponseDTO<Object>>() {}
+    );
+    assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
+  }
+
+  @Test
+  @DirtiesContext
+  void updateInternal_successWithRightPerm() {
+    ProductEntity productToEdit = productRepository.save(ProductEntity.builder()
+      .name("product")
+      .accountId(accId)
+      .unitPrice(4.0)
+    .build());
+
+    ProductDTO input = ProductDTO.builder()
+      .id(productToEdit.getId().toString())
+      .name("product")
+      .brand("marca")
+      .unitPrice(5.2)
+      .accountId(accId.toString())
+    .build();
+
+    String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(
+      PermissionsForInventoryDTO.builder()
+        .idOfInventoryReferenced(invId)
+        .permissions(List.of(Permissions.editProducts))
+      .build()
+    ));
+
+    HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
+    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
+      "/product/edit/common-perm?accountId=%s&invId=%s".formatted(accId.toString(), invId), HttpMethod.PUT, request, 
+      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
+    );
+    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+
+    ProductDTO actual = response.getBody().getData();
+    ProductEntity productInDb = productRepository.findById(productToEdit.getId()).orElse(null);
+
+    assertNotNull(productInDb);
+    assertEquals(productToEdit.getId().toString(), actual.getId());
+    assertTrue(productInDb.getBrand().equals("marca"));
+    assertTrue(productInDb.getUnitPrice() == 5.2);
+  }
+
+  @Test
+  @DirtiesContext
+  void updateInternal_successIfAdmin() {
+    ProductEntity productToEdit = productRepository.save(ProductEntity.builder()
+      .name("product")
+      .accountId(accId)
+      .unitPrice(4.0)
+    .build());
+
+    ProductDTO input = ProductDTO.builder()
+      .id(productToEdit.getId().toString())
+      .name("product")
+      .brand("marca")
+      .unitPrice(5.2)
+      .accountId(accId.toString())
+    .build();
+
+    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
+
+    HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
+    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
+      "/product/edit/common-perm?accountId=%s&invId=%s".formatted(accId.toString(), invId), HttpMethod.PUT, request, 
+      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
+    );
+    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+
+    ProductDTO actual = response.getBody().getData();
+    ProductEntity productInDb = productRepository.findById(productToEdit.getId()).orElse(null);
+
+    assertNotNull(productInDb);
+    assertEquals(productToEdit.getId().toString(), actual.getId());
+    assertTrue(productInDb.getBrand().equals("marca"));
+    assertTrue(productInDb.getUnitPrice() == 5.2);
+  }
+
+  @Test
+  void updateInternal_deniedIfWrongPerm() {
+    ProductDTO input = ProductDTO.builder()
+      .id(UUID.randomUUID().toString())
+    .build();
+
+    String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(PermissionsForInventoryDTO.builder()
+      .idOfInventoryReferenced(invId)
+      .permissions(List.of(Permissions.editProductReferences))
+    .build()));
+
+    HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
+    ResponseEntity<ResponseDTO<Object>> response = restTemplate.exchange(
+      "/product/edit/common-perm?accountId=%s&invId=%s".formatted(accId.toString(), invId), HttpMethod.PUT, request, 
       new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
@@ -334,7 +424,7 @@ public class ProductControllerTest {
       .permissions(List.of(Permissions.deleteProductReferences))
     .build()));
 
-    String uri = "/product/delete?id=" + productToDelete.getId().toString() + "&invId=" + invId + "&accountId=" + accId.toString();
+    String uri = "/product/delete?id=" + productToDelete.getId().toString() + "&accountId=" + accId.toString();
     HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, request, 
@@ -369,10 +459,14 @@ public class ProductControllerTest {
 
   @Test
   void delete_denied() {
-    String anotherInvId = UUID.randomUUID().toString();
-    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
+    String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(
+      PermissionsForInventoryDTO.builder()
+        .idOfInventoryReferenced(invId)
+        .permissions(List.of(Permissions.deleteProducts))
+      .build()
+    ));
 
-    String uri = "/product/delete?id=" + UUID.randomUUID().toString() + "&invId=" + anotherInvId + "&accountId=" + accId.toString();
+    String uri = "/product/delete?id=" + UUID.randomUUID().toString() + "&accountId=" + accId.toString();
     HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
       uri, HttpMethod.DELETE, request,
@@ -498,12 +592,12 @@ public class ProductControllerTest {
       new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
     ResponseEntity<ResponseDTO<Object>> updateResponse = restTemplate.exchange(
-      "/product/edit?invId=" + invId + "&accountId=" + anotherAccId,
+      "/product/edit?accountId=" + anotherAccId,
       HttpMethod.PUT, bodyEntity,
       new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
     ResponseEntity<ResponseDTO<Object>> deleteResponse = restTemplate.exchange(
-      "/product?id=" + UUID.randomUUID().toString() + "&invId=" + invId + "&accountId=" + anotherAccId,
+      "/product/delete?id=" + UUID.randomUUID().toString() + "&accountId=" + anotherAccId,
       HttpMethod.DELETE, generalEntity,
       new ParameterizedTypeReference<ResponseDTO<Object>>() {}
     );
