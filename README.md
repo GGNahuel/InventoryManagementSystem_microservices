@@ -849,16 +849,33 @@ Estos son los objetos que se retornarían y se ingresarían respectivamente a la
     }
 
 ## Testing y prueba del sistema
+Los tests que se encuentran en este proyecto se dividen en 3 categorías:
+1. **Pruebas unitarias**: estas están destinadas a probar únicamente un servicio o componente de spring en especifico, probando los distintos métodos que este tenga. Se emulan la mayoría de dependencias para centrarse específicamente en el elemento que se está testeando. Se prueban de igual forma casos de éxito como los casos de fallo.
+
+2. **Pruebas de integración**: a través de algunas herramientas específicas se hace una solicitud a alguno de los endpoints o queries de los controladores que tenga el microservicio. Esto significa que se prueba todo el servicio, desde que llega al controlador pasando por los filtros de seguridad, llegando a la base de datos, y hasta el retorno al controlador con el resultado de la operación. Los casos de fallo se centran principalmente en las autenticaciones y autorizaciones que cada endpoint, o query graphQL, requiere.
+    * En estas pruebas se busca aislar por servicio su funcionalidad, por lo que la llamadas a otros microservicios estarían emuladas. Pudiendo así centrarse en el microservicio que se está testeando y no depender de que otro se esté ejecutando correctamente. *El flujo real sería probado en las pruebas e2e*.
+    * Los demás casos de errores, por ejemplo los que salen cuando no se encuentra alguna entidad necesaria para alguna operación, son evaluados desde el test del ExceptionHandler de cada servicio. Si bien se fuerzan algunos errores, sirve para verificar los resultados si una excepción se dá en algún método. 
+
+      Si los métodos hacen salir alguna excepción, y cuándo lo hacen, se testean en las pruebas unitarias.
+
+3. **Pruebas End to End (e2e)**: estas se encargan de probar flujos de solicitudes imitando lo más posible al entorno de producción. De forma que se levanta cada servicio junto a su propia base de datos MySQL, se configuran variables de entorno y demás. Ejemplos de lo que hacen estos test:
+    * Realizan un flujo completo de solicitudes que podría ser común en un entorno real.
+ 
+      Ejemplo: registro de cuenta -> login de cuenta -> creación de inventario -> agregado de productos -> obtención de inventario con los productos.
+    * Prueban que la comunicación entre microservicios funcione correctamente. Por ejemplo cuando se agrega un item a un inventario se comprueba que la nueva entidad tenga los datos ingresados y exista en la base de datos del servicio de productos, y que también se encuentre su implementación en la de inventarios.
+    * Verifican flujos CRUD completos. Creación, edición, lectura y borrado de datos.
+
+### Ejecución de tests
 Para ejecutar las pruebas que se encuentran en los servicios deberá ejecutar el siguiente comando desde la ubicación del servicio.
 ```bash
 mvn test
 ```
 Este ejecutará tanto las pruebas unitarias como las de integración del servicio. 
 
-*Importante*: para poder ejecutar este comando es necesario que tenga el jdk y maven instalado de forma local. Como alternativa con tener jdk únicamente, y solo para los 3 servicios principales, productos, inventarios, y usuarios, se puede ejecutar lo siguiente: 
-```bash
-./mvnw test
-```
-Lo que implica que usaría el wrapper de maven, lo que ya incluye configuración y scripts para ejecutarlo sin necesidad de tenerlo localmente.
+> *Importante*: para poder ejecutar este comando es necesario que tenga el jdk y maven instalado de forma local. Como alternativa con tener jdk únicamente, y solo para los 3 servicios principales, productos, inventarios, y usuarios, se puede ejecutar lo siguiente: 
+> ```bash
+> ./mvnw test
+>  ```
+> Lo que implica que usaría el wrapper de maven, lo que ya incluye configuración y scripts para ejecutarlo sin necesidad de tenerlo localmente.
 
 ### Prueba con Postman
