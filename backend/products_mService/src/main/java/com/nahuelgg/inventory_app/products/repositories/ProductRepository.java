@@ -24,7 +24,7 @@ public interface ProductRepository extends JpaRepository<ProductEntity, UUID>{
     "(?4 is null or lower(c) in ?4) and" + 
     "(p.accountId = ?5)"
   )
-  List<ProductEntity> search(String brand, String name, String model, List<String> categoryNames, UUID accountId);
+  List<ProductEntity> search(String brand, String name, String model, List<String> categories, UUID accountId);
 
   List<ProductEntity> findByAccountId(UUID accountId);
 }

@@ -1,6 +1,5 @@
 package com.nahuelgg.inventory_app.products.utilities;
 
-import java.util.List;
 import java.util.UUID;
 
 import com.nahuelgg.inventory_app.products.dtos.ProductDTO;
@@ -15,19 +14,12 @@ public class Mappers {
       .model(p.getModel())
       .description(p.getDescription())
       .unitPrice(p.getUnitPrice())
-      .categories(List.of(p.getCategories().split(",")))
+      .categories(p.getCategories())
       .accountId(p.getAccountId().toString())
     .build();
   }
 
   public ProductEntity mapDTOToEntity(ProductDTO p) {
-    List<String> categories = p.getCategories();
-    String categoriesString = "";
-    for (int i = 0; i < categories.size(); i++) {
-      String category = categories.get(i).toString();
-      categoriesString += i < categories.size() -1 ? category + "," : category;
-    }
-
     return ProductEntity.builder()
       .id(p.getId() != null ? UUID.fromString(p.getId()) : null)
       .name(p.getName())
@@ -35,7 +27,7 @@ public class Mappers {
       .model(p.getModel())
       .description(p.getDescription())
       .unitPrice(p.getUnitPrice())
-      .categories(categoriesString)
+      .categories(p.getCategories())
       .accountId(UUID.fromString(p.getAccountId()))
     .build();
   }

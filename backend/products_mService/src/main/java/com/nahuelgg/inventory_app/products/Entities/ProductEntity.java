@@ -1,9 +1,12 @@
 package com.nahuelgg.inventory_app.products.entities;
 
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -23,8 +26,8 @@ public class ProductEntity {
   private String model;
   private String description;
   private Double unitPrice;
-  // Será un solo string, pero cada categoría estará separada con "," para hacer luego el mapeo en los dto a una lista de strings
-  private String categories;
+  @ElementCollection(fetch = FetchType.EAGER)
+  private List<String> categories;
   @Column(nullable = false)
   private UUID accountId;
 }
