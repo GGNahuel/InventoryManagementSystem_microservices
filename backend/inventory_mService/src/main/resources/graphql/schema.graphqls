@@ -9,7 +9,7 @@ type Query {
     accountId: ID!
   ): [Inventory]
 
-  getAllInventories: [Inventory]
+  getAllInventories: [InvEntity]
   getAllProductsInInv: [ProductInInvEntity]
 }
 
@@ -31,7 +31,6 @@ type Inventory {
   id: ID
   name: String!
   accountId: ID
-  usersIds: [ID]
   products: [ProductInInventory]
 }
 
@@ -50,10 +49,10 @@ type ProductInInventory {
 
 input ProductInput {
   name: String!
-  brand: String!
+  brand: String
   model: String
   description: String
-  unitPrice: Int!
+  unitPrice: Int
   categories: [String]
   stock: Int!
 }
@@ -61,10 +60,10 @@ input ProductInput {
 input EditProductInput {
   refId: ID!
   name: String!
-  brand: String!
+  brand: String
   model: String
   description: String
-  unitPrice: Int!
+  unitPrice: Int
   categories: [String]
 }
 

@@ -806,7 +806,6 @@ Estos son los objetos que se retornarían y se ingresarían respectivamente a la
       id: ID
       name: String!
       accountId: ID
-      usersIds: [ID]
       products: [ProductInInventory]
     }
 

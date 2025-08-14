@@ -47,7 +47,7 @@ public class InventoryController {
   ) {
     if (!authorizationService.checkAccountIsLogged() || !authorizationService.checkActionIsToLoggedAccount(accountId))
       throw new AccessDeniedException("Necesita iniciar sesión para realizar esta acción");
-    return service.searchProductsInInventories(name, brand, model, categories, UUID.fromString(name));
+    return service.searchProductsInInventories(name, brand, model, categories, UUID.fromString(accountId));
   }
 
   // Basic mutations
@@ -94,9 +94,9 @@ public class InventoryController {
 
   @MutationMapping
   public ProductInInvDTO editProductInInventory(@Argument EditProductInputDTO product, @Argument String invId, @Argument String accountId) {
-    if (authorizationService.checkAccountIdAndUserPerm(accountId, Permissions.editProducts, invId))
+    if (!authorizationService.checkAccountIdAndUserPerm(accountId, Permissions.editProducts, invId))
       throw new AccessDeniedException("No tiene permisos para realizar esta acción");
-      
+
     return service.editProductInInventory(product, UUID.fromString(invId), UUID.fromString(accountId));
   }
 

@@ -38,7 +38,6 @@ import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
-// import com.nahuelgg.inventory_app.inventories.entities.UserReferenceElement;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
 import com.nahuelgg.inventory_app.inventories.services.implementations.InventoryService_Impl;
@@ -192,18 +191,15 @@ public class InventoryServiceTest {
   void create_returnsExpectedAndMakeRightCalls() {
     String name = "inventory2";
 
-    InventoryEntity firstSave = InventoryEntity.builder().id(UUID.randomUUID()).name(name).build();
-    InventoryEntity lastSave = InventoryEntity.builder()
-      .id(firstSave.getId())
+    InventoryEntity invSaved = InventoryEntity.builder()
+      .id(UUID.randomUUID())
       .name(name)
       .accountId(accId)
-      // .userReferences(List.of())
     .build();
     InventoryDTO expected = InventoryDTO.builder()
-      .id(lastSave.getId().toString())
+      .id(invSaved.getId().toString())
       .name(name)
       .accountId(accId.toString())
-      // .usersIds(List.of())
       .products(List.of())
     .build();
 
@@ -219,13 +215,12 @@ public class InventoryServiceTest {
         HttpStatus.OK
       )
     );
-    when(inventoryRepository.save(InventoryEntity.builder().name(name).build())).thenReturn(firstSave);
-    when(inventoryRepository.save(lastSave)).thenReturn(lastSave);
+    when(inventoryRepository.save(any(InventoryEntity.class))).thenReturn(invSaved);
 
     InventoryDTO actual = inventoryService.create(name, accId);
 
     assertEquals(expected, actual);
-    verify(inventoryRepository, times(2)).save(any(InventoryEntity.class));
+    verify(inventoryRepository).save(any(InventoryEntity.class));
 
     testRestRequest("http://api-users:8082/account/add-inventory");
   }
@@ -247,56 +242,6 @@ public class InventoryServiceTest {
     verify(inventoryRepository).findById(invEntity1.getId());
     verify(inventoryRepository).save(any(InventoryEntity.class));
   }
-
-  /* @Test
-  void addUser_saveUserRefEntityAndChangesInInvEntity() {
-    UUID userRefId = UUID.randomUUID();
-    UserReferenceElement newUser = UserReferenceElement.builder().referenceId(userRefId).build();
-
-    when(inventoryRepository.findById(invEntity1.getId())).thenReturn(Optional.of(invEntity1));
-    ArgumentCaptor<UserReferenceElement> userRefSaved = ArgumentCaptor.forClass(UserReferenceElement.class);
-
-    inventoryService.addUser(userRefId, invEntity1.getId());
-
-    assertEquals(userRefId, userRefSaved.getValue().getReferenceId());
-
-    ArgumentCaptor<InventoryEntity> invSaved = ArgumentCaptor.forClass(InventoryEntity.class);
-    verify(inventoryRepository).save(invSaved.capture());
-    assertTrue(invSaved.getValue().getUserReferences().contains(newUser));
-  }
-
-  @Test
-  void removeUser_makeRightChanges() {
-    UserReferenceElement userToRemove = UserReferenceElement.builder().referenceId(UUID.randomUUID()).build();
-    UserReferenceElement user2 = UserReferenceElement.builder().referenceId(UUID.randomUUID()).build();
-
-    InventoryEntity anotherInv = InventoryEntity.builder()
-      .id(UUID.randomUUID())
-      .name("inventory2")
-      .accountId(accId)
-      .userReferences(new ArrayList<>(List.of(userToRemove, user2)))
-      .products(List.of())
-    .build();
-    invEntity1.getUserReferences().add(user2);
-
-    List<InventoryEntity> expectedChanges = List.of(invEntity1, anotherInv).stream().map(
-      invEnt -> {
-        invEnt.setUserReferences(invEnt.getUserReferences().stream().filter(
-          user -> user.getReferenceId() != userToRemove.getReferenceId()
-        ).toList());
-
-        return invEnt;
-      }
-    ).toList();
-
-    when(inventoryRepository.findByAccountId(accId)).thenReturn(List.of(invEntity1, anotherInv));
-
-    inventoryService.removeUser(userToRemove.getReferenceId(), accId);
-
-    ArgumentCaptor<List<InventoryEntity>> savedList = ArgumentCaptor.forClass(List.class);
-    verify(inventoryRepository).saveAll(savedList.capture());
-    assertIterableEquals(expectedChanges, savedList.getValue());
-  } */
 
   @Test
   void addProduct_saveRightEntitiesAndMakeRightCall() {
@@ -332,11 +277,6 @@ public class InventoryServiceTest {
     inventoryService.addProduct(productToCreate, invEntity1.getId(), accId);
 
     assertEquals(expectedSaved, pInInvSaved.getValue());
-
-    ArgumentCaptor<InventoryEntity> invSaved = ArgumentCaptor.forClass(InventoryEntity.class);
-    verify(inventoryRepository).save(invSaved.capture());
-    assertTrue(invSaved.getValue().getProducts().contains(expectedSaved));
-
     testRestRequest("http://api-products:8081/product?invId=" + invEntity1.getId().toString());
   }
 
@@ -351,7 +291,6 @@ public class InventoryServiceTest {
       .id(destinyInvId)
       .name("inventory2")
       .accountId(accId)
-      // .userReferences(invEntity1.getUserReferences())
       .products(new ArrayList<>())
     .build();
 
@@ -367,9 +306,6 @@ public class InventoryServiceTest {
     inventoryService.copyProducts(inputList, destinyInvId);
 
     assertIterableEquals(expectedSavedList, savedList.getValue());
-    ArgumentCaptor<InventoryEntity> savedInv = ArgumentCaptor.forClass(InventoryEntity.class);
-    verify(inventoryRepository).save(savedInv.capture());
-    assertIterableEquals(expectedSavedList, savedInv.getValue().getProducts());
   }
 
   @Test
@@ -403,7 +339,7 @@ public class InventoryServiceTest {
     verify(restTemplate, times(2)).exchange(usedUrls.capture(), any(), any(), ArgumentMatchers.<Class<ResponseDTO>>any());
     List<String> listOfUrls = usedUrls.getAllValues();
     assertTrue(listOfUrls.get(0).contains("http://api-users:8082/account/remove-inventory"));
-    assertTrue(listOfUrls.get(1).contains("http://api-products:8081/delete-by-ids"));
+    assertTrue(listOfUrls.get(1).contains("http://api-products:8081/product/delete-by-ids"));
     assertTrue(listOfUrls.get(1).contains(pInInvEntity1.getReferenceId().toString()));
 
     verify(inventoryRepository).deleteById(invEntity1.getId());

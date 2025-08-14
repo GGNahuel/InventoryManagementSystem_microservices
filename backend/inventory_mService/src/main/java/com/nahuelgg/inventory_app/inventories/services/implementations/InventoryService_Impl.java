@@ -165,10 +165,7 @@ public class InventoryService_Impl implements InventoryService {
     .toUriString();
     makeRestRequest(completeUrl, HttpMethod.PATCH, null);
 
-    // cambiar esto
-    inv.setAccountId(accountId);
-
-    return mappers.mapInvEntity(repository.save(inv), List.of());
+    return mappers.mapInvEntity(inv, List.of());
   }
 
   @Override @Transactional
@@ -214,6 +211,8 @@ public class InventoryService_Impl implements InventoryService {
 
     ProductFromProductsMSDTO editedProduct;
 
+    // se fijará si la referencia de ese producto está únicamente en el inventario seleccionado, si es el caso llama al endpoint
+    // que edita el producto de referencia, caso contrario creara uno nuevo
     if (productInvRepository.findReferenceIdsExclusiveToInventory(invId, accountId).contains(productToEdit.getReferenceId())) {
       String baseUrl = "http://api-products:8081/product/edit/common-perm?invId=%s&accountId=%s".formatted(invId.toString(), accountId.toString());
 
@@ -284,6 +283,7 @@ public class InventoryService_Impl implements InventoryService {
       .formatted(productRefIds.stream().filter(pRefId -> !pRefIdsInInventory.contains(pRefId)).toList().toString())
     );
 
+    // Se revisa si las ids de referencia a borrar pertenecen solo al inventario seleccionado, si es el caso se borran esos productos en su BDD
     List<String> refIdsOfExclusiveProducts = productInvRepository.findReferenceIdsExclusiveToInventory(invId, accountId).stream().map(
       uuid -> uuid.toString()
     ).toList();
@@ -296,10 +296,13 @@ public class InventoryService_Impl implements InventoryService {
       makeRestRequest(url, HttpMethod.DELETE, null);
     }
 
+    // Luego selecciona aquellos productos en inventario, en la base de datos de este servicio, que correspondan al inventario seleccionado y 
+    // a las ids de referencia enviadas. Se lo hace a través de filtrado para no consultar nuevamente a la base de datos
     List<ProductInInvEntity> psInInvToDelete = productsInInv.stream().filter(
       pInInv -> productRefIds.contains(pInInv.getReferenceId())
     ).toList();
     productInvRepository.deleteAll(psInInvToDelete);
+
     return true;
   }
 
