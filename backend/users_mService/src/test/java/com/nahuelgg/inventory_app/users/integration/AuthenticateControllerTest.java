@@ -172,7 +172,7 @@ public class AuthenticateControllerTest {
       "/authenticate/logout/user", HttpMethod.POST, 
       new HttpEntity<>(generateHeaderWithToken(authData.getToken())), TokenDTO.class
     );
-    System.out.println(response.toString());
+
     assertEquals(HttpStatusCode.valueOf(403), response.getStatusCode());
   }
 }

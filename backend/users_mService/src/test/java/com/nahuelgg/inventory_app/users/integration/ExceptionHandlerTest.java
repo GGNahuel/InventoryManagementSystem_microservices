@@ -78,7 +78,7 @@ public class ExceptionHandlerTest {
   void emptyFieldEx() {
     when(service.getById(any())).thenThrow(EmptyFieldException.class);
     ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account/id/" + UUID.randomUUID().toString(), HttpMethod.GET, entity, ResponseDTO.class);
-    System.out.println(response.toString());
+
     assertEquals(HttpStatusCode.valueOf(406), response.getStatusCode());
   }
 

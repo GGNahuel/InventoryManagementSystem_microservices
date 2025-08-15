@@ -54,7 +54,6 @@ public class JwtService {
 
   public JwtClaimsDTO mapTokenClaims(String token) throws JsonMappingException, JsonProcessingException {
     Claims claims = getAllClaims(token);
-    System.out.println(claims.get("userPerms").getClass());
     List<PermissionsForInventoryDTO> convertedPerms = objectMapper.readValue(
       claims.get("userPerms", String.class), 
       new TypeReference<List<PermissionsForInventoryDTO>>() {}

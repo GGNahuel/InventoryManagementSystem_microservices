@@ -90,7 +90,7 @@ public class ControllerTest {
   private void checkOperationIsUnauthorized(String query, Map<String, Object> variables) {
     HttpGraphQlTester tester = graphQlTester.mutate().url(url).build();
     Response response = variables == null ? tester.document(query).execute() :  tester.document(query).variables(variables).execute();
-    System.out.println(response.returnResponse().toString());
+
     response.errors().satisfy(errors -> {
       assertFalse(errors.isEmpty());
       assertTrue(errors.size() == 1);
