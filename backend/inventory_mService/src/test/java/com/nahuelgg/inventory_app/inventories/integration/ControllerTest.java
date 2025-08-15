@@ -780,9 +780,6 @@ public class ControllerTest {
     assertFalse(capturer.getValue().contains(ref2.toString()));
     assertTrue(capturer.getValue().contains(ref3.toString()));
   }
-// TODO: agregar en documentación aquellos atributos en entidades que son obligatorias, para los post
-//TODO: test authorizationService
-// TODO: quitar tests de éxito en caso de admin, ya que se teastearía directamente en el servicio de authorizations, chequear lo mismo en otros microservicios
 //TODO: ser consistente con los nombres de los permisos en todos los servicios
   @Test
   @DirtiesContext

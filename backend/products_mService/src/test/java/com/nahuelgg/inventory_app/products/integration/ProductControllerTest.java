@@ -181,34 +181,6 @@ public class ProductControllerTest {
   }
 
   @Test
-  @DirtiesContext
-  void create_successIfAdmin() {
-    ProductDTO input = ProductDTO.builder()
-      .name("Celular")
-      .brand("marca 1")
-      .accountId(accId.toString())
-      .unitPrice(1.0)
-    .build();
-
-    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
-
-    HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
-    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
-      "/product?invId=" + invId + "&accountId=" + accId.toString(), HttpMethod.POST, request, 
-      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
-    );
-    assertEquals(HttpStatusCode.valueOf(201), response.getStatusCode(), "El check de admin ha fallado");
-
-    ResponseDTO<ProductDTO> responseDTO = response.getBody();
-    ProductDTO actual = responseDTO.getData();
-
-    assertNotNull(actual);
-    assertEquals("Celular", actual.getName());
-    assertNotNull(actual.getId());
-    assertTrue(productRepository.findById(UUID.fromString(actual.getId())).isPresent());
-  }
-
-  @Test
   void create_denied() {
     String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced(invId)
@@ -245,41 +217,6 @@ public class ProductControllerTest {
       .idOfInventoryReferenced(invId)
       .permissions(List.of(Permissions.editProductReferences))
     .build()));
-
-    HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
-    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
-      "/product/edit?accountId=" + accId.toString(), HttpMethod.PUT, request, 
-      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
-    );
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-
-    ProductDTO actual = response.getBody().getData();
-    ProductEntity productInDb = productRepository.findById(productToEdit.getId()).orElse(null);
-
-    assertNotNull(productInDb);
-    assertEquals(productToEdit.getId().toString(), actual.getId());
-    assertTrue(productInDb.getBrand().equals("marca"));
-    assertTrue(productInDb.getUnitPrice() == 5.2);
-  }
-
-  @Test
-  @DirtiesContext
-  void update_successIfAdmin() {
-    ProductEntity productToEdit = productRepository.save(ProductEntity.builder()
-      .name("product")
-      .accountId(accId)
-      .unitPrice(4.0)
-    .build());
-
-    ProductDTO input = ProductDTO.builder()
-      .id(productToEdit.getId().toString())
-      .name("product")
-      .brand("marca")
-      .unitPrice(5.2)
-      .accountId(accId.toString())
-    .build();
-
-    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
 
     HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
     ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
@@ -357,41 +294,6 @@ public class ProductControllerTest {
   }
 
   @Test
-  @DirtiesContext
-  void updateInternal_successIfAdmin() {
-    ProductEntity productToEdit = productRepository.save(ProductEntity.builder()
-      .name("product")
-      .accountId(accId)
-      .unitPrice(4.0)
-    .build());
-
-    ProductDTO input = ProductDTO.builder()
-      .id(productToEdit.getId().toString())
-      .name("product")
-      .brand("marca")
-      .unitPrice(5.2)
-      .accountId(accId.toString())
-    .build();
-
-    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
-
-    HttpEntity<ProductDTO> request = new HttpEntity<>(input, generateHeaderWithToken(token));
-    ResponseEntity<ResponseDTO<ProductDTO>> response = restTemplate.exchange(
-      "/product/edit/common-perm?accountId=%s&invId=%s".formatted(accId.toString(), invId), HttpMethod.PUT, request, 
-      new ParameterizedTypeReference<ResponseDTO<ProductDTO>>() {}
-    );
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-
-    ProductDTO actual = response.getBody().getData();
-    ProductEntity productInDb = productRepository.findById(productToEdit.getId()).orElse(null);
-
-    assertNotNull(productInDb);
-    assertEquals(productToEdit.getId().toString(), actual.getId());
-    assertTrue(productInDb.getBrand().equals("marca"));
-    assertTrue(productInDb.getUnitPrice() == 5.2);
-  }
-
-  @Test
   void updateInternal_deniedIfWrongPerm() {
     ProductDTO input = ProductDTO.builder()
       .id(UUID.randomUUID().toString())
@@ -436,29 +338,7 @@ public class ProductControllerTest {
   }
 
   @Test
-  @DirtiesContext
-  void delete_successIfAdmin() {
-    ProductEntity productToDelete = productRepository.save(ProductEntity.builder()
-      .name("product")
-      .accountId(accId)
-      .unitPrice(10.0)
-    .build());
-
-    String token = tokenGenerator.generateAdminToken(accUsername, accId.toString());
-
-    String uri = "/product/delete?id=" + productToDelete.getId().toString() + "&invId=" + invId + "&accountId=" + accId.toString();
-    HttpEntity<String> request = new HttpEntity<>(generateHeaderWithToken(token));
-    ResponseEntity<ResponseDTO<String>> response = restTemplate.exchange(
-      uri, HttpMethod.DELETE, request,
-      new ParameterizedTypeReference<ResponseDTO<String>>() {}
-    );
-    assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
-
-    assertTrue(productRepository.findById(productToDelete.getId()).isEmpty());
-  }
-
-  @Test
-  void delete_denied() {
+  void delete_deniedIfWrongPerm() {
     String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of(
       PermissionsForInventoryDTO.builder()
         .idOfInventoryReferenced(invId)
@@ -478,7 +358,7 @@ public class ProductControllerTest {
 
   @Test
   @DirtiesContext
-  void deleteByAccountId_success() {
+  void deleteByAccountId_successIfAdmin() {
     ProductEntity pr1 = productRepository.save(ProductEntity.builder()
       .name("product1")
       .accountId(accId)
@@ -509,7 +389,7 @@ public class ProductControllerTest {
   }
 
   @Test
-  void deleteByAccountId_denied() {
+  void deleteByAccountId_deniedIfNotAdmin() {
     String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of());
 
     String uri = "/product/delete-by-account?accountId=" + accId.toString();
@@ -525,7 +405,7 @@ public class ProductControllerTest {
 
   @Test
   @DirtiesContext
-  void deleteByIds_success() {
+  void deleteByIds_successIfAdmin() {
     ProductEntity productToDelete1 = productRepository.save(ProductEntity.builder()
       .name("product")
       .accountId(accId)
@@ -555,7 +435,7 @@ public class ProductControllerTest {
   }
 
   @Test
-  void deleteByIds_denied() {
+  void deleteByIds_deniedIfNotAdmin() {
     String token = tokenGenerator.generateUserToken(accUsername, accId.toString(), List.of());
 
     String uri = UriComponentsBuilder.fromUriString("/product/delete-by-ids")
