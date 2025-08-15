@@ -556,7 +556,7 @@ Tanto el servicio de usuarios como el de productos devuelven el mismo tipo de fo
 - **/account/add-user** Registra y asocia un nuevo sub-usuario a la cuenta especificada. 
   - **Método HTTP**: POST
   - **Requerido**:
-    - Como cuerpo de la solicitud:
+    - Como cuerpo de la solicitud, **name, password, y passwordRepeated** son obligatorios:
 
           {
             name: string,
@@ -638,7 +638,7 @@ En el caso de los que son para login se debe incluir el siguiente cuerpo:
 - **/product/edit** Sobre-escribe los detalles del producto en su base de datos. Todos los inventarios que tengan referencia al producto seleccionado verán los cambios afectados en su contenido.
   - **Método HTTP**: PUT
   - **Requerido**:
-    - *Cuerpo de la solicitud* un objeto con el siguiente formato. Se debe incluir incluso los datos que no fueron modificados.
+    - *Cuerpo de la solicitud* un objeto con el siguiente formato. Se debe incluir incluso los datos que no fueron modificados ya que se sobre-escribirán los datos. **El atributo id es obligatorio**
       ```typescript
       interface DTO_producto {
         id: string,
