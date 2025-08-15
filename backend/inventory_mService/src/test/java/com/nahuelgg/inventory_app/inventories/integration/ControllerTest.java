@@ -774,7 +774,7 @@ public class ControllerTest {
     assertFalse(capturer.getValue().contains(ref2.toString()));
     assertTrue(capturer.getValue().contains(ref3.toString()));
   }
-//TODO: ser consistente con los nombres de los permisos en todos los servicios
+
   @Test
   @DirtiesContext
   void deleteProductInInventory_deniedIfWrongPerm() {

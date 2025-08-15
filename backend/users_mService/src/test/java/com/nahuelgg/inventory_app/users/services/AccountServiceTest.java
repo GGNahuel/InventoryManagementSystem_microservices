@@ -306,20 +306,14 @@ public class AccountServiceTest {
     UUID inventoryId = UUID.randomUUID();
 
     InventoryRefEntity savedRef = InventoryRefEntity.builder().id(UUID.randomUUID()).inventoryIdReference(inventoryId).build();
-    AccountDTO expected = accDTO.toBuilder()
-      .inventoryReferenceIds(List.of(inventoryId.toString()))
-    .build();
 
     when(repository.findById(acc.getId())).thenReturn(Optional.of(acc));
     when(invRefRepository.save(any())).thenReturn(savedRef);
-    when(repository.save(any())).thenReturn(acc);
 
-    AccountDTO result = service.assignInventory(acc.getId(), inventoryId);
+    service.assignInventory(acc.getId(), inventoryId);
 
-    assertEquals(expected, result);
     verify(repository).findById(acc.getId());
-    verify(invRefRepository).save(any());
-    verify(repository).save(any());
+    verify(invRefRepository).save(any(InventoryRefEntity.class));
   }
 
   @Test

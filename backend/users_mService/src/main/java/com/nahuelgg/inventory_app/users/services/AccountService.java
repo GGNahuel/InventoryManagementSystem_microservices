@@ -13,7 +13,7 @@ public interface AccountService {
   AccountDTO getById(UUID id);
   AccountDTO create(AccountRegistrationDTO info);
   UserDTO addUser(UUID accountId, UserRegistrationDTO info);
-  AccountDTO assignInventory(UUID accountId, UUID inventoryId);
+  void assignInventory(UUID accountId, UUID inventoryId);
   void removeInventoryAssigned(UUID accountId, UUID inventoryId);
   void delete(UUID id);
 }

@@ -280,7 +280,7 @@ public class AccountControllerTest {
       new HttpEntity<>(generateHeaderWithToken()),
       ResponseDTO.class
     );
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+    assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
 
     Optional<AccountEntity> affectedAccount = accountRepository.findById(loggedAcc.getId());
     assertTrue(affectedAccount.isPresent());
@@ -367,7 +367,7 @@ public class AccountControllerTest {
       new HttpEntity<>(generateHeaderWithToken()),
       ResponseDTO.class
     );
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+    assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
 
     Optional<AccountEntity> affectedAccount = accountRepository.findById(loggedAcc.getId());
     assertTrue(affectedAccount.isPresent());

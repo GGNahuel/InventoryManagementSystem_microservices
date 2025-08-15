@@ -66,20 +66,14 @@ public class AccountController {
   @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
   public ResponseEntity<ResponseDTO> assignInventory(@RequestParam String accountId, @RequestParam String invRefId) {
     service.assignInventory(UUID.fromString(accountId), UUID.fromString(invRefId));
-    return new ResponseEntity<>(
-      new ResponseDTO(200, null, null),
-      HttpStatus.OK
-    );
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @PatchMapping("/remove-inventory")
   @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#accountId)")
   public ResponseEntity<ResponseDTO> removeInventoryAssigned(@RequestParam String accountId, @RequestParam String invRefId) {
     service.removeInventoryAssigned(UUID.fromString(accountId), UUID.fromString(invRefId));
-    return new ResponseEntity<>(
-      new ResponseDTO(200, null, null),
-      HttpStatus.OK
-    );
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @DeleteMapping("/delete")
