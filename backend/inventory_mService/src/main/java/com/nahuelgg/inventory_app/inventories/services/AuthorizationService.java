@@ -23,7 +23,7 @@ public class AuthorizationService {
 
   public boolean checkUserIsAdmin() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || !(authentication.getPrincipal() instanceof ContextAuthenticationPrincipal)) return false;
+    if (!checkAccountIsLogged()) return false;
     
     ContextAuthenticationPrincipal auth = (ContextAuthenticationPrincipal) authentication.getPrincipal();
     if (auth.getUser() == null) return false;
@@ -36,7 +36,7 @@ public class AuthorizationService {
     if (!perms.contains(perm)) throw new RuntimeException("Se ha ingresado un permiso inexistente al método: " + perm);
 
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || !(authentication.getPrincipal() instanceof ContextAuthenticationPrincipal)) return false;
+    if (!checkAccountIsLogged()) return false;
 
     ContextAuthenticationPrincipal auth = (ContextAuthenticationPrincipal) authentication.getPrincipal();
     if (auth.getUser() == null) return false;
@@ -49,11 +49,10 @@ public class AuthorizationService {
 
   public boolean checkActionIsToLoggedAccount(String accountId) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || !(authentication.getPrincipal() instanceof ContextAuthenticationPrincipal)) return false;
+    if (!checkAccountIsLogged()) return false;
     
     ContextAuthenticationPrincipal auth = (ContextAuthenticationPrincipal) authentication.getPrincipal();
     AccountSigned accountSigned = auth.getAccount();
-    if (accountSigned == null || accountSigned.getUsername() == null) return false;
 
     return accountSigned.getId().equals(accountId);
   }
