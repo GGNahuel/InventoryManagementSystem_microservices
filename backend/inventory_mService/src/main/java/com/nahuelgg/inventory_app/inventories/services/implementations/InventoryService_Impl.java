@@ -127,8 +127,11 @@ public class InventoryService_Impl implements InventoryService {
       .queryParam("categoryNames", categories != null ? categories.toArray() : null)
       .queryParam("accountId", accountId.toString())
     .toUriString(); 
-    List<ProductFromProductsMSDTO> resultsOfProducts = (List<ProductFromProductsMSDTO>) makeRestRequest(completeUrl, HttpMethod.GET, null).getData();
+    List<ProductFromProductsMSDTO> resultsOfProducts = (List<ProductFromProductsMSDTO>) makeRestRequest(
+      completeUrl, HttpMethod.GET, null).getData();
 
+    // busca inventarios en base a la lista de ids de referencia obtenidas en la solicitud al servicio de productos, 
+    // al resultado lo mapea a DTO
     List<InventoryDTO> inventoriesWithThoseProducts = repository.searchByProductRefId(
       resultsOfProducts.stream().map(
         p -> UUID.fromString(p.getId())
@@ -137,6 +140,7 @@ public class InventoryService_Impl implements InventoryService {
       i -> mappers.mapInvEntity(i, resultsOfProducts)
     ).toList();
 
+    // modifica cada DTO de la lista, filtrando los productos a aquellos que contengan alguna de las ids de referencia obtenidas
     inventoriesWithThoseProducts = inventoriesWithThoseProducts.stream().map(
       invDto -> invDto.toBuilder()
         .products(invDto.getProducts().stream().filter(
@@ -150,7 +154,6 @@ public class InventoryService_Impl implements InventoryService {
     return inventoriesWithThoseProducts;
   }
 
-  // TODO: quitar retorno del metodo de add inventory en el microservicio de usuarios, y agregar esos cambios en el readme
   // mutations
   @Override @Transactional
   public InventoryDTO create(String name, UUID accountId) {
@@ -241,6 +244,7 @@ public class InventoryService_Impl implements InventoryService {
     );
 
     List<ProductInInvEntity> newList = invTo.getProducts();
+    // en base a la lista de los productos en el input arma las nuevas entidades al inventario seleccionado
     for (ProductToCopyDTO p : products) {
       if (!newList.stream().filter(pInv -> p.getRefId().equals(pInv.getReferenceId().toString())).findFirst().isPresent()) {
         newList.add(ProductInInvEntity.builder()
@@ -335,8 +339,8 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public boolean deleteByAccountId(UUID id) {
-    List<InventoryEntity> invs = repository.findByAccountId(id);
-    repository.deleteAll(invs);
+    List<InventoryEntity> inventories = repository.findByAccountId(id);
+    repository.deleteAll(inventories);
     return true;
   }
 }
