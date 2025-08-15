@@ -9,11 +9,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.nahuelgg.inventory_app.inventories.dtos.JwtClaimsDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.UserFromUsersMSDTO.InventoryPermsDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.inventories.services.JwtService;
 import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal.AccountSigned;
-import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal.PermsForInv;
 import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal.UserSigned;
 
 import jakarta.servlet.FilterChain;
@@ -45,11 +44,7 @@ public class JwtRequestFilterConfig  extends OncePerRequestFilter {
       String userName = tokenClaims.getUserName();
       String userRole = tokenClaims.getUserRole();
       boolean isAdmin = tokenClaims.isAdmin();
-      List<InventoryPermsDTO> userPermsDTO = tokenClaims.getUserPerms();
-
-      List<PermsForInv> userPerms = userPermsDTO != null ? userPermsDTO.stream().map(
-        permDto -> new PermsForInv(permDto.getIdOfInventoryReferenced(), permDto.getPermissions())
-      ).toList() : null;
+      List<PermissionsForInventoryDTO> userPerms = tokenClaims.getUserPerms();
 
       if (jwtService.isTokenExpired(token)) {
         SecurityContextHolder.clearContext();

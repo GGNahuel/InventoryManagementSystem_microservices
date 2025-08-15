@@ -23,7 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.inventories.dtos.JwtClaimsDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.UserFromUsersMSDTO.InventoryPermsDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.inventories.enums.Permissions;
 
 import io.jsonwebtoken.Claims;
@@ -77,7 +77,7 @@ public class JwtServiceTest {
 
   @Test
   void mapTokenClaims() throws Exception {
-    InventoryPermsDTO mockPerm = InventoryPermsDTO.builder()
+    PermissionsForInventoryDTO mockPerm = PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced("inv123")
       .permissions(List.of(Permissions.addProducts))
     .build();

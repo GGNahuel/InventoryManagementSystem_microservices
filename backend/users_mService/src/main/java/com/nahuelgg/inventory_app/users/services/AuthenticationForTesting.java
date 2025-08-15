@@ -20,7 +20,6 @@ import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.AccountSigned;
-import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.PermsForInv;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.UserSigned;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
 
@@ -109,7 +108,7 @@ public class AuthenticationForTesting {
     usersInAccount.add(adminSaved);
 
     // -- En caso de que se quiera hacer login con otro usuario que no sea el admin
-    List<PermsForInv> permsForOtherUser = new ArrayList<>();
+    List<PermissionsForInventoryDTO> permsForOtherUser = new ArrayList<>();
     if (userInfo != null && claimsForToken != null) {
       checkFieldsHasContent(
         new Field("nombre de usuario", userInfo.getUsername()),
@@ -124,14 +123,10 @@ public class AuthenticationForTesting {
         .role(claimsForToken.getUserRole())
         .inventoryPerms(/* claimsForToken.getUserPerms().stream().map(
           permDto -> permsRepo.save()
-        ) es innecesario que sea real este atributo */ new ArrayList<>())
+        ) es innecesario que sea real este atributo en este microservicio*/ new ArrayList<>())
       .build());
 
-      permsForOtherUser = claimsForToken.getUserPerms() != null ? 
-        claimsForToken.getUserPerms().stream().map(
-          permDto -> new PermsForInv(permDto.getIdOfInventoryReferenced(), permDto.getPermissions())
-        ).toList() : 
-        List.of();
+      permsForOtherUser = claimsForToken.getUserPerms() != null ? claimsForToken.getUserPerms() : List.of();
 
       usersInAccount.add(otherUser);
     }

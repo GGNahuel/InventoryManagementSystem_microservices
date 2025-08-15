@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.nahuelgg.inventory_app.users.enums.Permissions;
+import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,15 +30,14 @@ public class ContextAuthenticationPrincipal implements UserDetails {
     private String name;
     private String role;
     private boolean isAdmin;
-    private List<PermsForInv> perms;
+    private List<PermissionsForInventoryDTO> perms;
   }
 
-  // este tendría que extender de Granthed authority, ver constructor
-  @AllArgsConstructor @Data
-  public static class PermsForInv {
+  /* @AllArgsConstructor @Data // esto en caso de que se quiera usarlos como GranthedAuthorities, habría que formatear los strings
+  public static class AuthenticationPermissions {
     private String inventoryReferenceId;
     private List<Permissions> perms;
-  }
+  } */
 
   public ContextAuthenticationPrincipal(String username, String password) {
     this.account = new AccountSigned(username, password);

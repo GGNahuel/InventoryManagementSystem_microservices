@@ -150,6 +150,7 @@ public class InventoryService_Impl implements InventoryService {
     return inventoriesWithThoseProducts;
   }
 
+  // TODO: quitar retorno del metodo de add inventory en el microservicio de usuarios, y agregar esos cambios en el readme
   // mutations
   @Override @Transactional
   public InventoryDTO create(String name, UUID accountId) {

@@ -13,7 +13,6 @@ import com.nahuelgg.inventory_app.users.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.users.services.JwtService;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.AccountSigned;
-import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.PermsForInv;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.UserSigned;
 
 import jakarta.servlet.FilterChain;
@@ -70,9 +69,7 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
       UserSigned userToNewAuthData = tokenClaims.getUserName() == null ? null : 
         new UserSigned(
           tokenClaims.getUserName(), tokenClaims.getUserRole(), tokenClaims.isAdmin(), 
-          tokenClaims.getUserPerms().stream().map(
-            permDto -> new PermsForInv(permDto.getIdOfInventoryReferenced(), permDto.getPermissions())
-          ).toList()
+          tokenClaims.getUserPerms()
         );
 
       ContextAuthenticationPrincipal newAuthData = ContextAuthenticationPrincipal.builder()

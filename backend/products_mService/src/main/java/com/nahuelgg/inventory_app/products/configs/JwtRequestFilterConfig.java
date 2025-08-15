@@ -13,7 +13,6 @@ import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInven
 import com.nahuelgg.inventory_app.products.services.JwtService;
 import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal.AccountSigned;
-import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal.PermsForInv;
 import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal.UserSigned;
 
 import jakarta.servlet.FilterChain;
@@ -45,11 +44,7 @@ public class JwtRequestFilterConfig  extends OncePerRequestFilter {
       String userName = tokenClaims.getUserName();
       String userRole = tokenClaims.getUserRole();
       boolean isAdmin = tokenClaims.isAdmin();
-      List<PermissionsForInventoryDTO> userPermsDTO = tokenClaims.getUserPerms();
-
-      List<PermsForInv> userPerms = userPermsDTO != null ? userPermsDTO.stream().map(
-        permDto -> new PermsForInv(permDto.getIdOfInventoryReferenced(), permDto.getPermissions())
-      ).toList() : null;
+      List<PermissionsForInventoryDTO> userPerms = tokenClaims.getUserPerms();
 
       if (jwtService.isTokenExpired(token)) {
         SecurityContextHolder.clearContext();

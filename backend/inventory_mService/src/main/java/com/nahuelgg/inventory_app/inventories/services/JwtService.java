@@ -13,7 +13,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.inventories.dtos.JwtClaimsDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.UserFromUsersMSDTO.InventoryPermsDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.PermissionsForInventoryDTO;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -55,9 +55,9 @@ public class JwtService {
   public JwtClaimsDTO mapTokenClaims(String token) throws JsonMappingException, JsonProcessingException {
     Claims claims = getAllClaims(token);
     System.out.println(claims.get("userPerms").getClass());
-    List<InventoryPermsDTO> convertedPerms = objectMapper.readValue(
+    List<PermissionsForInventoryDTO> convertedPerms = objectMapper.readValue(
       claims.get("userPerms", String.class), 
-      new TypeReference<List<InventoryPermsDTO>>() {}
+      new TypeReference<List<PermissionsForInventoryDTO>>() {}
     );
 
     return JwtClaimsDTO.builder()

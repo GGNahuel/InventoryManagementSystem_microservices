@@ -29,7 +29,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
-import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.AccountFromUsersMSDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ProductFromProductsMSDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ResponseDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductInputDTO;
@@ -209,9 +208,6 @@ public class InventoryServiceTest {
       anyString(), any(), any(), ArgumentMatchers.<Class<ResponseDTO>>any())
     ).thenReturn(
       new ResponseEntity<>(
-        ResponseDTO.builder().data(
-          AccountFromUsersMSDTO.builder().id(accId.toString()).build()
-        ).build(), 
         HttpStatus.OK
       )
     );

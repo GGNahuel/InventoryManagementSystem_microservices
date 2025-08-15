@@ -34,10 +34,9 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.AccountFromUsersMSDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ProductFromProductsMSDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ResponseDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.UserFromUsersMSDTO.InventoryPermsDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.EditProductInputDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.ProductToCopyDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
@@ -132,7 +131,6 @@ public class ControllerTest {
           id
           name
           accountId
-          usersIds
           products {
             name
           }
@@ -167,6 +165,7 @@ public class ControllerTest {
   }
 
   @Test
+  @DirtiesContext
   void getByAccount_allowed() {
     InventoryEntity inv1 = inventoryRepository.save(InventoryEntity.builder()
       .name("inv1")
@@ -193,7 +192,6 @@ public class ControllerTest {
           id
           name
           accountId
-          usersIds
           products {
             name
           }
@@ -219,9 +217,7 @@ public class ControllerTest {
     String token = tokenGenerator.generateAdminToken(accUsername, accId);
 
     when(restCaller.exchange(anyString(), any(), any(), ArgumentMatchers.<Class<ResponseDTO>>any())).thenReturn(new ResponseEntity<>(
-      ResponseDTO.builder()
-        .data(AccountFromUsersMSDTO.builder().id(accId).build())
-      .build(), HttpStatus.OK
+      HttpStatus.OK
     ));
 
     String query = """
@@ -230,7 +226,6 @@ public class ControllerTest {
           id
           name
           accountId
-          usersIds
           products {
             name
           }
@@ -258,7 +253,6 @@ public class ControllerTest {
           id
           name
           accountId
-          usersIds
           products {
             name
           }
@@ -498,7 +492,7 @@ public class ControllerTest {
       HttpStatus.OK
     ));
 
-    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced(savedInv.getId().toString())
       .permissions(List.of(Permissions.addProducts))
     .build()));
@@ -541,7 +535,7 @@ public class ControllerTest {
   @Test
   void addProduct_denyIfHasWrongPerm() {
     UUID destinyInvId = UUID.randomUUID();
-    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced(destinyInvId.toString())
       .permissions(List.of(Permissions.editInventory))
     .build()));
@@ -595,7 +589,7 @@ public class ControllerTest {
     ));
 
     String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(
-      InventoryPermsDTO.builder()
+      PermissionsForInventoryDTO.builder()
         .idOfInventoryReferenced(inv.getId().toString()).permissions(List.of(Permissions.editProducts))
       .build()
     ));
@@ -700,7 +694,7 @@ public class ControllerTest {
     .build();
 
     String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(
-      InventoryPermsDTO.builder()
+      PermissionsForInventoryDTO.builder()
         .idOfInventoryReferenced(inv.getId().toString()).permissions(List.of(Permissions.editProductReferences))
       .build()
     ));
@@ -753,7 +747,7 @@ public class ControllerTest {
 
     when(restCaller.exchange(anyString(), any(), any(), ArgumentMatchers.<Class<ResponseDTO>>any())).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
 
-    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced(inv.getId().toString()).permissions(List.of(Permissions.deleteProducts))
     .build()));
 
@@ -809,7 +803,7 @@ public class ControllerTest {
       .referenceId(ref2).inventory(anotherInv)
     .build());
 
-    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced(inv.getId().toString()).permissions(List.of(Permissions.deleteProductReferences))
     .build()));
 
@@ -844,7 +838,7 @@ public class ControllerTest {
       new ProductToCopyDTO(refId2.toString(), 6)
     );
     
-    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced(savedInv.getId().toString())
       .permissions(List.of(Permissions.addProducts))
     .build()));
@@ -877,7 +871,7 @@ public class ControllerTest {
       .stock(4)
     .build();
     
-    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced(existingInvId.toString())
       .permissions(List.of(Permissions.editProducts))
     .build()));
@@ -916,7 +910,7 @@ public class ControllerTest {
       .inventory(savedInv)
     .build());
     
-    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced(savedInv.getId().toString())
       .permissions(List.of(Permissions.editInventory))
     .build()));
@@ -937,7 +931,7 @@ public class ControllerTest {
   void editStockOfProduct_deniedIfHasWrongPerm() {
     UUID invId = UUID.randomUUID();
     UUID refId = UUID.randomUUID();
-    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(InventoryPermsDTO.builder()
+    String token = tokenGenerator.generateUserToken(accUsername, accId, List.of(PermissionsForInventoryDTO.builder()
       .idOfInventoryReferenced(invId.toString())
       .permissions(List.of(Permissions.addProducts))
     .build()));

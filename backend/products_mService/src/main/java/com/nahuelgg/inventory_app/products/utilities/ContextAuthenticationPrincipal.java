@@ -2,7 +2,7 @@ package com.nahuelgg.inventory_app.products.utilities;
 
 import java.util.List;
 
-import com.nahuelgg.inventory_app.products.enums.Permissions;
+import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInventoryDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,13 +26,6 @@ public class ContextAuthenticationPrincipal {
     private String name;
     private String role;
     private boolean isAdmin;
-    private List<PermsForInv> perms;
-  }
-
-  // este tendría que extender de Granthed authority, ver constructor
-  @AllArgsConstructor @Data
-  public static class PermsForInv {
-    private String inventoryReferenceId;
-    private List<Permissions> perms;
+    private List<PermissionsForInventoryDTO> perms;
   }
 }

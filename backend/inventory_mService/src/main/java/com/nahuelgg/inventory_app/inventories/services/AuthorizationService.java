@@ -6,10 +6,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.nahuelgg.inventory_app.inventories.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.inventories.enums.Permissions;
 import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal.AccountSigned;
-import com.nahuelgg.inventory_app.inventories.utilities.ContextAuthenticationPrincipal.PermsForInv;
 
 @Service
 public class AuthorizationService {
@@ -43,8 +43,8 @@ public class AuthorizationService {
     if (auth.getUser().isAdmin()) return true;
     if (auth.getUser().getPerms() == null) return false;
 
-    PermsForInv permObject = auth.getUser().getPerms().stream().filter(permDto -> permDto.getInventoryReferenceId().equals(invId)).findFirst().orElse(null);
-    return permObject != null && permObject.getPerms().contains(perm);
+    PermissionsForInventoryDTO permObject = auth.getUser().getPerms().stream().filter(permDto -> permDto.getIdOfInventoryReferenced().equals(invId)).findFirst().orElse(null);
+    return permObject != null && permObject.getPermissions().contains(perm);
   }
 
   public boolean checkActionIsToLoggedAccount(String accountId) {

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.inventories.dtos.JwtClaimsDTO;
-import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.UserFromUsersMSDTO.InventoryPermsDTO;
+import com.nahuelgg.inventory_app.inventories.dtos.PermissionsForInventoryDTO;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -50,7 +50,7 @@ public class TokenGenerator {
     return generateToken(claims, accUsername);
   }
 
-  public String generateUserToken(String accUsername, String accId, List<InventoryPermsDTO> perms) {
+  public String generateUserToken(String accUsername, String accId, List<PermissionsForInventoryDTO> perms) {
     JwtClaimsDTO claims = JwtClaimsDTO.builder()
       .accountId(accId)
       .userName("user")

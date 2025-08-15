@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.products.enums.Permissions;
 import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal.AccountSigned;
-import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal.PermsForInv;
 import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal.UserSigned;
 
 public class AuthorizationServiceTest {
@@ -92,7 +92,7 @@ public class AuthorizationServiceTest {
       ContextAuthenticationPrincipal.builder()
         .account(new AccountSigned("account", "accId"))
         .user(new UserSigned("name", "role", false, List.of(
-          new PermsForInv("invId", List.of(Permissions.editInventory, Permissions.addProducts))
+          new PermissionsForInventoryDTO(List.of(Permissions.editInventory, Permissions.addProducts), "invId")
         )))
       .build(),
       null

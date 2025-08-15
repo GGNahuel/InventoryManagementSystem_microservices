@@ -24,7 +24,6 @@ import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.AccountSigned;
-import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.PermsForInv;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.UserSigned;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
@@ -109,9 +108,7 @@ public class AuthenticationService {
         userUsername, 
         userToAuthenticate.getRole(), 
         userToAuthenticate.getIsAdmin(), 
-        permsDto != null ? permsDto.stream().map(
-          invPermDto -> new PermsForInv(invPermDto.getIdOfInventoryReferenced(), invPermDto.getPermissions())
-        ).toList() : null
+        permsDto != null ? permsDto : null
       ))
     .build();
     

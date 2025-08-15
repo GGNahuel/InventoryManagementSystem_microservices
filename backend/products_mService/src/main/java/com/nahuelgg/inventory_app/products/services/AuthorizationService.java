@@ -6,10 +6,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.products.enums.Permissions;
 import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal.AccountSigned;
-import com.nahuelgg.inventory_app.products.utilities.ContextAuthenticationPrincipal.PermsForInv;
 
 @Service
 public class AuthorizationService {
@@ -46,17 +46,17 @@ public class AuthorizationService {
     if (
       (
         perm.equals(Permissions.editProductReferences.toString()) && 
-        auth.getUser().getPerms().stream().anyMatch(permDto -> permDto.getPerms().contains(Permissions.editProductReferences))
+        auth.getUser().getPerms().stream().anyMatch(permDto -> permDto.getPermissions().contains(Permissions.editProductReferences))
       ) || (
         perm.equals(Permissions.deleteProductReferences.toString()) && 
-        auth.getUser().getPerms().stream().anyMatch(permDto -> permDto.getPerms().contains(Permissions.deleteProductReferences))
+        auth.getUser().getPerms().stream().anyMatch(permDto -> permDto.getPermissions().contains(Permissions.deleteProductReferences))
       )
     ) return true;
 
-    PermsForInv permObject = auth.getUser().getPerms().stream().filter(
-      permDto -> permDto.getInventoryReferenceId().equals(invId))
+    PermissionsForInventoryDTO permObject = auth.getUser().getPerms().stream().filter(
+      permDto -> permDto.getIdOfInventoryReferenced().equals(invId))
     .findFirst().orElse(null);
-    return permObject != null && permObject.getPerms().contains(Permissions.valueOf(perm));
+    return permObject != null && permObject.getPermissions().contains(Permissions.valueOf(perm));
   }
 
   public boolean checkActionIsToLoggedAccount(String accountId) {
