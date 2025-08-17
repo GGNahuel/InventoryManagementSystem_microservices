@@ -2,6 +2,8 @@ package com.nahuelgg.inventory_app.users.entities;
 
 import java.util.UUID;
 
+import org.hibernate.annotations.UuidGenerator;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
 public class InventoryRefEntity {
-  @Id @GeneratedValue
+  @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
   private UUID id;
   @Column(nullable = false, unique = true)
   private UUID inventoryIdReference;

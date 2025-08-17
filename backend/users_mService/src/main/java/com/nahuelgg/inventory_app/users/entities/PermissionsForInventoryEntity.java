@@ -2,6 +2,8 @@ package com.nahuelgg.inventory_app.users.entities;
 
 import java.util.UUID;
 
+import org.hibernate.annotations.UuidGenerator;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
 public class PermissionsForInventoryEntity {
-  @Id @GeneratedValue
+  @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
   private UUID id;
   // cada permiso estará separado por comas y espacio en un solo string, estos provienen del enum Permissions. 
   // Ej: editProducts, editInventory, etc
