@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
+import com.nahuelgg.inventory_app.users.dtos.TokenDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserRegistrationDTO;
 
@@ -15,5 +16,5 @@ public interface AccountService {
   UserDTO addUser(UUID accountId, UserRegistrationDTO info);
   void assignInventory(UUID accountId, UUID inventoryId);
   void removeInventoryAssigned(UUID accountId, UUID inventoryId);
-  void delete(UUID id);
+  TokenDTO delete(UUID id);
 }

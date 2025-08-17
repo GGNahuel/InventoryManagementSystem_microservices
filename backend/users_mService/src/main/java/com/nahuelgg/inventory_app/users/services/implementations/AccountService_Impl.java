@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
+import com.nahuelgg.inventory_app.users.dtos.TokenDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserRegistrationDTO;
 import com.nahuelgg.inventory_app.users.entities.AccountEntity;
@@ -29,6 +30,7 @@ import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.AccountService;
+import com.nahuelgg.inventory_app.users.services.AuthenticationService;
 import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
@@ -42,13 +44,15 @@ public class AccountService_Impl implements AccountService {
   private final UserRepository userRepository;
   private final InventoryRefRepository inventoryRefRepository;
   private final PermissionsForInventoryRepository permsRepository;
-
+  
   private final DTOMappers dtoMappers;
   private final EntityMappers entityMappers = new EntityMappers();
   private final BCryptPasswordEncoder encoder;
-
+  private final AuthenticationService authenticationService;
+  
   private final RestTemplate restTemplate;
   private final HttpGraphQlClient client;
+
 
   @Override @Transactional(readOnly = true)
   public List<AccountDTO> getAll() {
@@ -182,24 +186,27 @@ public class AccountService_Impl implements AccountService {
   }
 
   @Override @Transactional
-  public void delete(UUID accountId) {
+  public TokenDTO delete(UUID accountId) {
     checkFieldsHasContent(new Field("id de cuenta", accountId));
 
     boolean accountWithIdExists = repository.findById(accountId).isPresent();
-    if (accountWithIdExists) {
-      Boolean inventoryRequestWasSuccess = client.document("""
-        mutation {
-          deleteByAccountId(
-            id: "%s"
-          )
-        }
-      """.formatted(accountId.toString())).retrieve("deleteByAccountId").toEntity(Boolean.class).block();
+    if (accountWithIdExists) 
+      throw new ResourceNotFoundException("cuenta", "id", accountId.toString());
 
-      if (inventoryRequestWasSuccess == null || !inventoryRequestWasSuccess) 
-        throw new RuntimeException("El borrado de inventarios asociados no se ha podido realizar, operación cancelada");
+    Boolean inventoryRequestWasSuccess = client.document("""
+      mutation {
+        deleteByAccountId(
+          id: "%s"
+        )
+      }
+    """.formatted(accountId.toString())).retrieve("deleteByAccountId").toEntity(Boolean.class).block();
 
-      restTemplate.delete("http://api-products:8081/product/delete-by-account?id=" + accountId.toString());
-      repository.deleteById(accountId);
-    }
+    if (inventoryRequestWasSuccess == null || !inventoryRequestWasSuccess) 
+      throw new RuntimeException("El borrado de inventarios asociados no se ha podido realizar, operación cancelada");
+
+    restTemplate.delete("http://api-products:8081/product/delete-by-account?id=" + accountId.toString());
+    repository.deleteById(accountId);
+
+    return authenticationService.logout();
   }
 }

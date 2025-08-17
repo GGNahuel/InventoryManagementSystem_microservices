@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
+import com.nahuelgg.inventory_app.users.dtos.TokenDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserRegistrationDTO;
 import com.nahuelgg.inventory_app.users.services.AccountService;
 
@@ -78,10 +79,9 @@ public class AccountController {
 
   @DeleteMapping("/delete")
   @PreAuthorize("@authorizationService.checkUserIsAdmin() && @authorizationService.loggedAccountHasTheIdReferenced(#id)")
-  public ResponseEntity<ResponseDTO> delete(@RequestParam String id) {
-    service.delete(UUID.fromString(id));
+  public ResponseEntity<TokenDTO> delete(@RequestParam String id) {
     return new ResponseEntity<>(
-      new ResponseDTO(200, null, "Cuenta eliminada con éxito"),
+      service.delete(UUID.fromString(id)),
       HttpStatus.OK
     );
   }

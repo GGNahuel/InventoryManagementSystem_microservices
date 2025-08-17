@@ -75,6 +75,7 @@ public class AuthenticationServiceTest {
     TokenDTO response = authenticationService.login(login);
 
     assertEquals(token, response.getToken());
+    assertEquals(accountId.toString(), response.getAccountId());
     verify(authenticationManager).authenticate(any());
     verify(accountRepository).findByUsername(username);
   }
@@ -117,6 +118,7 @@ public class AuthenticationServiceTest {
     TokenDTO result = authenticationService.loginAsUser(login);
 
     assertEquals(token, result.getToken());
+    assertEquals(accountId.toString(), result.getAccountId());
     verify(userRepository).findByNameAndAssociatedAccountId("subUser", accountId);
   }
 
@@ -152,6 +154,7 @@ public class AuthenticationServiceTest {
 
     TokenDTO result = authenticationService.logout();
     assertEquals(token, result.getToken());
+    assertNull(result.getAccountId());
     assertNull(SecurityContextHolder.getContext().getAuthentication());
   }
 
@@ -176,5 +179,6 @@ public class AuthenticationServiceTest {
     TokenDTO result = authenticationService.logoutAsUser();
 
     assertEquals(token, result.getToken());
+    assertEquals(accountId.toString(), result.getAccountId());
   }
 }

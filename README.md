@@ -493,6 +493,7 @@ Tanto el servicio de usuarios como el de productos devuelven el mismo tipo de fo
 ### Servicio de usuarios
 **Administración de los datos de usuarios y sub-usuarios, manejo de autenticación y autorización.**
 #### Posibles retornos
+**Tener en cuenta que estos DTOs se encontrarían dentro del *data* del DTO descrito anteriormente**. A excepción de cuando se llame a algún endpoint de autenticación, ya sea de inicio o de cierre, que se retornará directamente el DTO del token.
 ```typescript 
   interface DTO_cuenta {
     id: string,
@@ -514,12 +515,13 @@ Tanto el servicio de usuarios como el de productos devuelven el mismo tipo de fo
   }
 
   interface DTO_tokenJWT {
-    token: string
+    token: string,
+    accountId: string
   }
 ```
 
 #### Cuentas y sub-usuarios
-- **/account/register** Registra cuenta de usuario creando y asignando también el sub-usuario admin. **No requiere token**
+- **/account/register** Registra cuenta de usuario creando y asignando también el sub-usuario admin. Este tendrá de nombre de usuario "admin". **No requiere token**.
   - **Método HTTP**: POST
   - **Cuerpo requerido**: Todos los campos son obligatorios y las repeticiones de contraseña deben coincidir con la que corresponda para que el método funcione correctamente.
         
@@ -566,20 +568,14 @@ Tanto el servicio de usuarios como el de productos devuelven el mismo tipo de fo
             inventoryPerms: [DTO_permisosPorInventario] | null
           }
 
-    - Cómo parámetro de la url se debe incluir ***accountId*** (string) de forma obligatoria, ya que si ésta no coincide con la id dentro del token mandado se negará la solicitud.****
+    - Cómo parámetro de la url se debe incluir ***accountId*** (string) de forma obligatoria.
   - **Retorno esperado**: Status code 200. *DTO-subUsuario* dentro del data de *DTO_respuestasGenerales*.
   - **Permisos**: Se requiere que sea el sub-usuario admin para poder realizar esta operación sobre la cuenta definida.
   
-- **/account/delete** Borra una cuenta y todos los datos asociados a ella, incluido sus inventarios y sus productos.
+- **/account/delete** Borra una cuenta y todos los datos asociados a ella, incluido sus inventarios y sus productos. Como la cuenta necesita ser la misma que en el token, devolverá un nuevo token pero vacío en caso de éxito.
   - **Método HTTP**: DELETE
-  - *Parámetro requerido*: Se requiere la id de la cuenta a borrar dentro del parámetro de la url "id".
-  - **Retorno esperado**: Status code 200.
-
-        {
-          error: null,
-          data: "Cuenta eliminada con éxito"
-        }
-
+  - **Parámetro requerido**: Se requiere la id de la cuenta a borrar dentro del parámetro de la url "id".
+  - **Retorno esperado**: Status code 200. Retorna **directamente** el *DTO_tokenJWT* (no envuelto dentro del data de DTO_respuestasGenerales).
   - **Permisos**: Se requiere el sub-usuario admin.
 
 - **/user/id/{id}** Busca en base de datos el sub-usuario con la id colocada en la misma ruta. (en el lugar de {id} iría la id del mismo).
@@ -596,7 +592,7 @@ Tanto el servicio de usuarios como el de productos devuelven el mismo tipo de fo
 - **/user/permissions** Operación para agregar o editar permisos asociados a un sub-usuario ya existente. El microservicio detectará según la id del inventario si debe crear o editar.
   - **Método HTTP**: PATCH
   - **Requerido**: Además del *DTO_permisosPorInventario* como cuerpo de la solicitud, se debe enviar como parámetros de url tanto la id del sub-usuario, como *userId*, y la de la cuenta a la que pertenece, como *accountId*.
-    - La lista de permisos que se mandan en el cuerpo del DTO debe incluir los que ya tenía, en caso de que se quiera editar y volver a incluirlos. Ya que se sobrescribirá la lista con la que se ingrese.
+    - La lista de permisos (ej: editProducts, addProducts, etc) que se mandan en el cuerpo del DTO debe incluir los que ya tenía, en caso de que se quiera editar y volver a incluirlos. Ya que se sobrescribirá la lista con la que se ingrese, permitiendo modificar la lista entera sin necesidad de hacer varias solicitudes.
   - **Retorno esperado**: Status code 200. Objeto *DTO_subUsuario* dentro del data de *DTO_respuestasGenerales*.
   - **Permisos**: Se requiere el sub-usuario admin.
 
@@ -647,12 +643,11 @@ En el caso de los que son para login se debe incluir el siguiente cuerpo:
         model: string | undefined,
         description: string | undefined,
         unitPrice: number, // acepta decimales
-        accountId: string,
         categories: [string] | undefined
       }
       ```
     - *Parámetros de url*: se debe indicar la id de la cuenta, la misma del token, en el parámetro *accountId*.
-  - **Retorno esperado**: Status code 200. Y el *DTO_producto* reflejando los cambios.
+  - **Retorno esperado**: Status code 200. Y el *DTO_producto* reflejando los cambios, y con el atributo accountId incluido en él.
   - **Permiso**: se requiere el permiso *editProductReferences*.
 
 - **/product/delete**: Borra de la base de datos el producto seleccionado por si Id. Todos los inventarios que tengan referencia al producto seleccionado verán los cambios afectados en su contenido.
@@ -793,7 +788,7 @@ De forma general un retorno se vería de la siguiente forma:
   Los productos copiados compartirán referencia, lo que significa que si un sub-usuario con los permisos para editar o eliminar productos de referencia realiza alguna acción sobre ellos, aquellos copiados se verán también afectados.
 - **editStockOfProduct(relativeNewStock: Int!, productRefId: ID!, invId: ID!, accountId: ID!)**: Boolean
 
-  Método específico para cambiar el stock a través de un número relativo en el inventario seleccionado.
+  Método específico para cambiar el stock a través de un número relativo en el inventario seleccionado. Es decir que si anteriormente el producto tenia el valor *12* en stock, y en el *relativeNewStock* se coloca *-5*, el nuevo valor de stock sería *12-5 = 7*. Si en cambio es un número positivo el que se ingresa este se sumaría.
 
 - **deleteProductsInInventory(productRefIds: [ID]!, invId: ID!, accountId: ID!)**: Boolean
 
@@ -824,10 +819,10 @@ Estos son los objetos que se retornarían y se ingresarían respectivamente a la
 
     input ProductInput {
       name: String!
-      brand: String!
+      brand: String
       model: String
       description: String
-      unitPrice: Int!
+      unitPrice: Int
       categories: [String]
       stock: Int!
     }
@@ -835,10 +830,10 @@ Estos son los objetos que se retornarían y se ingresarían respectivamente a la
     input EditProductInput {
       refId: ID!
       name: String!
-      brand: String!
+      brand: String
       model: String
       description: String
-      unitPrice: Int!
+      unitPrice: Int
       categories: [String]
     }
 
