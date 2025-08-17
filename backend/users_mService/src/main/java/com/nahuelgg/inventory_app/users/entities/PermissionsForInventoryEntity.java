@@ -21,8 +21,8 @@ import lombok.NoArgsConstructor;
 public class PermissionsForInventoryEntity {
   @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
   private UUID id;
-  // cada permiso estará separado por comas y espacio en un solo string, estos provienen del enum Permissions. 
-  // Ej: editProducts, editInventory, etc
+  // cada permiso estará separado por comas en un solo string, estos provienen del enum Permissions. 
+  // Ej: editProducts,editInventory,addProducts
   @Column(nullable = false)
   private String permissions;
   
