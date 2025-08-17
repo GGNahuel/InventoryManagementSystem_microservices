@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import com.nahuelgg.inventory_app.users.components.DTOMappers;
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
@@ -31,7 +32,6 @@ import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepo
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.AccountService;
 import com.nahuelgg.inventory_app.users.services.AuthenticationService;
-import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
 

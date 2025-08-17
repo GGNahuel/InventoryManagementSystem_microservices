@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.inventories.services;
+package com.nahuelgg.inventory_app.inventories.components;
 
 import java.security.Key;
 import java.util.ArrayList;

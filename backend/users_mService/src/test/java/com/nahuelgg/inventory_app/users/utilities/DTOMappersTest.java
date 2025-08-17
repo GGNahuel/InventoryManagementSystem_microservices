@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.nahuelgg.inventory_app.users.components.DTOMappers;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.entities.InventoryRefEntity;

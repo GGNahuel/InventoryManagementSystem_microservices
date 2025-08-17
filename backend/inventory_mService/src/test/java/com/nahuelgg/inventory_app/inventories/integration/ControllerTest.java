@@ -34,6 +34,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nahuelgg.inventory_app.inventories.components.TokenGenerator;
 import com.nahuelgg.inventory_app.inventories.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ProductFromProductsMSDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ResponseDTO;
@@ -47,7 +48,6 @@ import com.nahuelgg.inventory_app.inventories.enums.Permissions;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
 import com.nahuelgg.inventory_app.inventories.services.JwtService;
-import com.nahuelgg.inventory_app.inventories.services.TokenGenerator;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")

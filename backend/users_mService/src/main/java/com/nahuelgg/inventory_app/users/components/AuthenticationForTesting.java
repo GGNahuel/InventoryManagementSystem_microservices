@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.users.services;
+package com.nahuelgg.inventory_app.users.components;
 
 import static com.nahuelgg.inventory_app.users.utilities.Validations.checkFieldsHasContent;
 
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.nahuelgg.inventory_app.users.dtos.JwtClaimsDTO;
 import com.nahuelgg.inventory_app.users.dtos.LoginDTO;
@@ -18,6 +18,7 @@ import com.nahuelgg.inventory_app.users.entities.AccountEntity;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
 import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
+import com.nahuelgg.inventory_app.users.services.JwtService;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.AccountSigned;
 import com.nahuelgg.inventory_app.users.utilities.ContextAuthenticationPrincipal.UserSigned;
@@ -27,7 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@Service
+@Component
 @Profile("test")
 @RequiredArgsConstructor
 public class AuthenticationForTesting {

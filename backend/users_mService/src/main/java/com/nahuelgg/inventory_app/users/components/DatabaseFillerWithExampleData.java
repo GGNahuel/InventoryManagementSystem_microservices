@@ -1,9 +1,10 @@
-package com.nahuelgg.inventory_app.users.services;
+package com.nahuelgg.inventory_app.users.components;
 
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +20,7 @@ import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @Component
+@ConditionalOnExpression("!'${spring.profiles.active:}'.contains('test')")
 @RequiredArgsConstructor
 public class DatabaseFillerWithExampleData implements CommandLineRunner {
   private final AccountRepository accountRepository;

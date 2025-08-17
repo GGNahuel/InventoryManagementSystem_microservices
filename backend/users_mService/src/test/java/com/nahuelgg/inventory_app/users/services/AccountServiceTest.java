@@ -28,6 +28,7 @@ import org.springframework.graphql.client.HttpGraphQlClient;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.client.RestTemplate;
 
+import com.nahuelgg.inventory_app.users.components.DTOMappers;
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
 import com.nahuelgg.inventory_app.users.dtos.AccountRegistrationDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
@@ -46,7 +47,6 @@ import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.implementations.AccountService_Impl;
-import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 
 import reactor.core.publisher.Mono;
 

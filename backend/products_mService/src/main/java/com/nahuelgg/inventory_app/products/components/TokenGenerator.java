@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.products.services;
+package com.nahuelgg.inventory_app.products.components;
 
 import java.security.Key;
 import java.util.Date;

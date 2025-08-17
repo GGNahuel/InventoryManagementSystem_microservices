@@ -1,9 +1,10 @@
-package com.nahuelgg.inventory_app.products.services;
+package com.nahuelgg.inventory_app.products.components;
 
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import com.nahuelgg.inventory_app.products.entities.ProductEntity;
@@ -12,6 +13,7 @@ import com.nahuelgg.inventory_app.products.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
 
 @Component
+@ConditionalOnExpression("!'${spring.profiles.active:}'.contains('test')")
 @RequiredArgsConstructor
 public class DatabaseFillerWithExampleData implements CommandLineRunner{
   private final ProductRepository productRepository;

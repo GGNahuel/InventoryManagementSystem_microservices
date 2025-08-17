@@ -1,4 +1,4 @@
-package com.nahuelgg.inventory_app.users.utilities;
+package com.nahuelgg.inventory_app.users.components;
 
 import java.util.List;
 import java.util.UUID;

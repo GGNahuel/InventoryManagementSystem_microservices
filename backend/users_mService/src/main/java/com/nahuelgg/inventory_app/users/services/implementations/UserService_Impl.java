@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nahuelgg.inventory_app.users.components.DTOMappers;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.UserDTO;
 import com.nahuelgg.inventory_app.users.entities.PermissionsForInventoryEntity;
@@ -19,7 +20,6 @@ import com.nahuelgg.inventory_app.users.exceptions.ResourceNotFoundException;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
 import com.nahuelgg.inventory_app.users.services.UserService;
-import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
 

@@ -25,12 +25,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.nahuelgg.inventory_app.products.dtos.JwtClaimsDTO.PermissionsForInventoryDTO;
+import com.nahuelgg.inventory_app.products.components.TokenGenerator;
 import com.nahuelgg.inventory_app.products.dtos.ProductDTO;
 import com.nahuelgg.inventory_app.products.dtos.ResponseDTO;
 import com.nahuelgg.inventory_app.products.entities.ProductEntity;
 import com.nahuelgg.inventory_app.products.enums.Permissions;
 import com.nahuelgg.inventory_app.products.repositories.ProductRepository;
-import com.nahuelgg.inventory_app.products.services.TokenGenerator;
 import com.nahuelgg.inventory_app.products.utilities.Mappers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

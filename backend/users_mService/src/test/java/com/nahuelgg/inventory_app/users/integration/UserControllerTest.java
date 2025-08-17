@@ -29,6 +29,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nahuelgg.inventory_app.users.components.AuthenticationForTesting;
+import com.nahuelgg.inventory_app.users.components.DTOMappers;
+import com.nahuelgg.inventory_app.users.components.AuthenticationForTesting.AuthData;
 import com.nahuelgg.inventory_app.users.dtos.LoginDTO;
 import com.nahuelgg.inventory_app.users.dtos.PermissionsForInventoryDTO;
 import com.nahuelgg.inventory_app.users.dtos.ResponseDTO;
@@ -41,9 +44,6 @@ import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
 import com.nahuelgg.inventory_app.users.repositories.InventoryRefRepository;
 import com.nahuelgg.inventory_app.users.repositories.PermissionsForInventoryRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
-import com.nahuelgg.inventory_app.users.services.AuthenticationForTesting;
-import com.nahuelgg.inventory_app.users.services.AuthenticationForTesting.AuthData;
-import com.nahuelgg.inventory_app.users.utilities.DTOMappers;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 
 import reactor.core.publisher.Mono;

@@ -18,14 +18,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nahuelgg.inventory_app.users.components.AuthenticationForTesting;
+import com.nahuelgg.inventory_app.users.components.AuthenticationForTesting.AuthData;
 import com.nahuelgg.inventory_app.users.dtos.LoginDTO;
 import com.nahuelgg.inventory_app.users.dtos.TokenDTO;
 import com.nahuelgg.inventory_app.users.entities.AccountEntity;
 import com.nahuelgg.inventory_app.users.entities.UserEntity;
 import com.nahuelgg.inventory_app.users.repositories.AccountRepository;
 import com.nahuelgg.inventory_app.users.repositories.UserRepository;
-import com.nahuelgg.inventory_app.users.services.AuthenticationForTesting;
-import com.nahuelgg.inventory_app.users.services.AuthenticationForTesting.AuthData;
 import com.nahuelgg.inventory_app.users.services.JwtService;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
