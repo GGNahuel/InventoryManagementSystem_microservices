@@ -88,6 +88,7 @@ public class AccountService_Impl implements AccountService {
 
     AccountEntity accountSaved = repository.save(AccountEntity.builder()
       .username(username)
+      .nickName(info.getNickName())
       .password(encoder.encode(password))
     .build());
 

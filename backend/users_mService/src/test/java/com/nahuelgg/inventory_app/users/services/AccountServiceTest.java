@@ -137,18 +137,18 @@ public class AccountServiceTest {
 
   @Test
   void create_throwsEmptyFieldInImportantOnes() {
-    assertThrows(EmptyFieldException.class, () -> service.create(new AccountRegistrationDTO("user", null, "password", "123", "123")));
-    assertThrows(EmptyFieldException.class, () -> service.create(new AccountRegistrationDTO("", "password", "password", "123", "123")));
-    assertThrows(EmptyFieldException.class, () -> service.create(new AccountRegistrationDTO("user", "password", "password", null, "123")));
+    assertThrows(EmptyFieldException.class, () -> service.create(new AccountRegistrationDTO("user", null, "password", "", "123", "123")));
+    assertThrows(EmptyFieldException.class, () -> service.create(new AccountRegistrationDTO("", "password", "password", "", "123", "123")));
+    assertThrows(EmptyFieldException.class, () -> service.create(new AccountRegistrationDTO("user", "password", "password", "", null, "123")));
   }
 
   @Test
   void create_throwsInvalidValue() {
     assertThrows(InvalidValueException.class, () ->
-      service.create(new AccountRegistrationDTO("user", "123", "456", "admin", "admin"))
+      service.create(new AccountRegistrationDTO("user", "123", "456", "", "admin", "admin"))
     );
     assertThrows(InvalidValueException.class, () ->
-      service.create(new AccountRegistrationDTO("user", "123", "123", "admin", "456"))
+      service.create(new AccountRegistrationDTO("user", "123", "123", "", "admin", "456"))
     );
   }
 

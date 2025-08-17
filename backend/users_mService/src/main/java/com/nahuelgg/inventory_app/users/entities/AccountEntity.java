@@ -28,9 +28,12 @@ public class AccountEntity {
   private String username;
   @Column(nullable = false)
   private String password;
+  private String nickName;
 
   @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER) @JoinColumn(name = "associated_account_id")
   private List<InventoryRefEntity> inventoriesReferences;
   @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, mappedBy = "associatedAccount")
   private List<UserEntity> users;
 }
+
+//TODO: agregar cambios al readme

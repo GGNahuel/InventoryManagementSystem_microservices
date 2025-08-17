@@ -498,6 +498,7 @@ Tanto el servicio de usuarios como el de productos devuelven el mismo tipo de fo
   interface DTO_cuenta {
     id: string,
     username: string,
+    nickName: string | null,
     inventoryReferenceIds: [string] | null,
     users: [DTO_subUsuario] | null
   }
@@ -529,6 +530,7 @@ Tanto el servicio de usuarios como el de productos devuelven el mismo tipo de fo
           username: string,
           password: string,
           passwordRepeated: string,
+          nickName: string,
           adminPassword: string,
           adminPasswordRepeated: string
         }

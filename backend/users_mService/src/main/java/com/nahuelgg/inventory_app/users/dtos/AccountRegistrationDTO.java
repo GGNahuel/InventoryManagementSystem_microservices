@@ -11,6 +11,7 @@ public class AccountRegistrationDTO {
   private String username;
   private String password;
   private String passwordRepeated;
+  private String nickName;
   private String adminPassword;
   private String adminPasswordRepeated;
 }

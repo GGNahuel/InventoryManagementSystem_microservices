@@ -38,6 +38,7 @@ public class EntityMappers {
     return AccountDTO.builder()
       .id(e.getId().toString())
       .username(e.getUsername())
+      .nickName(e.getNickName())
       .inventoryReferenceIds(e.getInventoriesReferences() != null ? 
         e.getInventoriesReferences().stream().map(
           idRefEntity -> idRefEntity.getInventoryIdReference().toString()

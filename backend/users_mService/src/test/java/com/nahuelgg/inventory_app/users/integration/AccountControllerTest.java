@@ -169,7 +169,7 @@ public class AccountControllerTest {
     String password = "password";
     String adminPassword = "adminPassword";
 
-    HttpEntity<AccountRegistrationDTO> entity = new HttpEntity<>(new AccountRegistrationDTO(username, password, password, adminPassword, adminPassword));
+    HttpEntity<AccountRegistrationDTO> entity = new HttpEntity<>(new AccountRegistrationDTO(username, password, password, "", adminPassword, adminPassword));
     ResponseEntity<ResponseDTO> response = restTemplate.exchange("/account/register", HttpMethod.POST, entity, ResponseDTO.class);
     assertEquals(HttpStatusCode.valueOf(201), response.getStatusCode());
     
