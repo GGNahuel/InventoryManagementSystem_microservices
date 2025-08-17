@@ -29,9 +29,9 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    final UUID exampleAccountId = UUID.fromString("12341234-0000-0000-0000-112233445566acc1");
-    final UUID inventoryRefId1 = UUID.fromString("12341234-0000-1000-0001-1122334455667788");
-    final UUID inventoryRefId2 = UUID.fromString("12341234-0000-1000-0002-1122334455667788");
+    final UUID exampleAccountId = UUID.fromString("12341234-0000-0000-0000-10001000acc1");
+    final UUID inventoryRefId1 = UUID.fromString("12341234-0000-1000-0001-100010001000");
+    final UUID inventoryRefId2 = UUID.fromString("12341234-0000-1000-0002-100010001000");
     
     if (accountRepository.findById(exampleAccountId).isPresent()) return;
 
@@ -53,7 +53,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
     userRepository.save(UserEntity.builder()
       .name("admin")
       .password(encoder.encode("adminPassword"))
-      .role("Administrador general")
+      .role("Administrador/ dueño")
       .isAdmin(true)
       .associatedAccount(acc)
     .build());
