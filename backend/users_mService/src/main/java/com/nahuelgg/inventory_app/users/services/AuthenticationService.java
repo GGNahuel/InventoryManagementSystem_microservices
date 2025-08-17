@@ -67,7 +67,7 @@ public class AuthenticationService {
       )
     );
 
-    return new TokenDTO(token);
+    return new TokenDTO(token, accountToLog.getId().toString());
   }
 
   @Transactional(readOnly = true)
@@ -124,7 +124,7 @@ public class AuthenticationService {
     Authentication newAuthInContext = new UsernamePasswordAuthenticationToken(loggedAccountAndUser, currentAccountLogged.getPassword());
     SecurityContextHolder.getContext().setAuthentication(newAuthInContext);
     
-    return new TokenDTO(token);
+    return new TokenDTO(token, loggedAccount.getId().toString());
   }
 
   public TokenDTO logout() {
@@ -136,7 +136,7 @@ public class AuthenticationService {
     SecurityContextHolder.clearContext();
 
     String logoutToken = jwtService.generateEmptyToken();
-    return new TokenDTO(logoutToken);
+    return new TokenDTO(logoutToken, null);
   }
 
   public TokenDTO logoutAsUser() {
@@ -165,6 +165,6 @@ public class AuthenticationService {
       currentAuth.getPassword()
     ));
 
-    return new TokenDTO(token);
+    return new TokenDTO(token, accountLogged.getId().toString());
   }
 }

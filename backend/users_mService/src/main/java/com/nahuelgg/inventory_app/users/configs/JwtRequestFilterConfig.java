@@ -38,15 +38,15 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
     String token = authHeader.substring(7);
 
     try {
-      String accountUsername = jwtService.getClaim(token, claim -> claim.getSubject());
+      String usernameInToken = jwtService.getClaim(token, claim -> claim.getSubject());
 
-      if (accountUsername == null) {
+      if (usernameInToken == null) {
         filterChain.doFilter(request, response);
         return;
       }
 
       JwtClaimsDTO tokenClaims = jwtService.mapTokenClaims(token);
-      boolean isTokenValid = jwtService.isTokenValid(token, accountUsername);
+      boolean isTokenValid = jwtService.isTokenValid(token, usernameInToken);
       boolean isTokenExpired = jwtService.isTokenExpired(token);
       boolean canBeRenewed = jwtService.canTokenBeRenewed(token);
 
@@ -62,10 +62,11 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
       }
 
       Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
-      if (existingAuth != null && existingAuth.getName().equals(accountUsername)) {
+      if (existingAuth != null && existingAuth.getName().equals(usernameInToken)) {
         filterChain.doFilter(request, response);
         return;
       }
+
       UserSigned userToNewAuthData = tokenClaims.getUserName() == null ? null : 
         new UserSigned(
           tokenClaims.getUserName(), tokenClaims.getUserRole(), tokenClaims.isAdmin(), 
@@ -73,7 +74,7 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
         );
 
       ContextAuthenticationPrincipal newAuthData = ContextAuthenticationPrincipal.builder()
-        .account(new AccountSigned(accountUsername, ""))
+        .account(new AccountSigned(usernameInToken, ""))
         .user(userToNewAuthData)
       .build();
 
