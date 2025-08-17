@@ -3,17 +3,15 @@ package com.nahuelgg.inventory_app.users.entities;
 import java.util.List;
 import java.util.UUID;
 
-import org.hibernate.annotations.UuidGenerator;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Data @Builder(toBuilder = true)
 @NoArgsConstructor @AllArgsConstructor
 public class UserEntity {
-  @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+  @Id
   private UUID id;
   @Column(nullable = false)
   private String name;
@@ -46,5 +44,12 @@ public class UserEntity {
         this.id.toString(), this.name, this.password, this.role, this.isAdmin.toString(), 
         this.associatedAccount.getId(), this.inventoryPerms.toString()
       );
+  }
+
+  @PrePersist
+  public void prePersist() {
+    if (this.id == null) {
+      this.id = UUID.randomUUID();
+    }
   }
 }

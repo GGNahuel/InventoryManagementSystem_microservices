@@ -2,14 +2,12 @@ package com.nahuelgg.inventory_app.inventories.entities;
 
 import java.util.UUID;
 
-import org.hibernate.annotations.UuidGenerator;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Data @Builder(toBuilder = true)
 @NoArgsConstructor @AllArgsConstructor
 public class ProductInInvEntity {
-  @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+  @Id
   private UUID id;
   @Column(nullable = false)
   private UUID referenceId;
@@ -36,5 +34,12 @@ public class ProductInInvEntity {
       this.stock != null ? this.stock.toString() : "null", this.isAvailable != null ? this.isAvailable.toString() : "null", 
       this.inventory.getId().toString()
     );
+  }
+
+  @PrePersist
+  public void prePersist() {
+    if (this.id == null) {
+      this.id = UUID.randomUUID();
+    }
   }
 }

@@ -3,16 +3,14 @@ package com.nahuelgg.inventory_app.users.entities;
 import java.util.List;
 import java.util.UUID;
 
-import org.hibernate.annotations.UuidGenerator;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Data @Builder(toBuilder = true)
 @NoArgsConstructor @AllArgsConstructor
 public class AccountEntity {
-  @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+  @Id
   private UUID id;
   @Column(unique = true, nullable = false)
   private String username;
@@ -34,6 +32,13 @@ public class AccountEntity {
   private List<InventoryRefEntity> inventoriesReferences;
   @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, mappedBy = "associatedAccount")
   private List<UserEntity> users;
+
+  @PrePersist
+  public void prePersist() {
+    if (this.id == null) {
+      this.id = UUID.randomUUID();
+    }
+  }
 }
 
 //TODO: agregar cambios al readme
