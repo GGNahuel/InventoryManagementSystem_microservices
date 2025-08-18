@@ -34,6 +34,8 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
     final UUID exampleAccountId = UUID.fromString("12341234-0000-0000-0000-10001000acc1");
     final UUID inventoryRefId1 = UUID.fromString("12341234-0000-1000-0001-100010001000");
     final UUID inventoryRefId2 = UUID.fromString("12341234-0000-1000-0002-100010001000");
+    final UUID generalManagerId = UUID.fromString("12341234-0000-0000-0000-000a000a0001");
+    final UUID pharmacist1Id = UUID.fromString("12341234-0000-0000-0000-000a000a0002");
     
     if (accountRepository.findById(exampleAccountId).isPresent()) return;
 
@@ -71,6 +73,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
       .inventoryReference(inv2)
     .build());
     userRepository.save(UserEntity.builder()
+      .id(generalManagerId)
       .name("gerenteGeneral")
       .password(encoder.encode("managerPassword"))
       .role("Gerente general")
@@ -111,6 +114,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
       .inventoryReference(inv1)
     .build());
     userRepository.save(UserEntity.builder()
+      .id(pharmacist1Id)
       .name("pharmacistsForInv1")
       .password(encoder.encode("pharmacists1Password"))
       .role("Farmacéuticos")

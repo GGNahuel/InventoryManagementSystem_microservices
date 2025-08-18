@@ -10,7 +10,7 @@
 			"name": "Autenticaciones",
 			"item": [
 				{
-					"name": "iniciar sesión como cuenta",
+					"name": "Iniciar sesión como cuenta",
 					"event": [
 						{
 							"listen": "test",
@@ -51,18 +51,56 @@
 							]
 						}
 					},
-					"response": []
+					"response": [
+						{
+							"name": "iniciar sesión como cuenta",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"farmaciasHealth\",\r\n    \"password\": \"accountPassword\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/authenticate/login/account",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"authenticate",
+										"login",
+										"account"
+									]
+								}
+							},
+							"_postman_previewlanguage": "",
+							"header": [],
+							"cookie": [
+								{
+									"expires": "Invalid Date"
+								}
+							],
+							"body": ""
+						}
+					]
 				},
 				{
-					"name": "iniciar sesión como admin",
+					"name": "Iniciar sesión como sub-usuario",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
 									"let data = pm.response.json();\r",
-									"pm.environment.set(\"JWT_TOKEN\", data.token);\r",
-									"pm.environment.set(\"ACCOUNT_ID\", data.accountId);"
+									"pm.collectionVariables.set(\"JWT_TOKEN\", data.token);\r",
+									"pm.collectionVariables.set(\"ACCOUNT_ID\", data.accountId);"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -70,16 +108,6 @@
 						}
 					],
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{JWT_TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [],
 						"body": {
@@ -105,18 +133,89 @@
 							]
 						}
 					},
-					"response": []
+					"response": [
+						{
+							"name": "iniciar sesión como admin",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"adminPassword\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/authenticate/login/user",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"authenticate",
+										"login",
+										"user"
+									]
+								}
+							},
+							"_postman_previewlanguage": "",
+							"header": [],
+							"cookie": [
+								{
+									"expires": "Invalid Date"
+								}
+							],
+							"body": ""
+						},
+						{
+							"name": "Iniciar sesión como farmacéutico 1",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"pharmacistsForInv1\",\r\n    \"password\": \"pharmacists1Password\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/authenticate/login/user",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"authenticate",
+										"login",
+										"user"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						}
+					]
 				},
 				{
-					"name": "cerrar sesión de cuenta",
+					"name": "Cerrar sesión de cuenta",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
 									"let data = pm.response.json();\r",
-									"pm.environment.set(\"JWT_TOKEN\", data.token);\r",
-									"pm.environment.set(\"ACCOUNT_ID\", data.accountId);"
+									"pm.collectionVariables.set(\"JWT_TOKEN\", data.token);\r",
+									"pm.collectionVariables.set(\"ACCOUNT_ID\", data.accountId);"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -124,16 +223,6 @@
 						}
 					],
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{JWT_TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [],
 						"url": {
@@ -153,15 +242,15 @@
 					"response": []
 				},
 				{
-					"name": "cerrar sesión de sub-usuario",
+					"name": "Cerrar sesión de sub-usuario",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
 									"let data = pm.response.json();\r",
-									"pm.environment.set(\"JWT_TOKEN\", data.token);\r",
-									"pm.environment.set(\"ACCOUNT_ID\", data.accountId);"
+									"pm.collectionVariables.set(\"JWT_TOKEN\", data.token);\r",
+									"pm.collectionVariables.set(\"ACCOUNT_ID\", data.accountId);"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -169,16 +258,6 @@
 						}
 					],
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{JWT_TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [],
 						"url": {
@@ -208,16 +287,6 @@
 						{
 							"name": "Obtener datos de cuenta según id",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "GET",
 								"header": [],
 								"url": {
@@ -232,7 +301,34 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Obtener datos de cuenta según id",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{HOST}}/account/id/12341234-0000-0000-0000-10001000acc1",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"account",
+												"id",
+												"12341234-0000-0000-0000-10001000acc1"
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [
+										{
+											"expires": "Invalid Date"
+										}
+									],
+									"body": ""
+								}
+							]
 						},
 						{
 							"name": "Registrar cuenta",
@@ -241,8 +337,8 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"let data = pm.response.json();\r",
-											"pm.environment.set(\"ACCOUNT_ID\", data.data.id);"
+											"let response = pm.response.json();\r",
+											"pm.environment.set(\"ACCOUNT_ID\", response.data.id);"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -252,8 +348,17 @@
 							"request": {
 								"method": "POST",
 								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"\",\r\n    \"password\": \"1234\",\r\n    \"passwordRepeated\": \"1234\",\r\n    \"nickname\": \"nickname\",\r\n    \"adminPassword\": \"1234\",\r\n    \"adminPasswordRepeated\": \"1234\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
 								"url": {
-									"raw": "http://localhost:8080/account/register?username=account&password=password&passwordRepeated=password&adminPassword=admin&adminPasswordRepeated=admin",
+									"raw": "http://localhost:8080/account/register",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -262,28 +367,6 @@
 									"path": [
 										"account",
 										"register"
-									],
-									"query": [
-										{
-											"key": "username",
-											"value": "account"
-										},
-										{
-											"key": "password",
-											"value": "password"
-										},
-										{
-											"key": "passwordRepeated",
-											"value": "password"
-										},
-										{
-											"key": "adminPassword",
-											"value": "admin"
-										},
-										{
-											"key": "adminPasswordRepeated",
-											"value": "admin"
-										}
 									]
 								}
 							},
@@ -297,8 +380,8 @@
 									"script": {
 										"exec": [
 											"let response = pm.response.json();\r",
-											"pm.environment.set(\"JWT_TOKEN\", response.token);\r",
-											"pm.environment.set(\"ACCOUNT_ID\", response.accountId);"
+											"pm.collectionVariables.set(\"JWT_TOKEN\", response.token);\r",
+											"pm.collectionVariables.set(\"ACCOUNT_ID\", response.accountId);"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -306,16 +389,6 @@
 								}
 							],
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "DELETE",
 								"header": [],
 								"url": {
@@ -335,7 +408,39 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Borrar cuenta en base al id",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{HOST}}/account/delete?id=12341234-0000-0000-0000-10001000acc1",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"account",
+												"delete"
+											],
+											"query": [
+												{
+													"key": "id",
+													"value": "12341234-0000-0000-0000-10001000acc1"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [
+										{
+											"expires": "Invalid Date"
+										}
+									],
+									"body": ""
+								}
+							]
 						}
 					]
 				},
@@ -345,16 +450,6 @@
 						{
 							"name": "Obtener datos de usuario según id",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "GET",
 								"header": [],
 								"url": {
@@ -375,21 +470,40 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Obtener datos del gerente general",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{HOST}}/user/id/12341234-0000-0000-0000-000a000a0001?accountId=12341234-0000-0000-0000-10001000acc1",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"user",
+												"id",
+												"12341234-0000-0000-0000-000a000a0001"
+											],
+											"query": [
+												{
+													"key": "accountId",
+													"value": "12341234-0000-0000-0000-10001000acc1"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": null,
+									"header": null,
+									"cookie": [],
+									"body": null
+								}
+							]
 						},
 						{
 							"name": "Registrar usuario en cuenta",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "POST",
 								"header": [],
 								"body": {
@@ -418,21 +532,48 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Registrar sub encargado",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"name\": \"subEncargado\",\r\n    \"role\": \"Sub encargado de sucursal norte - Intendente sucursal centro\",\r\n    \"password\": \"subManagerPassword\",\r\n    \"passwordRepeated\": \"subManagerPassword\",\r\n    \"inventoryPerms\": null\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{HOST}}/account/add-user?accountId=12341234-0000-0000-0000-10001000acc1",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"account",
+												"add-user"
+											],
+											"query": [
+												{
+													"key": "accountId",
+													"value": "12341234-0000-0000-0000-10001000acc1"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": null,
+									"header": null,
+									"cookie": [],
+									"body": null
+								}
+							]
 						},
 						{
 							"name": "Editar datos de usuario",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "PUT",
 								"header": [],
 								"body": {
@@ -461,21 +602,48 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Editar datos de farmacéutico 1",
+									"originalRequest": {
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"id\": \"12341234-0000-0000-0000-000a000a0002\",\r\n    \"name\": \"pharmacist1\",\r\n    \"role\": \"Farmacéutico principal\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{HOST}}/user/edit?accountId=12341234-0000-0000-0000-10001000acc1",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"user",
+												"edit"
+											],
+											"query": [
+												{
+													"key": "accountId",
+													"value": "12341234-0000-0000-0000-10001000acc1"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": null,
+									"header": null,
+									"cookie": [],
+									"body": null
+								}
+							]
 						},
 						{
 							"name": "Agregar o editar permisos de usuario",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "PATCH",
 								"header": [],
 								"body": {
@@ -508,21 +676,92 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Editar permisos a farmacéutico 1",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"idOfInventoryReferenced\": \"12341234-0000-1000-0001-100010001000\",\r\n    \"permissions\": [\"addProducts\", \"editInventory\", \"editProducts\"]\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{HOST}}/user/permissions?userId=12341234-0000-0000-0000-000a000a0002&accountId=12341234-0000-0000-0000-10001000acc1",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"user",
+												"permissions"
+											],
+											"query": [
+												{
+													"key": "userId",
+													"value": "12341234-0000-0000-0000-000a000a0002"
+												},
+												{
+													"key": "accountId",
+													"value": "12341234-0000-0000-0000-10001000acc1"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": null,
+									"header": null,
+									"cookie": [],
+									"body": null
+								},
+								{
+									"name": "Agregar permisos a farmacéutico 1",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    // agrega permisos al inventario que antes no tenía nada asignado\r\n    \"idOfInventoryReferenced\": \"12341234-0000-1000-0002-100010001000\",\r\n    \"permissions\": [\"addProducts\", \"editProducts\"]\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{HOST}}/user/permissions?userId=12341234-0000-0000-0000-000a000a0002&accountId=12341234-0000-0000-0000-10001000acc1",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"user",
+												"permissions"
+											],
+											"query": [
+												{
+													"key": "userId",
+													"value": "12341234-0000-0000-0000-000a000a0002"
+												},
+												{
+													"key": "accountId",
+													"value": "12341234-0000-0000-0000-10001000acc1"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": null,
+									"header": null,
+									"cookie": [],
+									"body": null
+								}
+							]
 						},
 						{
 							"name": "Quitar permisos de inventario",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "PATCH",
 								"header": [],
 								"url": {
@@ -553,21 +792,54 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Quitar permisos de inventario 1 a farmacéutico",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [],
+										"url": {
+											"raw": "{{HOST}}/user/permissions/delete?invRefId=12341234-0000-1000-0001-100010001000&userId=12341234-0000-0000-0000-000a000a0002&accountId=12341234-0000-0000-0000-10001000acc1",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"user",
+												"permissions",
+												"delete"
+											],
+											"query": [
+												{
+													"key": "invRefId",
+													"value": "12341234-0000-1000-0001-100010001000",
+													"description": "Id del inventario al que pertenece el permiso a borrar"
+												},
+												{
+													"key": "userId",
+													"value": "12341234-0000-0000-0000-000a000a0002",
+													"description": "Id del usuario que posee el permiso"
+												},
+												{
+													"key": "accountId",
+													"value": "12341234-0000-0000-0000-10001000acc1"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [
+										{
+											"expires": "Invalid Date"
+										}
+									],
+									"body": ""
+								}
+							]
 						},
 						{
 							"name": "Borrar usuario en base a id",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "DELETE",
 								"header": [],
 								"url": {
@@ -591,7 +863,39 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Borrar farmacéutico 1",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{HOST}}/user/delete?id=12341234-0000-0000-0000-000a000a0002&accountId=12341234-0000-0000-0000-10001000acc1",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"user",
+												"delete"
+											],
+											"query": [
+												{
+													"key": "id",
+													"value": "12341234-0000-0000-0000-000a000a0002"
+												},
+												{
+													"key": "accountId",
+													"value": "12341234-0000-0000-0000-10001000acc1"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": null,
+									"header": null,
+									"cookie": [],
+									"body": null
+								}
+							]
 						}
 					]
 				}
@@ -606,16 +910,6 @@
 						{
 							"name": "Obtener inventarios asociados a una cuenta",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "POST",
 								"header": [],
 								"body": {
@@ -635,21 +929,43 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Obtener inventarios asociados a una cuenta",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "query($accountId: ID!) {\r\n    getByAccount(accountId: $accountId) {\r\n        name\r\n        products {\r\n            name\r\n        }\r\n    }\r\n}",
+												"variables": "{\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+											}
+										},
+										"url": {
+											"raw": "{{HOST}}/graphql",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [
+										{
+											"expires": "Invalid Date"
+										}
+									],
+									"body": ""
+								}
+							]
 						},
 						{
 							"name": "Obtener inventario según id",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "POST",
 								"header": [],
 								"body": {
@@ -669,21 +985,43 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Obtener inventario según id",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "query($id: ID!, $accountId: ID!) {\r\n    getByAccount(id: $id, accountId: $accountId) {\r\n        name\r\n        products {\r\n            name\r\n        }\r\n    }\r\n}",
+												"variables": "{\r\n    \"id\": \"12341234-0000-1000-0001-100010001000\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+											}
+										},
+										"url": {
+											"raw": "{{HOST}}/graphql",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [
+										{
+											"expires": "Invalid Date"
+										}
+									],
+									"body": ""
+								}
+							]
 						},
 						{
 							"name": "Buscar productos en inventarios",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "POST",
 								"header": [],
 								"body": {
@@ -703,7 +1041,39 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Buscar productos en inventarios",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "query(\r\n    $name: String, \r\n    $brand: String, \r\n    $model: String, \r\n    $categories: [String], \r\n    $accountId: ID!\r\n) {\r\n    searchProductsInInventories(\r\n        name: $name, \r\n        brand: $brand, \r\n        model: $model, \r\n        categories: $categories, \r\n        accountId: $accountId\r\n    ) {\r\n        name\r\n        products {\r\n            name\r\n            stock\r\n        }\r\n    }\r\n}",
+												"variables": "{\r\n    \"name\": \"\",\r\n    \"brand\": null,\r\n    \"model\": null,\r\n    \"categories\": [\"medicamentos\"],\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+											}
+										},
+										"url": {
+											"raw": "{{HOST}}/graphql",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [
+										{
+											"expires": "Invalid Date"
+										}
+									],
+									"body": ""
+								}
+							]
 						}
 					]
 				},
@@ -716,16 +1086,6 @@
 								{
 									"name": "Agregar producto a inventario",
 									"request": {
-										"auth": {
-											"type": "bearer",
-											"bearer": [
-												{
-													"key": "token",
-													"value": "{{JWT_TOKEN}}",
-													"type": "string"
-												}
-											]
-										},
 										"method": "POST",
 										"header": [],
 										"body": {
@@ -745,21 +1105,43 @@
 											]
 										}
 									},
-									"response": []
+									"response": [
+										{
+											"name": "Agregar producto a inventario",
+											"originalRequest": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "graphql",
+													"graphql": {
+														"query": "mutation($product: ProductInput!, $invId: ID!, $accountId: ID!) {\r\n    addProduct(product: $product, id: $invId, accountId: $accountId) {\r\n        refId\r\n        name\r\n        brand\r\n        categories\r\n        unitPrice\r\n        stock\r\n    }\r\n}",
+														"variables": "{\r\n    \"product\": {\r\n        \"name\": \"Antigripal\",\r\n        \"brand\": \"Marca\",\r\n        \"categories\": [\"Medicamentos\", \"antigripales\"],\r\n        \"unitPrice\": 800.0,\r\n        \"stock\": 25\r\n    },\r\n    \"invId\": \"12341234-0000-1000-0001-100010001000\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+													}
+												},
+												"url": {
+													"raw": "{{HOST}}/graphql",
+													"host": [
+														"{{HOST}}"
+													],
+													"path": [
+														"graphql"
+													]
+												}
+											},
+											"_postman_previewlanguage": "",
+											"header": [],
+											"cookie": [
+												{
+													"expires": "Invalid Date"
+												}
+											],
+											"body": ""
+										}
+									]
 								},
 								{
 									"name": "Editar producto en inventario seleccionado",
 									"request": {
-										"auth": {
-											"type": "bearer",
-											"bearer": [
-												{
-													"key": "token",
-													"value": "{{JWT_TOKEN}}",
-													"type": "string"
-												}
-											]
-										},
 										"method": "POST",
 										"header": [],
 										"body": {
@@ -779,21 +1161,43 @@
 											]
 										}
 									},
-									"response": []
+									"response": [
+										{
+											"name": "Editar producto en inventario seleccionado",
+											"originalRequest": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "graphql",
+													"graphql": {
+														"query": "mutation($product: EditProductInput!, $invId: ID!, $accountId: ID!) {\r\n    editProductInInventory(product: $product, id: $invId, accountId: $accountId) {\r\n        refId\r\n        name\r\n        brand\r\n        categories\r\n        unitPrice\r\n        stock\r\n    }\r\n}",
+														"variables": "{\r\n    \"product\": {\r\n        \"refId\": \"00000000-0000-0000-0000-000000000017\",\r\n        \"name\": \"Test rápido COVID-19\",\r\n        \"brand\": \"Nueva marca\",\r\n        \"categories\": [\"Tests rápidos\", \"descartables\", \"covid\"],\r\n        \"unitPrice\": 2500.0\r\n    },\r\n    \"invId\": \"12341234-0000-1000-0001-100010001000\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+													}
+												},
+												"url": {
+													"raw": "{{HOST}}/graphql",
+													"host": [
+														"{{HOST}}"
+													],
+													"path": [
+														"graphql"
+													]
+												}
+											},
+											"_postman_previewlanguage": "",
+											"header": [],
+											"cookie": [
+												{
+													"expires": "Invalid Date"
+												}
+											],
+											"body": ""
+										}
+									]
 								},
 								{
 									"name": "Copiar productos a otro inventario",
 									"request": {
-										"auth": {
-											"type": "bearer",
-											"bearer": [
-												{
-													"key": "token",
-													"value": "{{JWT_TOKEN}}",
-													"type": "string"
-												}
-											]
-										},
 										"method": "POST",
 										"header": [],
 										"body": {
@@ -813,21 +1217,43 @@
 											]
 										}
 									},
-									"response": []
+									"response": [
+										{
+											"name": "Copiar productos a sucursal centro",
+											"originalRequest": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "graphql",
+													"graphql": {
+														"query": "mutation($products: [ProductToCopyInput]!, $idTo: ID!, $accountId: ID!) {\r\n    copyPtoducts(product: $products, id: $invId, accountId: $accountId)\r\n}",
+														"variables": "{\r\n    \"products\": [\r\n        {\r\n            \"refId\": \"00000000-0000-0000-0000-000000000017\",\r\n            \"stock\": 8\r\n        },\r\n        {\r\n            \"refId\": \"00000000-0000-0000-0000-000000000013\",\r\n            \"stock\": 12\r\n        }\r\n    ],\r\n    \"idTo\": \"12341234-0000-1000-0002-100010001000\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+													}
+												},
+												"url": {
+													"raw": "{{HOST}}/graphql",
+													"host": [
+														"{{HOST}}"
+													],
+													"path": [
+														"graphql"
+													]
+												}
+											},
+											"_postman_previewlanguage": "",
+											"header": [],
+											"cookie": [
+												{
+													"expires": "Invalid Date"
+												}
+											],
+											"body": ""
+										}
+									]
 								},
 								{
 									"name": "Editar stock de producto",
 									"request": {
-										"auth": {
-											"type": "bearer",
-											"bearer": [
-												{
-													"key": "token",
-													"value": "{{JWT_TOKEN}}",
-													"type": "string"
-												}
-											]
-										},
 										"method": "POST",
 										"header": [],
 										"body": {
@@ -847,21 +1273,43 @@
 											]
 										}
 									},
-									"response": []
+									"response": [
+										{
+											"name": "Editar stock de producto",
+											"originalRequest": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "graphql",
+													"graphql": {
+														"query": "mutation($refId: ID!, $invId: ID!, $accountId: ID!) {\r\n    editStockOfProduct(relativeNewStock: -2, productRefId: $refId, invId: $invId, accountId: $accountId)\r\n}",
+														"variables": "{\r\n    \"refId\": \"00000000-0000-0000-0000-000000000001\",\r\n    \"invId\": \"12341234-0000-1000-0001-100010001000y\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+													}
+												},
+												"url": {
+													"raw": "{{HOST}}/graphql",
+													"host": [
+														"{{HOST}}"
+													],
+													"path": [
+														"graphql"
+													]
+												}
+											},
+											"_postman_previewlanguage": "",
+											"header": [],
+											"cookie": [
+												{
+													"expires": "Invalid Date"
+												}
+											],
+											"body": ""
+										}
+									]
 								},
 								{
 									"name": "Borrar productos en inventario seleccionado",
 									"request": {
-										"auth": {
-											"type": "bearer",
-											"bearer": [
-												{
-													"key": "token",
-													"value": "{{JWT_TOKEN}}",
-													"type": "string"
-												}
-											]
-										},
 										"method": "POST",
 										"header": [],
 										"body": {
@@ -881,30 +1329,52 @@
 											]
 										}
 									},
-									"response": []
+									"response": [
+										{
+											"name": "Borrar productos en inventario seleccionado",
+											"originalRequest": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "graphql",
+													"graphql": {
+														"query": "mutation($refIds: [ID]!, $invId: ID!, $accountId: ID!) {\r\n    deleteProductsInInventory(productRefIds: $refIds, invId: $invId, accountId: $accountId)\r\n}",
+														"variables": "{\r\n    \"refIds\": [\r\n        \"00000000-0000-0000-0000-000000000017\",\r\n        \"00000000-0000-0000-0000-000000000010\"\r\n    ],\r\n    \"invId\": \"12341234-0000-1000-0001-100010001000\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+													}
+												},
+												"url": {
+													"raw": "{{HOST}}/graphql",
+													"host": [
+														"{{HOST}}"
+													],
+													"path": [
+														"graphql"
+													]
+												}
+											},
+											"_postman_previewlanguage": "",
+											"header": [],
+											"cookie": [
+												{
+													"expires": "Invalid Date"
+												}
+											],
+											"body": ""
+										}
+									]
 								}
 							]
 						},
 						{
 							"name": "Crear inventario",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "POST",
 								"header": [],
 								"body": {
 									"mode": "graphql",
 									"graphql": {
 										"query": "mutation($accountId: ID!) {\r\n    create(\r\n        name: \"Sucursal A\", \r\n        accountId: $accountId\r\n    ) {\r\n        name\r\n    }\r\n}",
-										"variables": "{\r\n    \"accountId\": {{ACCOUNT_ID}}\r\n}"
+										"variables": "{\r\n    \"accountId\": \"{{ACCOUNT_ID}}\"\r\n}"
 									}
 								},
 								"url": {
@@ -917,21 +1387,43 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Crear inventario",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation($accountId: ID!) {\r\n    create(\r\n        name: \"Sucursal sur\", \r\n        accountId: $accountId\r\n    ) {\r\n        name\r\n    }\r\n}",
+												"variables": "{\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+											}
+										},
+										"url": {
+											"raw": "{{HOST}}/graphql",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [
+										{
+											"expires": "Invalid Date"
+										}
+									],
+									"body": ""
+								}
+							]
 						},
 						{
 							"name": "Cambiar nombre de inventario",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "POST",
 								"header": [],
 								"body": {
@@ -951,21 +1443,43 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Cambiar nombre de inventario",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation($invId: ID!, $name: String!, $accountId: ID!) {\r\n    edit(id: $invId, name: $name, accountId: $accountId)\r\n}",
+												"variables": "{\r\n    \"invId\": \"12341234-0000-1000-0001-100010001000\",\r\n    \"name\": \"Sucursal oeste\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+											}
+										},
+										"url": {
+											"raw": "{{HOST}}/graphql",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [
+										{
+											"expires": "Invalid Date"
+										}
+									],
+									"body": ""
+								}
+							]
 						},
 						{
 							"name": "Eliminar inventario según id",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{JWT_TOKEN}}",
-											"type": "string"
-										}
-									]
-								},
 								"method": "POST",
 								"header": [],
 								"body": {
@@ -985,7 +1499,39 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Eliminar inventario según id",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation($invId: ID!, $accountId: ID!) {\r\n    delete(id: $invId, accountId: $accountId)\r\n}",
+												"variables": "{\r\n    \"invId\": \"12341234-0000-1000-0001-100010001000\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+											}
+										},
+										"url": {
+											"raw": "{{HOST}}/graphql",
+											"host": [
+												"{{HOST}}"
+											],
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [
+										{
+											"expires": "Invalid Date"
+										}
+									],
+									"body": ""
+								}
+							]
 						}
 					]
 				}
@@ -997,16 +1543,6 @@
 				{
 					"name": "Editar producto de referencia",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{JWT_TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "PUT",
 						"header": [],
 						"body": {
@@ -1035,21 +1571,52 @@
 							]
 						}
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Editar producto de referencia",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": \"00000000-0000-0000-0000-000000000001\",\r\n    \"name\": \"Ibuprofeno 400mg\",\r\n    \"brand\": \"Nueva marca\",\r\n    \"categories\": [\"Medicamentos\",\"Antiinflamatorios\",\"Analgéticos\"]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{HOST}}/product/edit?accountId=12341234-0000-0000-0000-10001000acc1",
+									"host": [
+										"{{HOST}}"
+									],
+									"path": [
+										"product",
+										"edit"
+									],
+									"query": [
+										{
+											"key": "accountId",
+											"value": "12341234-0000-0000-0000-10001000acc1"
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "",
+							"header": [],
+							"cookie": [
+								{
+									"expires": "Invalid Date"
+								}
+							],
+							"body": ""
+						}
+					]
 				},
 				{
 					"name": "Borrar producto de referencia",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{JWT_TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "DELETE",
 						"header": [],
 						"url": {
@@ -1074,7 +1641,44 @@
 							]
 						}
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Borrar producto de referencia",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{HOST}}/product/delete?id=00000000-0000-0000-0000-000000000017&accountId=12341234-0000-0000-0000-10001000acc1",
+									"host": [
+										"{{HOST}}"
+									],
+									"path": [
+										"product",
+										"delete"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "00000000-0000-0000-0000-000000000017",
+											"description": "Id de referencia del producto a borrar"
+										},
+										{
+											"key": "accountId",
+											"value": "12341234-0000-0000-0000-10001000acc1"
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "",
+							"header": [],
+							"cookie": [
+								{
+									"expires": "Invalid Date"
+								}
+							],
+							"body": ""
+						}
+					]
 				}
 			]
 		}
@@ -1122,8 +1726,7 @@
 		},
 		{
 			"key": "HOST",
-			"value": "http://localhost:8080",
-			"type": "string"
+			"value": "http://localhost:8080"
 		}
 	]
 }
