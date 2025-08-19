@@ -141,8 +141,8 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
       .inventoryReference(inv1)
     .build());
     userRepository.save(UserEntity.builder()
-      .name("cashiersForInv1")
-      .password(encoder.encode("cashiers1Password"))
+      .name("cashersForInv1")
+      .password(encoder.encode("cashers1Password"))
       .role("Cajeros")
       .isAdmin(false)
       .inventoryPerms(List.of(permCashiersForInv1))
@@ -154,8 +154,8 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
       .inventoryReference(inv2)
     .build());
     userRepository.save(UserEntity.builder()
-      .name("cashiersForInv2")
-      .password(encoder.encode("cashier21Password"))
+      .name("cashersForInv2")
+      .password(encoder.encode("casher21Password"))
       .role("Cajeros")
       .isAdmin(false)
       .inventoryPerms(List.of(permCashiersForInv2))

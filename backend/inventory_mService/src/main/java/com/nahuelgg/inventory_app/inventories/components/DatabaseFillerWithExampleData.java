@@ -140,7 +140,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
     .build());
     productInInvRepository.save(ProductInInvEntity.builder()
       .referenceId(UUID.fromString(productRefBaseId + "17"))
-      .stock(12)
+      .stock(2)
       .isAvailable(true)
       .inventory(inv1)
     .build());
@@ -244,7 +244,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
     .build());
     productInInvRepository.save(ProductInInvEntity.builder()
       .referenceId(UUID.fromString(productRefBaseId + "20"))
-      .stock(12)
+      .stock(16)
       .isAvailable(true)
       .inventory(inv2)
     .build());

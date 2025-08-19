@@ -29,7 +29,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner{
       .name("Ibuprofeno 400mg")
       .brand("Genérico")
       .model("Caja 20 comprimidos")
-      .description("Analgesico y antiinflamatorio")
+      .description("Analgésico y antiinflamatorio")
       .unitPrice(250.0)
       .categories(List.of("Medicamentos", "Analgesicos"))
       .accountId(accountId)

@@ -874,4 +874,289 @@ Este ejecutará tanto las pruebas unitarias como las de integración del servici
 >  ```
 > Lo que implica que usaría el wrapper de maven, lo que ya incluye configuración y scripts para ejecutarlo sin necesidad de tenerlo localmente.
 
+Herramienta de logística
 ### Prueba con Postman
+Dentro del repositorio se encuentra una colección de Postman, la cual puede ser importada en esa aplicación, trayendo con ella todos los endpoints y operaciones que son posibles en este sistema de apis. Además viene con ejemplos prácticos según datos de ejemplo que son insertados en la base de datos al arrancar la aplicación por primera vez (Se pueden re-establecer si se elimina la cuenta de ejemplo y se vuelve a ejecutar la aplicación).
+
+[Colección postman](./Inventory%20Api.postman_collection.json)
+
+Los datos de ejemplo son los siguientes. Algunos ya poseen id por un lado para ser referenciados entre los microservicios, y por el otro para tener datos para las pruebas en postman. El resto que no tiene id es porque se generó de forma aleatoria a través de JPA. 
+
+**Cuenta:**
+- id: ``12341234-0000-0000-0000-10001000acc1``
+- username: farmaciasHealth
+- nickName: Farmacias Health
+- password: accountPassword
+  
+**Sub-usuarios con sus permisos**
+- Admin:
+  - name: admin
+  - password: adminPassword
+  - role: Administrador/ dueño
+- Gerente general:
+  - id: ``12341234-0000-0000-0000-000a000a0001``
+  - name: gerenteGeneral
+  - password: managerPassword
+  - role: Gerente general
+  - permisos:
+    1. - permissions: addProducts, editProducts, editProductReferences, deleteProducts,deleteProductReferences, editInventory
+        - inventoryReference id: 12341234-0000-1000-0001-100010001000 (Inventario de la sucursal norte)
+    2. - permissions: addProducts, editProducts, editProductReferences, deleteProducts,deleteProductReferences, editInventory
+        - inventoryReference id: 12341234-0000-1000-0002-100010001000 (Inventario de la sucursal centro)
+
+- Encargado de sucursal norte
+  - name: manager1
+  - password: manager1Password
+  - role: Encargado de sucursal norte
+  - permisos:
+    1. - permissions: addProducts, editProducts, deleteProducts, editInventory
+        - inventoryReference id: 12341234-0000-1000-0001-100010001000 (Inventario de la sucursal norte)
+- Encargado de sucursal centro
+  - name: manager2
+  - password: manager2Password
+  - role: Encargado de sucursal centro
+  - permisos:
+    1. - permissions: addProducts, editProducts, deleteProducts, editInventory
+        - inventoryReference id: 12341234-0000-1000-0002-100010001000 (Inventario de la sucursal centro)
+
+- Sub-usuario para farmacéuticos de la sucursal norte
+  - id: ``12341234-0000-0000-0000-000a000a0002``
+  - name: pharmacistsForInv1
+  - password: pharmacists1Password
+  - role: Farmacéuticos
+  - permisos:
+    1. - permissions: editProducts
+        - inventoryReference id: 12341234-0000-1000-0001-100010001000 (Inventario de la sucursal norte)
+- Sub-usuario para farmacéuticos de la sucursal centro
+  - name: pharmacistsForInv2
+  - password: pharmacists2Password
+  - role: Farmacéuticos
+  - permisos:
+    1. - permissions: editProducts
+        - inventoryReference id: 12341234-0000-1000-0002-100010001000 (Inventario de la sucursal centro)
+
+- Sub-usuario para cajeros de la sucursal norte
+  - name: cashersForInv1
+  - password: cashers1Password
+  - role: Cajeros
+  - permisos:
+    1. - permissions: editInventory
+        - inventoryReference id: 12341234-0000-1000-0001-100010001000 (Inventario de la sucursal norte)
+- Sub-usuario para cajeros de la sucursal centro
+  - name: cashersForInv2
+  - password: cashers2Password
+  - role: Cajeros
+  - permisos:
+    1. - permissions: editInventory
+        - inventoryReference id: 12341234-0000-1000-0002-100010001000 (Inventario de la sucursal centro)
+
+**Inventarios**
+
+Ambos con el atributo *accountId* con el valor de ``12341234-0000-0000-0000-10001000acc1``
+- Inventario para sucursal norte
+  - id: ``12341234-0000-1000-0001-100010001000``
+  - name: Sucursal norte
+  - productos:
+    - id de referencia: 00000000-0000-0000-0000-000000000001, stock: 38
+    - id de referencia: 00000000-0000-0000-0000-000000000002, stock: 25
+    - id de referencia: 00000000-0000-0000-0000-000000000003, stock: 20
+    - id de referencia: 00000000-0000-0000-0000-000000000004, stock: 16
+    - id de referencia: 00000000-0000-0000-0000-000000000005, stock: 18
+    - id de referencia: 00000000-0000-0000-0000-000000000006, stock: 22
+    - id de referencia: 00000000-0000-0000-0000-000000000007, stock: 22
+    - id de referencia: 00000000-0000-0000-0000-000000000008, stock: 15
+    - id de referencia: 00000000-0000-0000-0000-000000000009, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000010, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000011, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000012, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000013, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000014, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000015, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000016, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000017, stock: 2
+- Inventario para sucursal centro
+  - id: ``12341234-0000-1000-0002-100010001000``
+  - name: Sucursal centro
+  - productos:
+    - id de referencia: 00000000-0000-0000-0000-000000000001, stock: 38
+    - id de referencia: 00000000-0000-0000-0000-000000000002, stock: 25
+    - id de referencia: 00000000-0000-0000-0000-000000000003, stock: 20
+    - id de referencia: 00000000-0000-0000-0000-000000000004, stock: 16
+    - id de referencia: 00000000-0000-0000-0000-000000000005, stock: 18
+    - id de referencia: 00000000-0000-0000-0000-000000000006, stock: 22
+
+    - id de referencia: 00000000-0000-0000-0000-000000000008, stock: 15
+    - id de referencia: 00000000-0000-0000-0000-000000000009, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000010, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000011, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000012, stock: 12
+
+    - id de referencia: 00000000-0000-0000-0000-000000000014, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000015, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000016, stock: 12
+
+    - id de referencia: 00000000-0000-0000-0000-000000000018, stock: 22
+    - id de referencia: 00000000-0000-0000-0000-000000000019, stock: 12
+    - id de referencia: 00000000-0000-0000-0000-000000000020, stock: 16
+
+**Productos**
+- **1**
+  - id: ``00000000-0000-0000-0000-000000000001``
+  - name: Ibuprofeno 400mg
+  - brand: Genérico
+  - model: Caja 20 comprimidos
+  - description: Analgésico y antiinflamatorio
+  - categories: Medicamentos, Analgésicos
+
+- **2**
+  - id: ``00000000-0000-0000-0000-000000000002``
+  - name: Paracetamol 500mg
+  - brand: Genérico
+  - model: Caja 16 comprimidos
+  - description: Fiebre y dolor leve
+  - categories: Medicamentos, Analgésicos
+
+- **3**
+  - id: ``00000000-0000-0000-0000-000000000003``
+  - name: Amoxicilina 500mg
+  - brand: Genérico
+  - model: Caja 12 cápsulas
+  - description: Antibiótico de amplio espectro
+  - categories: Medicamentos, Antibióticos
+
+- **4**
+  - id: ``00000000-0000-0000-0000-000000000004``
+  - name: Alcohol en gel 500ml
+  - brand: PureHands
+  - model: Envase 500ml
+  - description: Desinfectante de manos
+  - categories: Higiene, Antisépticos
+
+- **5**
+  - id: ``00000000-0000-0000-0000-000000000005``
+  - name: Guantes de látex
+  - brand: LatexPro
+  - model: Caja 100 unidades
+  - description: Guantes descartables de látex
+  - categories: Higiene, Insumos médicos
+
+- **6**
+  - id: ``00000000-0000-0000-0000-000000000006``
+  - name: Termómetro digital
+  - brand: MedTech
+  - model: MT-200
+  - description: Termómetro de uso oral y axilar
+  - categories: Equipos médicos, Diagnóstico
+
+- **7**
+  - id: ``00000000-0000-0000-0000-000000000007``
+  - name: Enjuague bucal
+  - brand: Colgate
+  - model: 250ml
+  - description: Higiene bucal antibacterial
+  - categories: Higiene, Cuidado personal
+
+- **8**
+  - id: ``00000000-0000-0000-0000-000000000008``
+  - name: Toallitas húmedas
+  - brand: Huggies
+  - model: Pack 50 unidades
+  - description: Toallitas húmedas antibacteriales
+  - categories: Higiene, Cuidado personal
+
+- **9**
+  - id: ``00000000-0000-0000-0000-000000000009``
+  - name: Omeprazol 20mg
+  - brand: Genérico
+  - model: Caja 14 cápsulas
+  - description: Protector gástrico
+  - categories: Medicamentos, Gastrointestinales
+
+- **10**
+  - id: ``00000000-0000-0000-0000-000000000010``
+  - name: Diclofenac 50mg
+  - brand: Genérico
+  - model: Caja 10 comprimidos
+  - description: Antiinflamatorio y analgésico
+  - categories: Medicamentos, Antiinflamatorios
+
+- **11**
+  - id: ``00000000-0000-0000-0000-000000000011``
+  - name: Jarabe para la tos
+  - brand: Bisolvon
+  - model: Frasco 120ml
+  - description: Mucolítico y expectorante
+  - categories: Medicamentos, Respiratorios
+
+- **12**
+  - id: ``00000000-0000-0000-0000-000000000012``
+  - name: Crema antibiótica
+  - brand: Bactroban
+  - model: Pomo 15g
+  - description: Crema antibacteriana tópica
+  - categories: Medicamentos, Antibióticos
+
+- **13**
+  - id: ``00000000-0000-0000-0000-000000000013``
+  - name: Suero fisiológico
+  - brand: FisioLine
+  - model: Envase 500ml
+  - description: Solución salina estéril
+  - categories: Insumos médicos, Soluciones
+
+- **14**
+  - id: ``00000000-0000-0000-0000-000000000014``
+  - name: Jeringas descartables 5ml
+  - brand: MedLine
+  - model: Caja 100 unidades
+  - description: Jeringas estériles de 5ml
+  - categories: Insumos médicos, Descartables
+
+- **15**
+  - id: ``00000000-0000-0000-0000-000000000015``
+  - name: Venda elástica
+  - brand: Tensoplast
+  - model: 5cm x 4m
+  - description: Venda elástica adhesiva
+  - categories: Insumos médicos, Primeros auxilios
+
+- **16**
+  - id: ``00000000-0000-0000-0000-000000000016``
+  - name: Alcohol etílico 96°
+  - brand: Sanitol
+  - model: Envase 1 litro
+  - description: Antiséptico y desinfectante
+  - categories: Higiene, Antisépticos
+
+- **17**
+  - id: ``00000000-0000-0000-0000-000000000017``
+  - name: Mascarilla N95
+  - brand: 3M
+  - model: 8210
+  - description: Mascarilla de protección respiratoria
+  - categories: Higiene, Protección personal
+
+- **18**
+  - id: ``00000000-0000-0000-0000-000000000018``
+  - name: Vitamina C 1g
+  - brand: Redoxon
+  - model: Tubo 10 tabletas efervescentes
+  - description: Suplemento vitamínico
+  - categories: Suplementos, Vitaminas
+
+- **19**
+  - id: ``00000000-0000-0000-0000-000000000019``
+  - name: Leche maternizada etapa 1
+  - brand: Nestlé NAN
+  - model: Lata 800g
+  - description: Fórmula para lactantes
+  - categories: Nutrición, Infantil
+
+- **20**
+  - id: ``00000000-0000-0000-0000-000000000020``
+  - name: Crema hidratante
+  - brand: Nivea
+  - model: Tarro 200ml
+  - description: Crema corporal para piel seca
+  - categories: Cuidado personal, Cosméticos
+  
