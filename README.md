@@ -1,5 +1,7 @@
-# Proyecto de gestión de inventarios de productos
+<h1>Proyecto de gestión de inventarios de productos</h1>
+
 *Versión 1.0, fecha de lanzamiento Agosto de 2025*
+
 Sistema de APIs diseñado para que usuarios puedan registrarse y crear distintos inventarios que pueden llenar con productos según lo requieran.
 
 Trabaja con base de datos y seguridad a traves de autenticaciones y autorizaciones. Las cuentas creadas por defecto crean un sub-usuario *admin* que, además de poder crear inventarios, también puede registrar a otros sub-usuarios y otorgarle distintos permisos que pueden variar para cada inventario. Permisos como el de agregar productos, eliminarlos, editar el inventario, entre otros.
@@ -16,52 +18,50 @@ Trabaja con base de datos y seguridad a traves de autenticaciones y autorizacion
 > De esta manera, la aplicación permite centralizar el control de los productos en cada sucursal, compartiéndolos cuando sea necesario, a su vez que se asignan permisos claros a cada rol dentro de la empresa.
 
 **Índice**
-- [Proyecto de gestión de inventarios de productos](#proyecto-de-gestión-de-inventarios-de-productos)
-    - [Funcionalidades generales](#funcionalidades-generales)
-  - [Fundamentación del diseño y arquitectura de software](#fundamentación-del-diseño-y-arquitectura-de-software)
-    - [Estilo arquitectónico](#estilo-arquitectónico)
-    - [Modelo de dominio](#modelo-de-dominio)
-    - [Productos](#productos)
-    - [Inventarios](#inventarios)
-    - [Cuentas](#cuentas)
-    - [Usuarios (sub-usuarios)](#usuarios-sub-usuarios)
-    - [Resumen de tecnologías y herramientas elegidas](#resumen-de-tecnologías-y-herramientas-elegidas)
-    - [Componentes y patron arquitectónico](#componentes-y-patron-arquitectónico)
-      - [Microservicio de Usuarios](#microservicio-de-usuarios)
-      - [Microservicio de Inventarios](#microservicio-de-inventarios)
-      - [Microservicio de Productos](#microservicio-de-productos)
-      - [Microservicio para la API Gateway](#microservicio-para-la-api-gateway)
-      - [Microservicio para pruebas end to end (E2E)](#microservicio-para-pruebas-end-to-end-e2e)
-    - [Flujo de interacción de las solicitudes y entre microservicios](#flujo-de-interacción-de-las-solicitudes-y-entre-microservicios)
-    - [Otros aspectos](#otros-aspectos)
-      - [Patrones de diseño](#patrones-de-diseño)
-      - [Patrones y decisiones arquitectónicas](#patrones-y-decisiones-arquitectónicas)
-      - [Entornos y perfiles](#entornos-y-perfiles)
-  - [Instrucciones de instalación y requisitos para ejecución local](#instrucciones-de-instalación-y-requisitos-para-ejecución-local)
-    - [Variables de entorno](#variables-de-entorno)
-      - [Ejemplo de valores](#ejemplo-de-valores)
-    - [En caso de usar docker](#en-caso-de-usar-docker)
-    - [En caso de no usar docker](#en-caso-de-no-usar-docker)
-      - [Windows](#windows)
-      - [Linux / macOS](#linux--macos)
-      - [Se puede verificar las configuraciones en una terminal (CMD o PowerShell) ejecutando:](#se-puede-verificar-las-configuraciones-en-una-terminal-cmd-o-powershell-ejecutando)
-  - [Autenticación y autorización](#autenticación-y-autorización)
-    - [Sobre el token](#sobre-el-token)
-    - [Permisos (los que estarían en el permissions dentro del userPerms)](#permisos-los-que-estarían-en-el-permissions-dentro-del-userperms)
-  - [Endpoints y operaciones](#endpoints-y-operaciones)
-    - [Servicio de usuarios](#servicio-de-usuarios)
-      - [Posibles retornos](#posibles-retornos)
-      - [Cuentas y sub-usuarios](#cuentas-y-sub-usuarios)
-      - [Autenticaciones. Logins y logouts](#autenticaciones-logins-y-logouts)
-    - [Servicio de productos](#servicio-de-productos)
-    - [Servicio de inventarios](#servicio-de-inventarios)
-      - [Queries - operaciones de lectura](#queries---operaciones-de-lectura)
-      - [Mutations - operaciones de escritura](#mutations---operaciones-de-escritura)
-      - [Types e inputs](#types-e-inputs)
-  - [Testing y prueba del sistema](#testing-y-prueba-del-sistema)
-    - [Ejecución de tests](#ejecución-de-tests)
-    - [Prueba con Postman](#prueba-con-postman)
-      - [Datos de ejemplo](#datos-de-ejemplo)
+- [Fundamentación del diseño y arquitectura de software](#fundamentación-del-diseño-y-arquitectura-de-software)
+  - [Estilo arquitectónico](#estilo-arquitectónico)
+  - [Modelo de dominio](#modelo-de-dominio)
+  - [Productos](#productos)
+  - [Inventarios](#inventarios)
+  - [Cuentas](#cuentas)
+  - [Usuarios (sub-usuarios)](#usuarios-sub-usuarios)
+  - [Resumen de tecnologías y herramientas elegidas](#resumen-de-tecnologías-y-herramientas-elegidas)
+  - [Componentes y patron arquitectónico](#componentes-y-patron-arquitectónico)
+    - [Microservicio de Usuarios](#microservicio-de-usuarios)
+    - [Microservicio de Inventarios](#microservicio-de-inventarios)
+    - [Microservicio de Productos](#microservicio-de-productos)
+    - [Microservicio para la API Gateway](#microservicio-para-la-api-gateway)
+    - [Microservicio para pruebas end to end (E2E)](#microservicio-para-pruebas-end-to-end-e2e)
+  - [Flujo de interacción de las solicitudes y entre microservicios](#flujo-de-interacción-de-las-solicitudes-y-entre-microservicios)
+  - [Otros aspectos](#otros-aspectos)
+    - [Patrones de diseño](#patrones-de-diseño)
+    - [Patrones y decisiones arquitectónicas](#patrones-y-decisiones-arquitectónicas)
+    - [Entornos y perfiles](#entornos-y-perfiles)
+- [Instrucciones de instalación y requisitos para ejecución local](#instrucciones-de-instalación-y-requisitos-para-ejecución-local)
+  - [Variables de entorno](#variables-de-entorno)
+    - [Ejemplo de valores](#ejemplo-de-valores)
+  - [En caso de usar docker](#en-caso-de-usar-docker)
+  - [En caso de no usar docker](#en-caso-de-no-usar-docker)
+    - [Windows](#windows)
+    - [Linux / macOS](#linux--macos)
+    - [Se puede verificar las configuraciones en una terminal (CMD o PowerShell) ejecutando:](#se-puede-verificar-las-configuraciones-en-una-terminal-cmd-o-powershell-ejecutando)
+- [Autenticación y autorización](#autenticación-y-autorización)
+  - [Sobre el token](#sobre-el-token)
+  - [Permisos (los que estarían en el permissions dentro del userPerms)](#permisos-los-que-estarían-en-el-permissions-dentro-del-userperms)
+- [Endpoints y operaciones](#endpoints-y-operaciones)
+  - [Servicio de usuarios](#servicio-de-usuarios)
+    - [Posibles retornos](#posibles-retornos)
+    - [Cuentas y sub-usuarios](#cuentas-y-sub-usuarios)
+    - [Autenticaciones. Logins y logouts](#autenticaciones-logins-y-logouts)
+  - [Servicio de productos](#servicio-de-productos)
+  - [Servicio de inventarios](#servicio-de-inventarios)
+    - [Queries - operaciones de lectura](#queries---operaciones-de-lectura)
+    - [Mutations - operaciones de escritura](#mutations---operaciones-de-escritura)
+    - [Types e inputs](#types-e-inputs)
+- [Testing y prueba del sistema](#testing-y-prueba-del-sistema)
+  - [Ejecución de tests](#ejecución-de-tests)
+  - [Prueba con Postman](#prueba-con-postman)
+    - [Datos de ejemplo](#datos-de-ejemplo)
 
 
 ### Funcionalidades generales
@@ -457,11 +457,16 @@ Finalmente se debe iniciar cada proyecto de spring ubicado en las carpetas corre
 ## Autenticación y autorización
 Salvo para los endpoints que refieren al registro e inicio de sesión de una cuenta, **el resto de endpoints requieren autenticación mediante JWT en el header correspondiente**. Éste se obtiene una vez hecho un login exitoso, y se modifica si se hace el login de sub-usuario o algún logout.
 
-Estos métodos devuelven un objeto con una propiedad llamada token de tipo string dentro del body de la respuesta. El valor de la misma es el valor del token. Ejemplo:
+Estos métodos devuelven un objeto con:
+- Una propiedad llamada "token" de tipo string dentro del body de la respuesta. El valor de la misma es el valor del token. 
+- Además se encuentra el id de la cuenta que generó el token. Aunque ésta se encuentra como claim dentro del mismo, se incluye directamente para un acceso más fácil desde el cliente, ya que esta id se debe usar en futuras peticiones como parámetro. 
+
+Ejemplo de la respuesta:
 
 ```json
 {
-  "token": "tokenJWTGenerado"
+  "token": "tokenJWTGenerado",
+  "accountId": "uuid de la cuenta en el token"
 }
 ```
 
