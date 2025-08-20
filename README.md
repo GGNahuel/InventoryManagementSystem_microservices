@@ -1,18 +1,68 @@
 # Proyecto de gestión de inventarios de productos
-#### Versión 1.0, fecha de lanzamiento Agosto de 2025
+*Versión 1.0, fecha de lanzamiento Agosto de 2025*
 Sistema de APIs diseñado para que usuarios puedan registrarse y crear distintos inventarios que pueden llenar con productos según lo requieran.
 
 Trabaja con base de datos y seguridad a traves de autenticaciones y autorizaciones. Las cuentas creadas por defecto crean un sub-usuario *admin* que, además de poder crear inventarios, también puede registrar a otros sub-usuarios y otorgarle distintos permisos que pueden variar para cada inventario. Permisos como el de agregar productos, eliminarlos, editar el inventario, entre otros.
 
 > #### Ejemplo de uso: 
 >
->  Una cuenta (usuario) representa una cadena de tiendas de ropa. Esta puede tener un inventario por cada sucursal que tenga. Así cada sucursal (inventario) tendrá su propia lista de productos. 
+>  Suponiendo que una **cadena de farmacias** desea utilizar la aplicación podría hacerlo de la siguiente forma:
+> - Una **cuenta** representa a la empresa principal.  
+> - Dentro de la cuenta se crean varios **inventarios**, uno por cada sucursal (ej. "Sucursal Norte", "Sucursal Centro", "Sucursal Sur").  
+> - Los **productos** (medicamentos, insumos, cosméticos) pueden estar disponibles en una sola sucursal o compartirse entre varias.  
+> - Los **sub-usuarios** representan a los empleados de cada sucursal, con permisos específicos.  
+>   - Por ejemplo: un **farmacéutico** puede actualizar productos, un **cajero** solo registrar ventas, ambos solo para los productos que corresponden a su sucursal. En cambio, un **gerente general** por ejemplo, puede administrar todo de todos los inventarios asociados a la cuenta.
 >
->  La información de los productos puede ser, o no ser, compartida entre las sucursales. Pero aún así cada una de estas tendrá info solo asociada a esa sucursal, como el stock de cada uno.
+> De esta manera, la aplicación permite centralizar el control de los productos en cada sucursal, compartiéndolos cuando sea necesario, a su vez que se asignan permisos claros a cada rol dentro de la empresa.
 
-### Índice
-- [Instrucciones de instalación y requisitos para ejecución local](#instrucciones-de-instalación-y-requisitos-para-ejecución-local)
-- [Autenticación y autorización](#autenticación-y-autorización)
+**Índice**
+- [Proyecto de gestión de inventarios de productos](#proyecto-de-gestión-de-inventarios-de-productos)
+    - [Funcionalidades generales](#funcionalidades-generales)
+  - [Fundamentación del diseño y arquitectura de software](#fundamentación-del-diseño-y-arquitectura-de-software)
+    - [Estilo arquitectónico](#estilo-arquitectónico)
+    - [Modelo de dominio](#modelo-de-dominio)
+    - [Productos](#productos)
+    - [Inventarios](#inventarios)
+    - [Cuentas](#cuentas)
+    - [Usuarios (sub-usuarios)](#usuarios-sub-usuarios)
+    - [Resumen de tecnologías y herramientas elegidas](#resumen-de-tecnologías-y-herramientas-elegidas)
+    - [Componentes y patron arquitectónico](#componentes-y-patron-arquitectónico)
+      - [Microservicio de Usuarios](#microservicio-de-usuarios)
+      - [Microservicio de Inventarios](#microservicio-de-inventarios)
+      - [Microservicio de Productos](#microservicio-de-productos)
+      - [Microservicio para la API Gateway](#microservicio-para-la-api-gateway)
+      - [Microservicio para pruebas end to end (E2E)](#microservicio-para-pruebas-end-to-end-e2e)
+    - [Flujo de interacción de las solicitudes y entre microservicios](#flujo-de-interacción-de-las-solicitudes-y-entre-microservicios)
+    - [Otros aspectos](#otros-aspectos)
+      - [Patrones de diseño](#patrones-de-diseño)
+      - [Patrones y decisiones arquitectónicas](#patrones-y-decisiones-arquitectónicas)
+      - [Entornos y perfiles](#entornos-y-perfiles)
+  - [Instrucciones de instalación y requisitos para ejecución local](#instrucciones-de-instalación-y-requisitos-para-ejecución-local)
+    - [Variables de entorno](#variables-de-entorno)
+      - [Ejemplo de valores](#ejemplo-de-valores)
+    - [En caso de usar docker](#en-caso-de-usar-docker)
+    - [En caso de no usar docker](#en-caso-de-no-usar-docker)
+      - [Windows](#windows)
+      - [Linux / macOS](#linux--macos)
+      - [Se puede verificar las configuraciones en una terminal (CMD o PowerShell) ejecutando:](#se-puede-verificar-las-configuraciones-en-una-terminal-cmd-o-powershell-ejecutando)
+  - [Autenticación y autorización](#autenticación-y-autorización)
+    - [Sobre el token](#sobre-el-token)
+    - [Permisos (los que estarían en el permissions dentro del userPerms)](#permisos-los-que-estarían-en-el-permissions-dentro-del-userperms)
+  - [Endpoints y operaciones](#endpoints-y-operaciones)
+    - [Servicio de usuarios](#servicio-de-usuarios)
+      - [Posibles retornos](#posibles-retornos)
+      - [Cuentas y sub-usuarios](#cuentas-y-sub-usuarios)
+      - [Autenticaciones. Logins y logouts](#autenticaciones-logins-y-logouts)
+    - [Servicio de productos](#servicio-de-productos)
+    - [Servicio de inventarios](#servicio-de-inventarios)
+      - [Queries - operaciones de lectura](#queries---operaciones-de-lectura)
+      - [Mutations - operaciones de escritura](#mutations---operaciones-de-escritura)
+      - [Types e inputs](#types-e-inputs)
+  - [Testing y prueba del sistema](#testing-y-prueba-del-sistema)
+    - [Ejecución de tests](#ejecución-de-tests)
+    - [Prueba con Postman](#prueba-con-postman)
+      - [Datos de ejemplo](#datos-de-ejemplo)
+
 
 ### Funcionalidades generales
 * Los usuarios pueden registrar una cuenta e iniciar sesión en la API.
@@ -876,12 +926,13 @@ Este ejecutará tanto las pruebas unitarias como las de integración del servici
 
 Herramienta de logística
 ### Prueba con Postman
-Dentro del repositorio se encuentra una colección de Postman, la cual puede ser importada en esa aplicación, trayendo con ella todos los endpoints y operaciones que son posibles en este sistema de apis. Además viene con ejemplos prácticos según datos de ejemplo que son insertados en la base de datos al arrancar la aplicación por primera vez (Se pueden re-establecer si se elimina la cuenta de ejemplo y se vuelve a ejecutar la aplicación).
+Dentro del repositorio se encuentra una colección de Postman, la cual puede ser importada en esa aplicación, trayendo con ella todos los endpoints y operaciones que son posibles en este sistema de apis, mencionados en la sección [Endpoints y operaciones](#endpoints-y-operaciones). Además viene con ejemplos prácticos según datos de ejemplo que son insertados en la base de datos al arrancar la aplicación por primera vez (Se pueden re-establecer si se elimina la cuenta de ejemplo y se vuelve a ejecutar la aplicación).
 
 [Colección postman](./Inventory%20Api.postman_collection.json)
 
-Los datos de ejemplo son los siguientes. Algunos ya poseen id por un lado para ser referenciados entre los microservicios, y por el otro para tener datos para las pruebas en postman. El resto que no tiene id es porque se generó de forma aleatoria a través de JPA. 
+Los datos de ejemplo son los siguientes, planteados para el ejemplo dado en [el ejemplo de uso](#ejemplo-de-uso). Algunos ya poseen id por un lado para ser referenciados entre los microservicios, y por el otro para tener datos para las pruebas en postman. El resto que no tiene id es porque se generó de forma aleatoria a través de JPA. 
 
+#### Datos de ejemplo
 **Cuenta:**
 - id: ``12341234-0000-0000-0000-10001000acc1``
 - username: farmaciasHealth
