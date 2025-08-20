@@ -893,8 +893,6 @@ public class ControllerTest {
     checkOperationIsForbidden(query, token, variables);
   }
 
-  // TODO: test for every method, should deny if no user account is logged
-
   @Test
   void editStockOfProduct_allowIfHasRightPerm() {
     InventoryEntity savedInv = inventoryRepository.save(InventoryEntity.builder()

@@ -40,5 +40,3 @@ public class AccountEntity {
     }
   }
 }
-
-//TODO: agregar cambios al readme
