@@ -34,6 +34,20 @@ spring:
               filters:
                 - AuthenticationFilter
 
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true          
+
 management:
   endpoints:
     web:
