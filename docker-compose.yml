@@ -59,7 +59,7 @@ services:
 
   mysql-database:
     image: mysql:8.0.42
-    container_name: database
+    container_name: "mysql-database"
     ports:
       - "3307:3306"
     environment:

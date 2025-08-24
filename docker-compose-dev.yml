@@ -75,7 +75,6 @@ services:
 
   mysql-database:
     image: mysql:8.0.42
-    container_name: database
     ports:
       - "3307:3306"
     environment:
@@ -94,6 +93,7 @@ services:
 
 networks:
   inventoryApp-network:
+    name: inventory-app-network-dev
 
 volumes:
   database-data:
