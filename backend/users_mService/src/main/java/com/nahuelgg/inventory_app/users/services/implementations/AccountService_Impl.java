@@ -8,10 +8,15 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.graphql.client.HttpGraphQlClient;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.nahuelgg.inventory_app.users.components.DTOMappers;
 import com.nahuelgg.inventory_app.users.dtos.AccountDTO;
@@ -35,6 +40,7 @@ import com.nahuelgg.inventory_app.users.services.AuthenticationService;
 import com.nahuelgg.inventory_app.users.utilities.EntityMappers;
 import com.nahuelgg.inventory_app.users.utilities.Validations.Field;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -186,6 +192,25 @@ public class AccountService_Impl implements AccountService {
     repository.save(account);
   }
 
+  private HttpHeaders setTokenToOtherServicesRequests() {
+    HttpHeaders header = new HttpHeaders();
+
+    ServletRequestAttributes attributes =
+      (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+    if (attributes == null) 
+      throw new RuntimeException("Error al intentar obtener los atributos de la request");
+
+    HttpServletRequest request = attributes.getRequest();
+    String authHeader = request.getHeader("Authorization");
+
+    if (authHeader == null || !authHeader.startsWith("Bearer "))
+      throw new RuntimeException("Error al obtener el header de autorización");
+
+    header.setBearerAuth(authHeader.substring(7));
+    return header;
+  }
+
   @Override @Transactional
   public TokenDTO delete(UUID accountId) {
     checkFieldsHasContent(new Field("id de cuenta", accountId));
@@ -194,7 +219,7 @@ public class AccountService_Impl implements AccountService {
     if (accountWithIdExists) 
       throw new ResourceNotFoundException("cuenta", "id", accountId.toString());
 
-    Boolean inventoryRequestWasSuccess = client.document("""
+    Boolean inventoryRequestWasSuccess = client.mutate().headers(header -> header = setTokenToOtherServicesRequests()).build().document("""
       mutation {
         deleteByAccountId(
           id: "%s"
@@ -205,7 +230,10 @@ public class AccountService_Impl implements AccountService {
     if (inventoryRequestWasSuccess == null || !inventoryRequestWasSuccess) 
       throw new RuntimeException("El borrado de inventarios asociados no se ha podido realizar, operación cancelada");
 
-    restTemplate.delete("http://api-products:8081/product/delete-by-account?id=" + accountId.toString());
+    restTemplate.exchange(
+      "http://api-products:8081/product/delete-by-account?id=" + accountId.toString(),
+      HttpMethod.DELETE, new HttpEntity<>(setTokenToOtherServicesRequests()), Object.class
+    );
     repository.deleteById(accountId);
 
     return authenticationService.logout();

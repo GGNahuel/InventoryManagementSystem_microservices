@@ -7,13 +7,15 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ProductFromProductsMSDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.responsesFromOtherServices.ResponseDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaInputs.EditProductInputDTO;
@@ -28,6 +30,7 @@ import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepositor
 import com.nahuelgg.inventory_app.inventories.services.InventoryService;
 import com.nahuelgg.inventory_app.inventories.utilities.Mappers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -36,26 +39,39 @@ public class InventoryService_Impl implements InventoryService {
   private final InventoryRepository repository;
   private final ProductInInvRepository productInvRepository;
   private final RestTemplate restTemplate;
+
+  private final ObjectMapper objectMapper;
   private final Mappers mappers = new Mappers();
 
   private HttpHeaders setTokenToOtherServicesRequests() {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth == null)
-      throw new RuntimeException("No se encontró autenticación para realizar la operación");
-
     HttpHeaders header = new HttpHeaders();
-    String tokenFromAuth = (String) auth.getCredentials();
-    header.setBearerAuth(tokenFromAuth);
 
+    ServletRequestAttributes attributes =
+      (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+    if (attributes == null) 
+      throw new RuntimeException("Error al intentar obtener los atributos de la request");
+
+    HttpServletRequest request = attributes.getRequest();
+    String authHeader = request.getHeader("Authorization");
+
+    if (authHeader == null || !authHeader.startsWith("Bearer "))
+      throw new RuntimeException("Error al obtener el header de autorización");
+
+    header.setBearerAuth(authHeader.substring(7));
+    System.out.println(header.asSingleValueMap().toString());
     return header;
   }
 
   private ResponseDTO makeRestRequest(String url, HttpMethod method, Object optionalBody) {
     ResponseEntity<ResponseDTO> response;
     try {
-      HttpEntity<Object> entity = optionalBody != null ? new HttpEntity<Object>(optionalBody, setTokenToOtherServicesRequests()) : new HttpEntity<>(setTokenToOtherServicesRequests());
+      HttpEntity<Object> entity = optionalBody != null ? 
+        new HttpEntity<Object>(optionalBody, setTokenToOtherServicesRequests()) : 
+        new HttpEntity<>(setTokenToOtherServicesRequests());
 
       response = restTemplate.exchange(url, method, entity, ResponseDTO.class);
+      System.out.println(response.toString());
       if (!response.getStatusCode().is2xxSuccessful())
         throw new RuntimeException(response.getBody().getError().toString());
     } catch (Exception e) {
@@ -76,7 +92,10 @@ public class InventoryService_Impl implements InventoryService {
     .toUriString();
 
     ResponseDTO responseDto = makeRestRequest(completeUrl, HttpMethod.GET, null);
-    List<ProductFromProductsMSDTO> responseList = (List<ProductFromProductsMSDTO>) responseDto.getData();
+    List<ProductFromProductsMSDTO> responseList = objectMapper.convertValue(
+      responseDto.getData(),
+      new TypeReference<List<ProductFromProductsMSDTO>>() {}
+    );
 
     sincroniceProductsBetweenServices(productsId, responseList.stream().map(ProductFromProductsMSDTO::getId).toList());
 
