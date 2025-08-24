@@ -38,7 +38,7 @@ public class JwtService {
 
   @Value("${jwt_key}")
   private String SECRET_KEY;
-  private static final long TOKEN_EXPIRATION = 1000 * 60 * 5;
+  private static final long TOKEN_EXPIRATION = 1000 * 60 * 60;
   private static final long REFRESH_WINDOW = 1000 * 60 * 60 * 24;
   
   private Key getSignInKey() {
