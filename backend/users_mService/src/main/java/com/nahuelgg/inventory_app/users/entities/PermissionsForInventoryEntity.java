@@ -25,6 +25,8 @@ public class PermissionsForInventoryEntity {
   private String permissions;
   
   @ManyToOne @JoinColumn(nullable = false)
+  private UserEntity user;
+  @ManyToOne @JoinColumn(nullable = false)
   private InventoryRefEntity inventoryReference;
 
   @PrePersist

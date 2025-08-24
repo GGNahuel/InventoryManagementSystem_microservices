@@ -34,7 +34,7 @@ public class UserEntity {
   
   @ManyToOne @JoinColumn(name = "associated_account_id", nullable = false)
   private AccountEntity associatedAccount;  
-  @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER) @JoinColumn(name = "associated_user_id")
+  @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, mappedBy = "user")
   private List<PermissionsForInventoryEntity> inventoryPerms;
 
   @Override

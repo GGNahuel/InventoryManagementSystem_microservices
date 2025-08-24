@@ -88,14 +88,15 @@ public class UserService_Impl implements UserService {
     List<PermissionsForInventoryEntity> perms = user.getInventoryPerms();
     PermissionsForInventoryEntity mappedInput = dtoMappers.mapPerms(input);
     Optional<PermissionsForInventoryEntity> previousPerm = perms.stream().filter(
-      permEntity -> permEntity.getInventoryReference().toString().equals(input.getIdOfInventoryReferenced())
+      permEntity -> permEntity.getInventoryReference().getInventoryIdReference().toString().equals(input.getIdOfInventoryReferenced())
     ).findFirst();
 
     if (previousPerm.isPresent()) {
       previousPerm.get().setPermissions(mappedInput.getPermissions());
       PermissionsForInventoryEntity permSaved = permsRepository.save(previousPerm.get());
 
-      // remueve el permiso que se trajo de la base de datos anteriormente y lo vuelve a agregar pero con los cambios
+      // remueve el permiso que se trajo de la base de datos anteriormente y lo vuelve a agregar a la lista del usuario pero con los cambios
+      // Esto para incluirlo en el dto de retorno sin tener que hacer otro llamado a la base de datos.
       perms.removeIf(
         permEntity -> permEntity.getInventoryReference().equals(permSaved.getInventoryReference())
       );
@@ -104,14 +105,13 @@ public class UserService_Impl implements UserService {
       perms.add(permsRepository.save(mappedInput));
     }
     
-    // setea la nueva lista de permisos según los cambios realizados. Esto para incluirlo en el dto de retorno 
-    // sin tener que hacer otro llamado a la base de datos.
+    // setea la nueva lista de permisos según los cambios realizados
     user.setInventoryPerms(perms);
   
     return entityMappers.mapUser(user);
   }
 
-  @Override
+  @Override @Transactional
   public void deletePerm(UUID inventoryRef, UUID userId) {
     checkFieldsHasContent(new Field("id de inventario", inventoryRef), new Field("id del sub-usuario", userId));
 

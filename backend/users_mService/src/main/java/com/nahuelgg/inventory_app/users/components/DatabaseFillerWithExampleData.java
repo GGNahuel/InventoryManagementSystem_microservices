@@ -64,108 +64,116 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
 
     // Creación de permisos y asociación al sub-usuario que corresponda
     // Gerente general
-    PermissionsForInventoryEntity perm1ForGeneralManager = permsRepository.save(PermissionsForInventoryEntity.builder()
-      .permissions("addProducts,editProducts,editProductReferences,deleteProducts,deleteProductReferences,editInventory")
-      .inventoryReference(inv1)
-    .build());
-    PermissionsForInventoryEntity perm2ForGeneralManager = permsRepository.save(PermissionsForInventoryEntity.builder()
-      .permissions("addProducts,editProducts,editProductReferences,deleteProducts,deleteProductReferences,editInventory")
-      .inventoryReference(inv2)
-    .build());
-    userRepository.save(UserEntity.builder()
+    UserEntity generalManager = userRepository.save(UserEntity.builder()
       .id(generalManagerId)
       .name("gerenteGeneral")
       .password(encoder.encode("managerPassword"))
       .role("Gerente general")
       .isAdmin(false)
       .associatedAccount(acc)
-      .inventoryPerms(List.of(perm1ForGeneralManager, perm2ForGeneralManager))
     .build());
 
-    // Encargado de sucursal 1
-    PermissionsForInventoryEntity permForManger1 = permsRepository.save(PermissionsForInventoryEntity.builder()
-      .permissions("addProducts,editProducts,deleteProducts,editInventory")
-      .inventoryReference(inv1)
+    PermissionsForInventoryEntity perm1ForGeneralManager = permsRepository.save(PermissionsForInventoryEntity.builder()
+      .permissions("addProducts,editProducts,editProductReferences,deleteProducts,deleteProductReferences,editInventory")
+      .inventoryReference(inv1).user(generalManager)
     .build());
-    userRepository.save(UserEntity.builder()
+    PermissionsForInventoryEntity perm2ForGeneralManager = permsRepository.save(PermissionsForInventoryEntity.builder()
+      .permissions("addProducts,editProducts,editProductReferences,deleteProducts,deleteProductReferences,editInventory")
+      .inventoryReference(inv2).user(generalManager)
+    .build());
+
+    userRepository.save(generalManager.toBuilder().inventoryPerms(List.of(perm1ForGeneralManager, perm2ForGeneralManager)).build());
+
+    // Encargado de sucursal 1
+    UserEntity manager1 = userRepository.save(UserEntity.builder()
       .name("manager1")
       .password(encoder.encode("manager1Password"))
       .role("Encargado de sucursal norte")
       .isAdmin(false)
-      .inventoryPerms(List.of(permForManger1))
       .associatedAccount(acc)
     .build());
+    PermissionsForInventoryEntity permForManger1 = permsRepository.save(PermissionsForInventoryEntity.builder()
+      .permissions("addProducts,editProducts,deleteProducts,editInventory")
+      .inventoryReference(inv1).user(manager1)
+    .build());
+    
+    userRepository.save(manager1.toBuilder().inventoryPerms(List.of(permForManger1)).build());
     
     // Encargado de sucursal 2
-    PermissionsForInventoryEntity permForManger2 = permsRepository.save(PermissionsForInventoryEntity.builder()
-      .permissions("addProducts,editProducts,deleteProducts,editInventory")
-      .inventoryReference(inv2)
-    .build());
-    userRepository.save(UserEntity.builder()
+    UserEntity manager2 = userRepository.save(UserEntity.builder()
       .name("manager2")
       .password(encoder.encode("manager2Password"))
       .role("Encargado de sucursal centro")
       .isAdmin(false)
-      .inventoryPerms(List.of(permForManger2))
       .associatedAccount(acc)
     .build());
+    PermissionsForInventoryEntity permForManger2 = permsRepository.save(PermissionsForInventoryEntity.builder()
+      .permissions("addProducts,editProducts,deleteProducts,editInventory")
+      .inventoryReference(inv2).user(manager2)
+    .build());
+      
+    userRepository.save(manager2.toBuilder().inventoryPerms(List.of(permForManger2)).build());
 
     // Farmacéuticos de sucursal 1
-    PermissionsForInventoryEntity permForPharmacistsForInv1 = permsRepository.save(PermissionsForInventoryEntity.builder()
-      .permissions("editProducts")
-      .inventoryReference(inv1)
-    .build());
-    userRepository.save(UserEntity.builder()
+    UserEntity pharmacists1 = userRepository.save(UserEntity.builder()
       .id(pharmacist1Id)
       .name("pharmacistsForInv1")
       .password(encoder.encode("pharmacists1Password"))
       .role("Farmacéuticos")
       .isAdmin(false)
-      .inventoryPerms(List.of(permForPharmacistsForInv1))
       .associatedAccount(acc)
     .build());
+    PermissionsForInventoryEntity permForPharmacistsForInv1 = permsRepository.save(PermissionsForInventoryEntity.builder()
+      .permissions("editProducts")
+      .inventoryReference(inv1).user(pharmacists1)
+    .build());
+
+    userRepository.save(pharmacists1.toBuilder().inventoryPerms(List.of(permForPharmacistsForInv1)).build());
 
     // Farmacéuticos de sucursal 2
-    PermissionsForInventoryEntity permForPharmacistsForInv2 = permsRepository.save(PermissionsForInventoryEntity.builder()
-      .permissions("editProducts")
-      .inventoryReference(inv2)
-    .build());
-    userRepository.save(UserEntity.builder()
+    UserEntity pharmacists2 = userRepository.save(UserEntity.builder()
       .name("pharmacistsForInv2")
       .password(encoder.encode("pharmacists2Password"))
       .role("Farmacéuticos")
       .isAdmin(false)
-      .inventoryPerms(List.of(permForPharmacistsForInv2))
       .associatedAccount(acc)
     .build());
+    PermissionsForInventoryEntity permForPharmacistsForInv2 = permsRepository.save(PermissionsForInventoryEntity.builder()
+      .permissions("editProducts")
+      .inventoryReference(inv2).user(pharmacists2)
+    .build());
+    
+    userRepository.save(pharmacists2.toBuilder().inventoryPerms(List.of(permForPharmacistsForInv2)).build());
 
     // Cajeros de sucursal 1
-    PermissionsForInventoryEntity permCashiersForInv1 = permsRepository.save(PermissionsForInventoryEntity.builder()
-      .permissions("editInventory")
-      .inventoryReference(inv1)
-    .build());
-    userRepository.save(UserEntity.builder()
+    UserEntity casher1 = userRepository.save(UserEntity.builder()
       .name("cashersForInv1")
       .password(encoder.encode("cashers1Password"))
       .role("Cajeros")
       .isAdmin(false)
-      .inventoryPerms(List.of(permCashiersForInv1))
       .associatedAccount(acc)
     .build());
+    PermissionsForInventoryEntity permCashiersForInv1 = permsRepository.save(PermissionsForInventoryEntity.builder()
+      .permissions("editInventory")
+      .inventoryReference(inv1).user(casher1)
+    .build());
+    
+    userRepository.save(casher1.toBuilder().inventoryPerms(List.of(permCashiersForInv1)).build());
 
     // Cajeros de sucursal 2
-    PermissionsForInventoryEntity permCashiersForInv2 = permsRepository.save(PermissionsForInventoryEntity.builder()
-      .permissions("editInventory")
-      .inventoryReference(inv2)
-    .build());
-    userRepository.save(UserEntity.builder()
+    UserEntity casher2 = userRepository.save(UserEntity.builder()
       .name("cashersForInv2")
       .password(encoder.encode("casher21Password"))
       .role("Cajeros")
       .isAdmin(false)
-      .inventoryPerms(List.of(permCashiersForInv2))
       .associatedAccount(acc)
     .build());
+    PermissionsForInventoryEntity permCashiersForInv2 = permsRepository.save(PermissionsForInventoryEntity.builder()
+      .permissions("editInventory")
+      .inventoryReference(inv2).user(casher2)
+    .build());
+    
+    userRepository.save(casher2.toBuilder().inventoryPerms(List.of(permCashiersForInv2)).build());
   }
 }
 //TODO: agregar sanitizador de strings en general
