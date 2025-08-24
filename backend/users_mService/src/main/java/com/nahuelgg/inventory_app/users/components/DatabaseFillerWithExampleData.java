@@ -93,6 +93,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
       .role("Encargado de sucursal norte")
       .isAdmin(false)
       .inventoryPerms(List.of(permForManger1))
+      .associatedAccount(acc)
     .build());
     
     // Encargado de sucursal 2
@@ -106,6 +107,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
       .role("Encargado de sucursal centro")
       .isAdmin(false)
       .inventoryPerms(List.of(permForManger2))
+      .associatedAccount(acc)
     .build());
 
     // Farmacéuticos de sucursal 1
@@ -120,6 +122,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
       .role("Farmacéuticos")
       .isAdmin(false)
       .inventoryPerms(List.of(permForPharmacistsForInv1))
+      .associatedAccount(acc)
     .build());
 
     // Farmacéuticos de sucursal 2
@@ -133,6 +136,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
       .role("Farmacéuticos")
       .isAdmin(false)
       .inventoryPerms(List.of(permForPharmacistsForInv2))
+      .associatedAccount(acc)
     .build());
 
     // Cajeros de sucursal 1
@@ -146,6 +150,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
       .role("Cajeros")
       .isAdmin(false)
       .inventoryPerms(List.of(permCashiersForInv1))
+      .associatedAccount(acc)
     .build());
 
     // Cajeros de sucursal 2
@@ -159,6 +164,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
       .role("Cajeros")
       .isAdmin(false)
       .inventoryPerms(List.of(permCashiersForInv2))
+      .associatedAccount(acc)
     .build());
   }
 }
