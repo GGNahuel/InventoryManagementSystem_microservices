@@ -56,7 +56,6 @@ public class ExceptionHandlerTest {
   void configRequest() throws Exception {
     when(jwtService.getClaim(eq(token), any())).thenReturn("accUsername");
     when(jwtService.isTokenExpired(token)).thenReturn(false);
-    when(jwtService.isTokenValid(token, "accUsername")).thenReturn(true);
     when(jwtService.mapTokenClaims(token)).thenReturn(JwtClaimsDTO.builder()
       .accountId(accId)
       .userName("userName")

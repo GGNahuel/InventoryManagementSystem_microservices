@@ -39,7 +39,7 @@ public class JwtService {
   @Value("${jwt_key}")
   private String SECRET_KEY;
   private static final long TOKEN_EXPIRATION = 1000 * 60 * 60;
-  private static final long REFRESH_WINDOW = 1000 * 60 * 60 * 24;
+  // private static final long REFRESH_WINDOW = 1000 * 60 * 60 * 24;
   
   private Key getSignInKey() {
     byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
@@ -125,18 +125,14 @@ public class JwtService {
     .compact();
   }
 
-  public boolean isTokenValid(String token, String accountUsername) {
-    final String username = getClaim(token, claims -> claims.getSubject());
-    return (username.equals(accountUsername));
-  }
-
   public boolean isTokenExpired(String token) {
     Date expirationDate = getClaim(token, claims -> claims.getExpiration());
     if (expirationDate == null) throw new RuntimeException("El token no tiene límite de expiración o es un token vacío");
     return expirationDate.before(new Date());
   }
 
-  public boolean canTokenBeRenewed(String token) {
+  // esto se movería a la gateway cuando se implemente la renovación de token
+  /* public boolean canTokenBeRenewed(String token) {
     try {
       Claims claims = getAllClaims(token);
       Date expirationDate = claims.getExpiration();
@@ -154,5 +150,5 @@ public class JwtService {
       throw new IllegalArgumentException("El token no puede ser renovado");
 
     return generateToken(info, getClaim(token, claim -> claim.getSubject()));
-  }
+  } */
 }

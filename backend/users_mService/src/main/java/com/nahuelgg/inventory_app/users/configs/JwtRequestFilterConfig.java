@@ -46,20 +46,19 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
       }
 
       JwtClaimsDTO tokenClaims = jwtService.mapTokenClaims(token);
-      boolean isTokenValid = jwtService.isTokenValid(token, usernameInToken);
       boolean isTokenExpired = jwtService.isTokenExpired(token);
-      boolean canBeRenewed = jwtService.canTokenBeRenewed(token);
+      // boolean canBeRenewed = jwtService.canTokenBeRenewed(token);
 
-      if (!isTokenValid || (isTokenExpired && !canBeRenewed)) {
+      if (isTokenExpired/*  && !canBeRenewed */) {
         SecurityContextHolder.clearContext();
-        filterChain.doFilter(request, response);
-        return;
+        throw new RuntimeException("El token ha expirado");
       }
 
-      if (isTokenExpired) {
+      /* if (isTokenExpired) {
         String newToken = jwtService.renewToken(token, tokenClaims);
-        response.setHeader("Authorization", "Bearer " + newToken);
-      }
+        response.setHeader("Authorization", "Bearer " + newToken); 
+        // revisar esto, guardar el nuevo token para que pueda ser usado internamente
+      } */
 
       Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
       if (existingAuth != null && existingAuth.getName().equals(usernameInToken)) {
@@ -87,8 +86,7 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
 
       SecurityContextHolder.getContext().setAuthentication(newAuth);
     } catch (Exception e) {
-      // TODO: 
-      System.out.println(e.getMessage());
+      throw new RuntimeException("Error al registrar token: " + e.getMessage());
     }
 
     filterChain.doFilter(request, response);

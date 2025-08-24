@@ -3,7 +3,6 @@ package com.nahuelgg.inventory_app.users.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -76,12 +75,6 @@ public class JwtServiceTest {
   @Test
   void isTokenExpired() {
     assertFalse(jwtService.isTokenExpired(token));
-  }
-
-  @Test
-  void isTokenValid() {
-    assertTrue(jwtService.isTokenValid(token, "accountUsername"));
-    assertFalse(jwtService.isTokenValid(token, "anotherUsername"));
   }
 
   @Test

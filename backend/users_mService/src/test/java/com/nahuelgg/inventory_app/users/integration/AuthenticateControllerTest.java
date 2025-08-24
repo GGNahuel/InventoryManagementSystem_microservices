@@ -1,6 +1,5 @@
 package com.nahuelgg.inventory_app.users.integration;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
@@ -78,7 +77,6 @@ public class AuthenticateControllerTest {
     HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input);
     ResponseEntity<TokenDTO> response = restTemplate.exchange("/authenticate/login/account", HttpMethod.POST, httpEntity, TokenDTO.class);
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    assertTrue(jwtService.isTokenValid(response.getBody().getToken(), accUsername));
   }
 
   @Test
@@ -90,7 +88,6 @@ public class AuthenticateControllerTest {
     HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken(emptyToken));
     ResponseEntity<TokenDTO> response = restTemplate.exchange("/authenticate/login/account", HttpMethod.POST, httpEntity, TokenDTO.class);
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    assertTrue(jwtService.isTokenValid(response.getBody().getToken(), accUsername));
   }
 
   @Test
@@ -113,9 +110,6 @@ public class AuthenticateControllerTest {
     HttpEntity<LoginDTO> httpEntity = new HttpEntity<LoginDTO>(input, generateHeaderWithToken(authData.getToken()));
     ResponseEntity<TokenDTO> response = restTemplate.exchange("/authenticate/login/user", HttpMethod.POST, httpEntity, TokenDTO.class);
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    assertTrue(jwtService.isTokenValid(response.getBody().getToken(), accUsername));
-
-
   }
 
   @Test

@@ -64,8 +64,8 @@ public class JwtRequestFilterConfig  extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(newAuth);
       }
     } catch (Exception e) {
-      System.out.println("Error al registrar el token: " + e.getMessage());
       SecurityContextHolder.clearContext();
+      System.out.println("Error al registrar el token: " + e.getMessage());
     }
 
     filterChain.doFilter(request, response);

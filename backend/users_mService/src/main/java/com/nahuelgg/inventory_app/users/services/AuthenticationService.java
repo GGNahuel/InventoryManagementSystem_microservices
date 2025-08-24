@@ -49,12 +49,12 @@ public class AuthenticationService {
 
     Authentication currentAuthInContext = SecurityContextHolder.getContext().getAuthentication();
     if (currentAuthInContext.getPrincipal() instanceof ContextAuthenticationPrincipal)
-      throw new RuntimeException("Ya hay una sesión iniciada para la cuenta");
+      throw new RuntimeException("Ya hay una sesión de cuenta iniciada");
     
     AccountEntity accountToLog = accountRepository.findByUsername(username).orElseThrow(
       () -> new ResourceNotFoundException("cuenta", "nombre de usuario", username)
     );
-      
+
     String token = jwtService.generateToken(JwtClaimsDTO.builder().accountId(accountToLog.getId().toString()).build(), username);
 
     authenticationManager.authenticate(
