@@ -18,7 +18,7 @@ public interface PermissionsForInventoryRepository extends JpaRepository<Permiss
 
   // la query ya incluye el futuro cambio de inventory reference a ElementCollection
   @Query("""
-    select p from permission_for_inventory p join users u on p member of u.inventoryPemrs where
+    select p from permission_for_inventory p join users u on p member of u.inventoryPerms where
     u.id = ?2 and p.inventoryReference.inventoryIdReference = ?1
   """)
   Optional<PermissionsForInventoryEntity> findByInventoryReferenceIdAndUserId(UUID inventoryRefId, UUID userId);
