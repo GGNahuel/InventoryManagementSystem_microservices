@@ -13,6 +13,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -76,7 +77,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     ServerHttpRequest request = exchange.getRequest();
 
     if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-      throw new RuntimeException("Missing authorization header");
+      throw new RuntimeException("El header de autorización no se encuentra en la solicitud");
     }
 
     String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
@@ -86,9 +87,11 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
     try {
       jwtUtils.validateToken(authHeader);
+    } catch (ExpiredJwtException e) {
+      throw new RuntimeException("Token expirado");
     } catch (Exception e) {
       System.out.println(e.getMessage());
-      throw new RuntimeException("Unauthorized access to application");
+      throw new RuntimeException("Error al verificar el token en la gateway: " + e.getMessage());
     }
   }
 }

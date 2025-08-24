@@ -39,7 +39,6 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
 
     try {
       String usernameInToken = jwtService.getClaim(token, claim -> claim.getSubject());
-
       if (usernameInToken == null) {
         filterChain.doFilter(request, response);
         return;
@@ -51,7 +50,11 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
 
       if (isTokenExpired/*  && !canBeRenewed */) {
         SecurityContextHolder.clearContext();
-        throw new RuntimeException("El token ha expirado");
+        if (!request.getRequestURI().contains("login/account"))
+          throw new RuntimeException("El token ha expirado, se debe iniciar sesión nuevamente");
+
+        filterChain.doFilter(request, response);
+        return;
       }
 
       /* if (isTokenExpired) {
@@ -86,7 +89,8 @@ public class JwtRequestFilterConfig extends OncePerRequestFilter {
 
       SecurityContextHolder.getContext().setAuthentication(newAuth);
     } catch (Exception e) {
-      throw new RuntimeException("Error al registrar token: " + e.getMessage());
+      SecurityContextHolder.clearContext();
+      //throw new RuntimeException("Error al registrar token: " + e.getMessage());
     }
 
     filterChain.doFilter(request, response);
