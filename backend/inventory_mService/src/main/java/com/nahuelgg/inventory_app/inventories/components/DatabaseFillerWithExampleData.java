@@ -22,7 +22,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner {
   
   @Override
   public void run(String... args) throws Exception {
-    final UUID accountId = UUID.fromString("12341234-0000-0000-0000-11223344acc1");
+    final UUID accountId = UUID.fromString("12341234-0000-0000-0000-10001000acc1");
     final UUID inventoryRefId1 = UUID.fromString("12341234-0000-1000-0001-100010001000");
     final UUID inventoryRefId2 = UUID.fromString("12341234-0000-1000-0002-100010001000");
     final String productRefBaseId = "00000000-0000-0000-0000-0000000000";

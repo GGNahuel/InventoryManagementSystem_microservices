@@ -20,7 +20,7 @@ public class DatabaseFillerWithExampleData implements CommandLineRunner{
   
   @Override
   public void run(String... args) throws Exception {
-    final UUID accountId = UUID.fromString("12341234-0000-0000-0000-11223344acc1");
+    final UUID accountId = UUID.fromString("12341234-0000-0000-0000-10001000acc1");
 
     if (!productRepository.findByAccountId(accountId).isEmpty()) return;
 
