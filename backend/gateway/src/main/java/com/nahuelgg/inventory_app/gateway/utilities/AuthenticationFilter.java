@@ -30,6 +30,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     List<String> openEndpoints = List.of(
       "/account/register",
       "/authenticate/login/account",
+      "/authenticate/logout/account",
       "/e2e"
     );
 
@@ -86,6 +87,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     try {
       jwtUtils.validateToken(authHeader);
     } catch (Exception e) {
+      System.out.println(e.getMessage());
       throw new RuntimeException("Unauthorized access to application");
     }
   }
