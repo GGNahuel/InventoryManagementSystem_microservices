@@ -59,7 +59,6 @@ public class InventoryService_Impl implements InventoryService {
       throw new RuntimeException("Error al obtener el header de autorización");
 
     header.setBearerAuth(authHeader.substring(7));
-    System.out.println(header.asSingleValueMap().toString());
     return header;
   }
 
@@ -119,9 +118,9 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional(readOnly = true)
   public InventoryDTO getById(UUID id) {
-    InventoryEntity inv = repository.findById(id).orElseThrow(
-      () -> new RuntimeException("")
-    );
+    InventoryEntity inv = repository.findById(id).orElse(null);
+    if (inv == null) return null;
+
     List<ProductFromProductsMSDTO> productsFromMS = getProductsFromMS(inv);
 
     return mappers.mapInvEntity(inv, productsFromMS);
@@ -146,8 +145,10 @@ public class InventoryService_Impl implements InventoryService {
       .queryParam("categoryNames", categories != null ? categories.toArray() : null)
       .queryParam("accountId", accountId.toString())
     .toUriString(); 
-    List<ProductFromProductsMSDTO> resultsOfProducts = (List<ProductFromProductsMSDTO>) makeRestRequest(
-      completeUrl, HttpMethod.GET, null).getData();
+    List<ProductFromProductsMSDTO> resultsOfProducts = objectMapper.convertValue(
+      makeRestRequest(completeUrl, HttpMethod.GET, null).getData(),
+      new TypeReference<List<ProductFromProductsMSDTO>>() {}
+    );
 
     // busca inventarios en base a la lista de ids de referencia obtenidas en la solicitud al servicio de productos, 
     // al resultado lo mapea a DTO
@@ -184,9 +185,9 @@ public class InventoryService_Impl implements InventoryService {
     String baseUrl = "http://api-users:8082/account/add-inventory";
     String completeUrl = UriComponentsBuilder.fromUriString(baseUrl)
       .queryParam("accountId", accountId.toString())
-      .queryParam("invId", inv.getId().toString())
+      .queryParam("invRefId", inv.getId().toString())
     .toUriString();
-    makeRestRequest(completeUrl, HttpMethod.PATCH, null);
+    makeRestRequest(completeUrl, HttpMethod.PUT, null);
 
     return mappers.mapInvEntity(inv, List.of());
   }
@@ -339,9 +340,9 @@ public class InventoryService_Impl implements InventoryService {
     String baseUrlToUsers = "http://api-users:8082/account/remove-inventory";
     String completeUrlToUsers = UriComponentsBuilder.fromUriString(baseUrlToUsers)
       .queryParam("accountId", inv.getAccountId().toString())
-      .queryParam("invId", inv.getId().toString())
+      .queryParam("invRefId", inv.getId().toString())
     .toUriString();
-    makeRestRequest(completeUrlToUsers, HttpMethod.DELETE, null);
+    makeRestRequest(completeUrlToUsers, HttpMethod.PUT, null);
     
     List<UUID> refIdsToDelete = productInvRepository.findReferenceIdsExclusiveToInventory(id, accountId);
     String baseUrlToProducts = "http://api-products:8081/product/delete-by-ids";
