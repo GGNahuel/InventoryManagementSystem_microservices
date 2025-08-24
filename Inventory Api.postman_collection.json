@@ -16,9 +16,11 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"let data = pm.response.json();\r",
-									"pm.environment.set(\"JWT_TOKEN\", data.token);\r",
-									"pm.environment.set(\"ACCOUNT_ID\", data.accountId);"
+									"if (pm.response.code == 200) {\r",
+									"    let data = pm.response.json();\r",
+									"    pm.collectionVariables.set(\"JWT_TOKEN\", data.token);\r",
+									"    pm.collectionVariables.set(\"ACCOUNT_ID\", data.accountId);\r",
+									"};"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -472,19 +474,19 @@
 							},
 							"response": [
 								{
-									"name": "Obtener datos del gerente general",
+									"name": "Obtener datos del farmacéutico 1",
 									"originalRequest": {
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{HOST}}/user/id/12341234-0000-0000-0000-000a000a0001?accountId=12341234-0000-0000-0000-10001000acc1",
+											"raw": "{{HOST}}/user/id/12341234-0000-0000-0000-000a000a0002?accountId=12341234-0000-0000-0000-10001000acc1",
 											"host": [
 												"{{HOST}}"
 											],
 											"path": [
 												"user",
 												"id",
-												"12341234-0000-0000-0000-000a000a0001"
+												"12341234-0000-0000-0000-000a000a0002"
 											],
 											"query": [
 												{
@@ -971,7 +973,7 @@
 								"body": {
 									"mode": "graphql",
 									"graphql": {
-										"query": "query($id: ID!, $accountId: ID!) {\r\n    getByAccount(id: $id, accountId: $accountId) {\r\n        name\r\n        products {\r\n            name\r\n        }\r\n    }\r\n}",
+										"query": "query($id: ID!, $accountId: ID!) {\r\n    getById(id: $id, accountId: $accountId) {\r\n        name\r\n        products {\r\n            name\r\n        }\r\n    }\r\n}",
 										"variables": "{\r\n    \"id\": \"\",\r\n    \"accountId\": \"{{ACCOUNT_ID}}\"\r\n}"
 									}
 								},
@@ -994,7 +996,7 @@
 										"body": {
 											"mode": "graphql",
 											"graphql": {
-												"query": "query($id: ID!, $accountId: ID!) {\r\n    getByAccount(id: $id, accountId: $accountId) {\r\n        name\r\n        products {\r\n            name\r\n        }\r\n    }\r\n}",
+												"query": "query($id: ID!, $accountId: ID!) {\r\n    getById(id: $id, accountId: $accountId) {\r\n        name\r\n        products {\r\n            name\r\n        }\r\n    }\r\n}",
 												"variables": "{\r\n    \"id\": \"12341234-0000-1000-0001-100010001000\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
 											}
 										},
@@ -1091,7 +1093,7 @@
 										"body": {
 											"mode": "graphql",
 											"graphql": {
-												"query": "mutation($product: ProductInput!, $invId: ID!, $accountId: ID!) {\r\n    addProduct(product: $product, id: $invId, accountId: $accountId) {\r\n        refId\r\n        name\r\n        brand\r\n        categories\r\n        unitPrice\r\n        stock\r\n    }\r\n}",
+												"query": "mutation($product: ProductInput!, $invId: ID!, $accountId: ID!) {\r\n    addProduct(product: $product, invId: $invId, accountId: $accountId) {\r\n        refId\r\n        name\r\n        brand\r\n        categories\r\n        unitPrice\r\n        stock\r\n    }\r\n}",
 												"variables": "{\r\n    \"product\": {\r\n        \"name\": \"Producto nuevo\",\r\n        \"brand\": \"Marca del producto\",\r\n        \"categories\": [\"categoria 1\", \"categoría 2\"],\r\n        \"unitPrice\": 10.0,\r\n        \"stock\": 5\r\n    },\r\n    \"invId\": \"id of inventory\",\r\n    \"accountId\": \"{{ACCOUNT_ID}}\"\r\n}"
 											}
 										},
@@ -1114,8 +1116,8 @@
 												"body": {
 													"mode": "graphql",
 													"graphql": {
-														"query": "mutation($product: ProductInput!, $invId: ID!, $accountId: ID!) {\r\n    addProduct(product: $product, id: $invId, accountId: $accountId) {\r\n        refId\r\n        name\r\n        brand\r\n        categories\r\n        unitPrice\r\n        stock\r\n    }\r\n}",
-														"variables": "{\r\n    \"product\": {\r\n        \"name\": \"Antigripal\",\r\n        \"brand\": \"Marca\",\r\n        \"categories\": [\"Medicamentos\", \"antigripales\"],\r\n        \"unitPrice\": 800.0,\r\n        \"stock\": 25\r\n    },\r\n    \"invId\": \"12341234-0000-1000-0001-100010001000\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
+														"query": "mutation($product: ProductInput!, $invId: ID!, $accountId: ID!) {\r\n    addProduct(product: $product, invId: $invId, accountId: $accountId) {\r\n        refId\r\n        name\r\n        brand\r\n        categories\r\n        unitPrice\r\n        stock\r\n    }\r\n}",
+														"variables": "{\r\n    \"product\": {\r\n        \"name\": \"Antigripal\",\r\n        \"brand\": \"Marca\",\r\n        \"categories\": [\"Medicamentos\", \"antigripales\"],\r\n        \"unitPrice\": 800.0,\r\n        \"stock\": 25\r\n    },\r\n    \"invId\": \"12341234-0000-1000-0002-100010001000\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
 													}
 												},
 												"url": {
@@ -1132,7 +1134,9 @@
 											"header": [],
 											"cookie": [
 												{
-													"expires": "Invalid Date"
+													"expires": "Invalid Date",
+													"domain": "",
+													"path": ""
 												}
 											],
 											"body": ""
@@ -1147,7 +1151,7 @@
 										"body": {
 											"mode": "graphql",
 											"graphql": {
-												"query": "mutation($product: EditProductInput!, $invId: ID!, $accountId: ID!) {\r\n    editProductInInventory(product: $product, id: $invId, accountId: $accountId) {\r\n        refId\r\n        name\r\n        brand\r\n        categories\r\n        unitPrice\r\n        stock\r\n    }\r\n}",
+												"query": "mutation($product: EditProductInput!, $invId: ID!, $accountId: ID!) {\r\n    editProductInInventory(product: $product, invId: $invId, accountId: $accountId) {\r\n        refId\r\n        name\r\n        brand\r\n        categories\r\n        unitPrice\r\n        stock\r\n    }\r\n}",
 												"variables": "{\r\n    \"product\": {\r\n        \"refId\": \"ID DE REFERENCIA DEL PRODUCTO\",\r\n        \"name\": \"Producto nuevo\",\r\n        \"brand\": \"Marca del producto\",\r\n        \"categories\": [\"categoria 1\", \"categoría 2\"],\r\n        \"unitPrice\": 10.0\r\n    },\r\n    \"invId\": \"id of inventory\",\r\n    \"accountId\": \"{{ACCOUNT_ID}}\"\r\n}"
 											}
 										},
@@ -1170,7 +1174,7 @@
 												"body": {
 													"mode": "graphql",
 													"graphql": {
-														"query": "mutation($product: EditProductInput!, $invId: ID!, $accountId: ID!) {\r\n    editProductInInventory(product: $product, id: $invId, accountId: $accountId) {\r\n        refId\r\n        name\r\n        brand\r\n        categories\r\n        unitPrice\r\n        stock\r\n    }\r\n}",
+														"query": "mutation($product: EditProductInput!, $invId: ID!, $accountId: ID!) {\r\n    editProductInInventory(product: $product, invId: $invId, accountId: $accountId) {\r\n        refId\r\n        name\r\n        brand\r\n        categories\r\n        unitPrice\r\n        stock\r\n    }\r\n}",
 														"variables": "{\r\n    \"product\": {\r\n        \"refId\": \"00000000-0000-0000-0000-000000000017\",\r\n        \"name\": \"Test rápido COVID-19\",\r\n        \"brand\": \"Nueva marca\",\r\n        \"categories\": [\"Tests rápidos\", \"descartables\", \"covid\"],\r\n        \"unitPrice\": 2500.0\r\n    },\r\n    \"invId\": \"12341234-0000-1000-0001-100010001000\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
 													}
 												},
@@ -1188,7 +1192,9 @@
 											"header": [],
 											"cookie": [
 												{
-													"expires": "Invalid Date"
+													"expires": "Invalid Date",
+													"domain": "",
+													"path": ""
 												}
 											],
 											"body": ""
@@ -1203,7 +1209,7 @@
 										"body": {
 											"mode": "graphql",
 											"graphql": {
-												"query": "mutation($products: [ProductToCopyInput]!, $idTo: ID!, $accountId: ID!) {\r\n    copyPtoducts(product: $products, id: $invId, accountId: $accountId)\r\n}",
+												"query": "mutation($products: [ProductToCopyInput]!, $idTo: ID!, $accountId: ID!) {\r\n    copyProducts(products: $products, idTo: $idTo, accountId: $accountId)\r\n}",
 												"variables": "{\r\n    \"products\": [\r\n        {\r\n            \"refId\": \"ID DE REFERENCIA DEL PRODUCTO\",\r\n            \"stock\": 4\r\n        }\r\n    ],\r\n    \"idTo\": \"id of inventory where products will be copied\",\r\n    \"accountId\": \"{{ACCOUNT_ID}}\"\r\n}"
 											}
 										},
@@ -1226,7 +1232,7 @@
 												"body": {
 													"mode": "graphql",
 													"graphql": {
-														"query": "mutation($products: [ProductToCopyInput]!, $idTo: ID!, $accountId: ID!) {\r\n    copyPtoducts(product: $products, id: $invId, accountId: $accountId)\r\n}",
+														"query": "mutation($products: [ProductToCopyInput]!, $idTo: ID!, $accountId: ID!) {\r\n    copyProducts(products: $products, idTo: $idTo, accountId: $accountId)\r\n}",
 														"variables": "{\r\n    \"products\": [\r\n        {\r\n            \"refId\": \"00000000-0000-0000-0000-000000000017\",\r\n            \"stock\": 8\r\n        },\r\n        {\r\n            \"refId\": \"00000000-0000-0000-0000-000000000013\",\r\n            \"stock\": 12\r\n        }\r\n    ],\r\n    \"idTo\": \"12341234-0000-1000-0002-100010001000\",\r\n    \"accountId\": \"12341234-0000-0000-0000-10001000acc1\"\r\n}"
 													}
 												},
@@ -1244,7 +1250,9 @@
 											"header": [],
 											"cookie": [
 												{
-													"expires": "Invalid Date"
+													"expires": "Invalid Date",
+													"domain": "",
+													"path": ""
 												}
 											],
 											"body": ""
@@ -1718,15 +1726,27 @@
 	"variable": [
 		{
 			"key": "JWT_TOKEN",
-			"value": ""
+			"value": "",
+			"description": {
+				"content": "",
+				"type": "text/plain"
+			}
 		},
 		{
 			"key": "ACCOUNT_ID",
-			"value": ""
+			"value": "",
+			"description": {
+				"content": "",
+				"type": "text/plain"
+			}
 		},
 		{
 			"key": "HOST",
-			"value": "http://localhost:8080"
+			"value": "http://localhost:8080",
+			"description": {
+				"content": "",
+				"type": "text/plain"
+			}
 		}
 	]
 }
