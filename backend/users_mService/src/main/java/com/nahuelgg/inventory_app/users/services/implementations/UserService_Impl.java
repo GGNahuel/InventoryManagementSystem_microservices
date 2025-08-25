@@ -37,11 +37,9 @@ public class UserService_Impl implements UserService {
   public UserDTO getById(UUID id, UUID accountId) {
     checkFieldsHasContent(new Field("id", id), new Field("id de la cuenta", accountId));
 
-    UserEntity user = repository.findById(id).orElseThrow(
-      () -> new ResourceNotFoundException("usuario", "id", id.toString())
-    );
+    UserEntity result = repository.findById(id).orElse(null);
 
-    return entityMappers.mapUser(user);
+    return result != null ? entityMappers.mapUser(result) : null;
   }
 
   @Override @Transactional

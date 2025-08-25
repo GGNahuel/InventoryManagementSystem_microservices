@@ -71,9 +71,8 @@ public class AccountService_Impl implements AccountService {
   public AccountDTO getById(UUID id) {
     checkFieldsHasContent(new Field("id de cuenta", id));
 
-    return entityMappers.mapAccount(repository.findById(id).orElseThrow(
-      () -> new ResourceNotFoundException("cuenta", "id", id.toString())
-    ));
+    AccountEntity result = repository.findById(id).orElse(null);
+    return result != null ? entityMappers.mapAccount(result) : null;
   }
 
   @Override @Transactional
