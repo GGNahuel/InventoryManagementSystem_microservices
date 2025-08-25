@@ -25,10 +25,15 @@ import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.InventoryDTO;
 import com.nahuelgg.inventory_app.inventories.dtos.schemaOutputs.ProductInInvDTO;
 import com.nahuelgg.inventory_app.inventories.entities.InventoryEntity;
 import com.nahuelgg.inventory_app.inventories.entities.ProductInInvEntity;
+import com.nahuelgg.inventory_app.inventories.exceptions.InternalRequestException;
+import com.nahuelgg.inventory_app.inventories.exceptions.ResourceNotFoundException;
 import com.nahuelgg.inventory_app.inventories.repositories.InventoryRepository;
 import com.nahuelgg.inventory_app.inventories.repositories.ProductInInvRepository;
 import com.nahuelgg.inventory_app.inventories.services.InventoryService;
 import com.nahuelgg.inventory_app.inventories.utilities.Mappers;
+import com.nahuelgg.inventory_app.inventories.utilities.Validations.Field;
+
+import static com.nahuelgg.inventory_app.inventories.utilities.Validations.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -70,9 +75,9 @@ public class InventoryService_Impl implements InventoryService {
         new HttpEntity<>(setTokenToOtherServicesRequests());
 
       response = restTemplate.exchange(url, method, entity, ResponseDTO.class);
-      System.out.println(response.toString());
+
       if (!response.getStatusCode().is2xxSuccessful())
-        throw new RuntimeException(response.getBody().getError().toString());
+        throw new InternalRequestException(response.getBody().getError().toString(), response.toString());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -118,6 +123,8 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional(readOnly = true)
   public InventoryDTO getById(UUID id) {
+    checkFieldsHasContent(new Field("id", id.toString()));
+
     InventoryEntity inv = repository.findById(id).orElse(null);
     if (inv == null) return null;
 
@@ -128,6 +135,8 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional(readOnly = true)
   public List<InventoryDTO> getByAccount(UUID accountId) {
+    checkFieldsHasContent(new Field("id de la cuenta", accountId.toString()));
+
     return repository.findByAccountId(accountId).stream().map(
       inv -> mappers.mapInvEntity(inv, getProductsFromMS(inv))
     ).toList();
@@ -137,6 +146,8 @@ public class InventoryService_Impl implements InventoryService {
   public List<InventoryDTO> searchProductsInInventories(
     String name, String brand, String model, List<String> categories, UUID accountId
   ) {
+    checkFieldsHasContent(new Field("id de la cuenta", accountId.toString()));
+
     String baseUrl = "http://api-products:8081/product/search";
     String completeUrl = UriComponentsBuilder.fromUriString(baseUrl)
       .queryParam("brand", brand)
@@ -177,6 +188,8 @@ public class InventoryService_Impl implements InventoryService {
   // mutations
   @Override @Transactional
   public InventoryDTO create(String name, UUID accountId) {
+    checkFieldsHasContent(new Field("nombre de inventario", name), new Field("id de la cuenta", accountId.toString()));
+
     if (repository.existsByNameAndAccountId(name, accountId))
       throw new RuntimeException("Ya existe un inventario con ese nombre en la cuenta");
 
@@ -194,8 +207,9 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public boolean edit(UUID id, String name) {
+    checkFieldsHasContent(new Field("id del inventario", id.toString()), new Field("nombre de inventario", name));
     InventoryEntity inv = repository.findById(id).orElseThrow(
-      () -> new RuntimeException("")
+      () -> new ResourceNotFoundException("inventario", "id", id.toString())
     );
     inv.setName(name);
     repository.save(inv);
@@ -204,8 +218,10 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public ProductInInvDTO addProduct(ProductInputDTO productInput, UUID invId, UUID accountId) {
+    checkFieldsHasContent(new Field("id de la cuenta", accountId.toString()), new Field("id del inventario", invId.toString()));
+
     InventoryEntity inv = repository.findById(invId).orElseThrow(
-      () -> new RuntimeException("Inv not found")
+      () -> new ResourceNotFoundException("inventario", "id", invId.toString())
     );
       
     String baseUrl = "http://api-products:8081/product?invId=%s&accountId=%s".formatted(invId.toString(), accountId.toString());
@@ -226,11 +242,13 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override
   public ProductInInvDTO editProductInInventory(EditProductInputDTO product, UUID invId, UUID accountId) {
+    checkFieldsHasContent(new Field("id de la cuenta", accountId.toString()), new Field("id del inventario", invId.toString()));
+
     repository.findById(invId).orElseThrow(
-      () -> new RuntimeException("Inv not found")
+      () -> new ResourceNotFoundException("inventario", "id", invId.toString())
     );
     ProductInInvEntity productToEdit = productInvRepository.findByReferenceIdAndInventoryId(UUID.fromString(product.getRefId()), invId).orElseThrow(
-      () -> new RuntimeException("Producto a editar no encontrado")
+      () -> new ResourceNotFoundException("producto en inventario", "id", product.getRefId().toString())
     );
 
     ProductFromProductsMSDTO editedProduct;
@@ -259,8 +277,10 @@ public class InventoryService_Impl implements InventoryService {
 
   @Override @Transactional
   public boolean copyProducts(List<ProductToCopyDTO> products, UUID idTo) {
+    checkFieldsHasContent(new Field("lista de productos a copiar", products), new Field("id de inventario", idTo.toString()));
+
     InventoryEntity invTo = repository.findById(idTo).orElseThrow(
-      () -> new RuntimeException("")
+      () -> new ResourceNotFoundException("inventario", "id", idTo.toString())
     );
 
     List<ProductInInvEntity> newList = invTo.getProducts();
@@ -283,7 +303,7 @@ public class InventoryService_Impl implements InventoryService {
   @Override @Transactional
   public boolean editStockOfProduct(int relativeNewStock, UUID productRefId, UUID invId) {
     ProductInInvEntity p = productInvRepository.findByReferenceIdAndInventoryId(productRefId, invId).orElseThrow(
-      () -> new RuntimeException("")
+      () -> new ResourceNotFoundException("producto", "id", productRefId.toString())
     );
     int newStock = p.getStock() + relativeNewStock;
     p.setStock(newStock < 0 ? 0 : newStock);
@@ -296,7 +316,7 @@ public class InventoryService_Impl implements InventoryService {
   @Override
   public boolean deleteProductInInventory(List<UUID> productRefIds, UUID invId, UUID accountId) {
     InventoryEntity inv = repository.findById(invId).orElseThrow(
-      () -> new RuntimeException("inv not found")
+      () -> new ResourceNotFoundException("inventario", "id", invId.toString())
     );
     
     List<ProductInInvEntity> productsInInv = inv.getProducts();
@@ -304,7 +324,7 @@ public class InventoryService_Impl implements InventoryService {
 
     if (!productRefIds.stream().allMatch(
       pRefId -> pRefIdsInInventory.contains(pRefId)
-    )) throw new RuntimeException("Uno de los productos enviados para borrar no se encuentra en el inventario seleccionado. %s"
+    )) throw new RuntimeException("Uno o más de los productos enviados para borrar no se encuentran en el inventario seleccionado. %s"
       .formatted(productRefIds.stream().filter(pRefId -> !pRefIdsInInventory.contains(pRefId)).toList().toString())
     );
 
@@ -334,7 +354,7 @@ public class InventoryService_Impl implements InventoryService {
   @Override @Transactional
   public boolean delete(UUID id, UUID accountId) {
     InventoryEntity inv = repository.findById(id).orElseThrow(
-      () -> new RuntimeException("")
+      () -> new ResourceNotFoundException("inventario", "id", id.toString())
     );
     
     String baseUrlToUsers = "http://api-users:8082/account/remove-inventory";
