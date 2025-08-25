@@ -119,7 +119,7 @@ public class AccountService_Impl implements AccountService {
     if (info.getInventoryPerms() != null && !info.getInventoryPerms().isEmpty()) {
       for (PermissionsForInventoryDTO perm : info.getInventoryPerms()) {
         checkFieldsHasContent(
-          new Field("inventario de referemcia", perm.getIdOfInventoryReferenced()),
+          new Field("inventario de referencia", perm.getIdOfInventoryReferenced()),
           new Field("permisos", perm.getPermissions())
         );
       }
