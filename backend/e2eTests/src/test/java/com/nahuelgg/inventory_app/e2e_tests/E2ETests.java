@@ -56,7 +56,7 @@ public class E2ETests {
     .withPassword("root")
     .withNetwork(network)
     .withNetworkAliases(containerAliases.get("databaseAlias"))
-    .withInitScript("initDatabase.sql");
+    /* .withInitScript("initDatabase.sql") */;
 
   @SuppressWarnings("resource")
   @Container
