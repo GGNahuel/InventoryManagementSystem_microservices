@@ -1,6 +1,6 @@
-<h1>Proyecto de gestión de inventarios de productos</h1>
+<h1>Sistema de gestión de inventarios de productos</h1>
 
-*Versión 1.0, fecha de lanzamiento Agosto de 2025*
+*Versión 1.0.0, fecha de primer lanzamiento Agosto de 2025*
 
 Sistema de APIs diseñado para que usuarios puedan registrarse y crear distintos inventarios que pueden llenar con productos según lo requieran.
 
@@ -21,12 +21,12 @@ Trabaja con base de datos y seguridad a traves de autenticaciones y autorizacion
 - [Fundamentación del diseño y arquitectura de software](#fundamentación-del-diseño-y-arquitectura-de-software)
   - [Estilo arquitectónico](#estilo-arquitectónico)
   - [Modelo de dominio](#modelo-de-dominio)
-  - [Productos](#productos)
-  - [Inventarios](#inventarios)
-  - [Cuentas](#cuentas)
-  - [Usuarios (sub-usuarios)](#usuarios-sub-usuarios)
+    - [Productos](#productos)
+    - [Inventarios](#inventarios)
+    - [Cuentas](#cuentas)
+    - [Usuarios (sub-usuarios)](#usuarios-sub-usuarios)
   - [Resumen de tecnologías y herramientas elegidas](#resumen-de-tecnologías-y-herramientas-elegidas)
-  - [Componentes y patron arquitectónico](#componentes-y-patron-arquitectónico)
+  - [Componentes y patrón arquitectónico](#componentes-y-patrón-arquitectónico)
     - [Microservicio de Usuarios](#microservicio-de-usuarios)
     - [Microservicio de Inventarios](#microservicio-de-inventarios)
     - [Microservicio de Productos](#microservicio-de-productos)
@@ -65,20 +65,19 @@ Trabaja con base de datos y seguridad a traves de autenticaciones y autorizacion
 
 
 ### Funcionalidades generales
-* Los usuarios pueden registrar una cuenta e iniciar sesión en la API.
+* Los usuarios pueden registrar una cuenta e iniciar sesión en el sistema.
 
 * Durante el registro, también se configuran los datos del sub-usuario administrador principal.
 
 * Cada cuenta puede tener múltiples inventarios, que pueden ser creados, editados y eliminados por el sub-usuario administrador.
 
 * Las cuentas permiten la creación de sub-usuarios con nombre de usuario, contraseña y permisos específicos.
-  * Por defecto, se crea un sub-usuario administrador al momento del registro.
 
 * Los sub-usuarios pueden tener distintos roles como "admin", "general", "jefe de categoría", etc.
 
 * Los permisos de cada sub-usuario se asignan por inventario, lo que permite:
-  * Diferentes permisos en cada inventarios.
-  * Mayor control de acceso y acciones por inventario.
+  * Diferentes permisos en cada uno.
+  * Mayor control de acceso y acciones disponibles.
   
 * El sub-usuario administrador puede:
   * Gestionar inventarios (crear, eliminar, renombrar).
@@ -91,9 +90,7 @@ Trabaja con base de datos y seguridad a traves de autenticaciones y autorizacion
 * Los productos pueden:
   * Agregarse, editarse, eliminarse.
   * Buscarse por atributos como nombre, marca, stock, categoría o disponibilidad.
-  * Copiarse entre inventarios, conservando sus atributos generales y permitiendo redefinir atributos específicos como stock y disponibilidad.
-
-* Toda interacción del cliente se realiza a través del API Gateway, que enruta la solicitud al servicio correspondiente.
+  * Compartirse entre inventarios, conservando sus datos generales pero permitiendo redefinir atributos específicos como stock y disponibilidad.
 
 ## Fundamentación del diseño y arquitectura de software
 Como se mencionó antes, la idea de este proyecto es brindar una solución del lado del servidor segura y eficaz que permita a usuarios, o grupo de personas, trabajar con inventarios de una forma práctica. Pensada principalmente para negocios u organizaciones. En donde es probable que sean varias personas las que accedan a estos inventarios, pero en donde no todas ellas podrían realizar las mismas acciones sobre los datos que alojan.
@@ -139,8 +136,8 @@ Además también es probable que, según las necesidades del usuario, se requier
 <div style="display: flex; justify-content: center">
 <img src="docs/resources/image.png" style="max-width: 720px; width: 100%;" alt="Gráfico que muestra cómo las entidades se relacionan entre sí y los atributos que estas tendrían descritos de forma general"/></div>
 
-### Productos
-* #### Productos de referencia
+#### Productos
+* ##### Productos de referencia
   
   Encargados de almacenar los datos principales de un producto, o item. Éstos son referenciados en los distintos inventarios, mediante *Producto en inventario* Permitiendo que los mismos datos estén en más de uno, y que si esta referencia se modifica el cambio se vea reflejado en todos los inventarios que posean esta referencia.
 
@@ -152,7 +149,7 @@ Además también es probable que, según las necesidades del usuario, se requier
   * Precio unitario
   * Categorías
 
-* #### Productos en inventario
+* ##### Productos en inventario
 
   Encargados de guardar la referencia al producto para obtener sus datos principales y almacenar los datos que refieren a ese producto en el inventario asignado.
 
@@ -161,14 +158,14 @@ Además también es probable que, según las necesidades del usuario, se requier
   * Stock
   * Disponibilidad
 
-### Inventarios
+#### Inventarios
 Encargados de gestionar los datos de los productos asociados a él.
 
 Atributos:
 * Nombre
 * Lista de Productos en inventario
 
-### Cuentas
+#### Cuentas
 Guarda los datos que se usarán para iniciar sesión y mostrar los inventarios asociados a ella. Además es la que permite guardar dentro a los usuarios (sub-usuarios).
 
 Atributos:
@@ -177,7 +174,7 @@ Atributos:
 * Lista de Inventarios
 * Lista de Usuarios
 
-### Usuarios (sub-usuarios)
+#### Usuarios (sub-usuarios)
 Como la aplicación posee un "doble login" ésta entidad también guardará sus propios datos de acceso. Además de eso posee un rol, que es más descriptivo que funcional para autorización, y los permisos que éste posee para cada inventario.
 
 Atributos:
@@ -200,7 +197,7 @@ Atributos:
 | Base de datos relacional: MySQL | Elegida en principio debido a que permite relaciones entre las entidades definidas. Aunque es probable que en versiones futuras, por escalabilidad y rapidez para manejar los datos, se use una base de datos noSQL. Ya que como las entidades están divididas en microservicios y cada uno no posee muchas no es tan necesaria una SQL. |
 | Docker | Se eligió usarlo debido a las ventajas que Docker y sus contenedores ofrecen a la hora de probar, desarrollar, y desplegar una aplicación en distintos entornos. |
 
-### Componentes y patron arquitectónico
+### Componentes y patrón arquitectónico
 Consta de **5** microservicios en total, 3 principales y otros 2 adicionales. Siendo los principales: el microservicio relacionado con usuarios, el relacionado con inventarios y el relacionado con productos; cada uno exponiendo su propia API al sistema completo y manejando su propia base de datos. Los dos adicionales son, por un lado la API Gateway y por el otro uno encargado únicamente de hacer pruebas *end to end* (e2e), levantando contenedores temporales gracias a **test containers**.
 
 Todos los microservicios son proyectos de Spring boot, a excepción del de pruebas e2e en el que no es necesario y alcanza solo con el uso de **Maven** y su manejo de dependencias.
@@ -257,6 +254,7 @@ Api con GraphQL también con su propia base de datos sql. Se la define con graph
 Se encarga de manejar cuestiones de los productos que hay en cada inventario. Agregar, editar, borrar, copiar, modificar el stock, etc. Se vincula principalmente con el microservicio de productos para obtener la información específica de cada uno.
 
 Consta de 2 entidades en su base de datos:
+
 **InventoryEntity**: Los inventarios se identifican en base a su nombre y una lista de productos en inventario. Lista que contiene la info relacionada al producto en ese inventario particular, además de la referencia.
 * id
 * name
@@ -288,6 +286,7 @@ Su base de datos consta de una sola entidad.
 * accountId (Id de referencia a la cuenta a la que pertenece este producto)
 
 </br>
+
 Estos 3 microservicios poseen Spring Security, el cual se utiliza para autorizar endpoints y realizar la validación del Json Web Token en cada solicitud, incluso si el cliente sea otro microservicio del sistema o la propia gateway.
 
 #### Microservicio para la API Gateway
@@ -298,7 +297,7 @@ Este consta de un proyecto de maven el cual ejecuta distintas pruebas que cada u
 
 Éste microservicio no es necesario para que la app funcione correctamente, sí para verificar que lo haga. Es decir, su implementación no es requerida como tal por otros microservicios.
 
-Para ver cómo ejecutarlas y qué se requiere, revisar [la sección de testing]().
+Para ver cómo ejecutarlas y qué se requiere, revisar [la sección de testing](#testing-y-prueba-del-sistema).
 
 ### Flujo de interacción de las solicitudes y entre microservicios
 El flujo presentado a continuación se usa para todas las peticiones sin importar quién sea el cliente, ya sea si es externo al sistema o si es uno de los propios componentes. (A excepción de los puntos relacionados con la Gateway, la cuál solo la usarían los clientes externos).
@@ -307,8 +306,9 @@ El flujo presentado a continuación se usa para todas las peticiones sin importa
 2. API Gateway. Validará, según si el endpoint requiere o no, el token JWT, redirigiendo en caso de éxito al servicio que corresponda.
 3. Servicios. Previo al procesamiento de la operación, la solicitud pasará por un par de filtros de seguridad.
    1. Primero pasa por uno de autenticación, que además de validar nuevamente el token JWT, asigna en el contexto de seguridad local a ese servicio los datos que llegan en ese token.
-   2. Posteriormente pasa por otro de autorización antes de llegar al controlador. Que revisará si los datos presentes en el contexto de seguridad local tienen los permisos requeridos para el endpoint solicitado.
+   2. Posteriormente pasa por otro filtro de autorización antes de llegar al controlador. Que revisará si los datos presentes en el contexto de seguridad local tienen los permisos requeridos para el endpoint solicitado.
    3. Finalmente la solicitud llega a la capa del controlador. La que llamará a la capa de negocio la cual trabajará con los recursos internos para lograr el objetivo de la operación.
+      - En esta etapa es donde se dan las comunicaciones con otros servicios internos en caso de ser necesario. Mandando nuevamente el token en la solicitud para que el otro servicio pueda validarlo y repetir este procedimiento (item 3). 
 4. Api Gateway. Finalmente se recibe el retorno del re-direccionamiento y se lo envía al cliente.
 
 </br>
@@ -450,7 +450,7 @@ Si se quiere correr el proyecto sin docker es necesario contar con los siguiente
 
 - Tener instalado el server de MySql, al menos la versión 8.0. Los valores que se asignen a la cuenta serán los que deberán ir en las [variables de entorno](#variables-de-entorno).
 
-Posteriormente con las variables de entorno del proyecto se pueden definir como se mencionó anteriormente (pero no en el Path), en el IDE si este lo permite, o directamente en los application.properties de cada servicio como se muestra en el [ejemplo](#ejemplo-de-valores).
+Posteriormente las variables de entorno se pueden definir como se mencionó anteriormente (pero no dentro de la variable del Path), en el IDE si este lo permite, o directamente en los application.properties de cada servicio como se muestra en el [ejemplo](#ejemplo-de-valores).
 
 Finalmente se debe iniciar cada proyecto de spring ubicado en las carpetas correspondientes a los microservicios.
 
@@ -498,6 +498,8 @@ El mismo contiene los siguientes claims (pueden ser nulos depende de los logins 
 }
 ```
 
+La duración del token es de una hora. Esto se cambiaría en el caso de que se despliegue el sistema en algún servidor remoto. Haciendo que dure menos y que el mismo sistema renueve y devuelva un nuevo token.
+
 ### Permisos (los que estarían en el permissions dentro del userPerms)
 - addProducts: El sub-usuario con este permiso está habilitado tanto a crear nuevos productos y agregarlos a un inventario, como a copiar de un inventario y pasarlo a otro.
 
@@ -539,7 +541,7 @@ Tanto el servicio de usuarios como el de productos devuelven el mismo tipo de fo
     data: null | object // esto contendría el objeto resultante de la operación en caso de que lo posea. También puede contener un mensaje adicional en caso de error.
   }
 ```
-> Los retornos y cuerpos de las solicitudes en esta documentación se muestran en formato typescript para mostrar con mayor claridad y simpleza los posibles valores.
+>Los retornos y cuerpos de las solicitudes se muestran en formato typescript, o como en el schema de graphQl, para mostrar con mayor claridad y simpleza los posibles valores.
 
 > Todas las id son en formato UUID de 16 bytes.
 
