@@ -44,10 +44,9 @@ Trabaja con base de datos y seguridad a traves de autenticaciones y autorizacion
   - [En caso de no usar docker](#en-caso-de-no-usar-docker)
     - [Windows](#windows)
     - [Linux / macOS](#linux--macos)
-    - [Se puede verificar las configuraciones en una terminal (CMD o PowerShell) ejecutando:](#se-puede-verificar-las-configuraciones-en-una-terminal-cmd-o-powershell-ejecutando)
 - [Autenticación y autorización](#autenticación-y-autorización)
   - [Sobre el token](#sobre-el-token)
-  - [Permisos (los que estarían en el permissions dentro del userPerms)](#permisos-los-que-estarían-en-el-permissions-dentro-del-userperms)
+  - [Permisos](#permisos)
 - [Endpoints y operaciones](#endpoints-y-operaciones)
   - [Servicio de usuarios](#servicio-de-usuarios)
     - [Posibles retornos](#posibles-retornos)
@@ -443,7 +442,7 @@ Si se quiere correr el proyecto sin docker es necesario contar con los siguiente
 
   Después de editarlos, aplicá los cambios con: <code>source ~/.bashrc</code> o <code>~/.zshrc</code> según corresponda
 
-  #### Se puede verificar las configuraciones en una terminal (CMD o PowerShell) ejecutando:
+  **Se puede verificar las configuraciones en una terminal (CMD o PowerShell) ejecutando:**
       java -version
       javac -version
       mvn -version
@@ -500,7 +499,8 @@ El mismo contiene los siguientes claims (pueden ser nulos depende de los logins 
 
 La duración del token es de una hora. Esto se cambiaría en el caso de que se despliegue el sistema en algún servidor remoto. Haciendo que dure menos y que el mismo sistema renueve y devuelva un nuevo token.
 
-### Permisos (los que estarían en el permissions dentro del userPerms)
+### Permisos 
+(los que estarían en el permissions dentro del userPerms)
 - addProducts: El sub-usuario con este permiso está habilitado tanto a crear nuevos productos y agregarlos a un inventario, como a copiar de un inventario y pasarlo a otro.
 
 - editProducts: El sub-usuario con este permiso puede editar la información principal de un producto en un inventario. Por ejemplo el nombre, marca, categorías, etc. 
