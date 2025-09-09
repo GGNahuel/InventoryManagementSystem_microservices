@@ -63,6 +63,7 @@ Cuando un usuario se registra creando su cuenta, por defecto también se crea un
   - [Ejecución de tests](#ejecución-de-tests)
   - [Prueba con Postman](#prueba-con-postman)
     - [Datos de ejemplo](#datos-de-ejemplo)
+- [Posibles funciones a agregar](#posibles-funciones-a-agregar)
 
 
 ### Funcionalidades generales
@@ -1220,3 +1221,8 @@ Ambos con el atributo *accountId* con el valor de ``12341234-0000-0000-0000-1000
   - description: Crema corporal para piel seca
   - categories: Cuidado personal, Cosméticos
   
+## Posibles funciones a agregar
+- Agregar una entidad destinada a Pedidos, la que se usaría para que las cuentas tengan un registro más al alcance de aquellos productos o items que hagan falta en sus inventarios.
+- Agregar una entidad a la base de datos del servicio de usuarios, la que aloje los roles que la cuenta pueda tener. Para que sea más fácil la creación de nuevos sub-usuarios y la asignación de sus permisos.
+- Agregar autenticación con OAuth.
+- Ver en cuáles servicios se podría usar una base de datos NoSQL.
