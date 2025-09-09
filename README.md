@@ -4,16 +4,18 @@
 
 Sistema de APIs diseñado para que usuarios puedan registrarse y crear distintos inventarios que pueden llenar con productos según lo requieran.
 
-Trabaja con base de datos y seguridad a traves de autenticaciones y autorizaciones. Las cuentas creadas por defecto crean un sub-usuario *admin* que, además de poder crear inventarios, también puede registrar a otros sub-usuarios y otorgarle distintos permisos que pueden variar para cada inventario. Permisos como el de agregar productos, eliminarlos, editar el inventario, entre otros.
+Trabaja con base de datos y seguridad en sus componentes a través de autenticaciones y autorizaciones recibidas mediante un token. 
+
+Cuando un usuario se registra creando su cuenta, por defecto también se crea un sub-usuario *admin* que, además de poder crear inventarios, también puede registrar a otros sub-usuarios y otorgarle distintos permisos que pueden variar para cada inventario. Permisos como el de agregar productos, eliminarlos, editar el inventario, entre otros.
 
 > #### Ejemplo de uso: 
 >
 >  Suponiendo que una **cadena de farmacias** desea utilizar la aplicación podría hacerlo de la siguiente forma:
-> - Una **cuenta** representa a la empresa principal.  
+> - Una **cuenta** representa a la cadena de farmacias en general.  
 > - Dentro de la cuenta se crean varios **inventarios**, uno por cada sucursal (ej. "Sucursal Norte", "Sucursal Centro", "Sucursal Sur").  
-> - Los **productos** (medicamentos, insumos, cosméticos) pueden estar disponibles en una sola sucursal o compartirse entre varias.  
-> - Los **sub-usuarios** representan a los empleados de cada sucursal, con permisos específicos.  
->   - Por ejemplo: un **farmacéutico** puede actualizar productos, un **cajero** solo registrar ventas, ambos solo para los productos que corresponden a su sucursal. En cambio, un **gerente general** por ejemplo, puede administrar todo de todos los inventarios asociados a la cuenta.
+> - Los **productos** (medicamentos, insumos, cosméticos, etc.) pueden estar disponibles en una sola sucursal o en varias de ellas.
+> - Los **sub-usuarios** representan a los empleados de cada sucursal, con permisos específicos según se le asigne al rol.  
+>   - Por ejemplo: un **farmacéutico** puede actualizar productos y un **cajero** solo registrar ventas. Ambos solo pueden realizar eso sobre los productos que corresponden a su sucursal. En cambio, un **gerente general** por ejemplo, puede administrar todo de todos los inventarios asociados a la cuenta.
 >
 > De esta manera, la aplicación permite centralizar el control de los productos en cada sucursal, compartiéndolos cuando sea necesario, a su vez que se asignan permisos claros a cada rol dentro de la empresa.
 
@@ -72,7 +74,7 @@ Trabaja con base de datos y seguridad a traves de autenticaciones y autorizacion
 
 * Las cuentas permiten la creación de sub-usuarios con nombre de usuario, contraseña y permisos específicos.
 
-* Los sub-usuarios pueden tener distintos roles como "admin", "general", "jefe de categoría", etc.
+* Los sub-usuario pueden tener distintos roles como "admin", "general", "jefe de categoría", etc. Sirviendo para diferenciarlos dentro de la misma cuenta.
 
 * Los permisos de cada sub-usuario se asignan por inventario, lo que permite:
   * Diferentes permisos en cada uno.
@@ -92,7 +94,9 @@ Trabaja con base de datos y seguridad a traves de autenticaciones y autorizacion
   * Compartirse entre inventarios, conservando sus datos generales pero permitiendo redefinir atributos específicos como stock y disponibilidad.
 
 ## Fundamentación del diseño y arquitectura de software
-Como se mencionó antes, la idea de este proyecto es brindar una solución del lado del servidor segura y eficaz que permita a usuarios, o grupo de personas, trabajar con inventarios de una forma práctica. Pensada principalmente para negocios u organizaciones. En donde es probable que sean varias personas las que accedan a estos inventarios, pero en donde no todas ellas podrían realizar las mismas acciones sobre los datos que alojan.
+Como se mencionó antes, la idea de este proyecto es brindar una solución del lado del servidor segura y eficaz que permita a usuarios, o grupo de personas, trabajar con inventarios de una forma práctica. Está pensada principalmente para negocios u organizaciones. En donde es probable que sean varias personas las que accedan a estos inventarios, pero en donde no todas ellas podrían realizar las mismas acciones sobre los datos que alojan.
+
+También se tiene en cuenta que el sistema podría escalar, ya sea con nuevas características o extensiones de las actuales.
 
 Entonces, este sistema de APIs debería poder brindarle al cliente:
 * La posibilidad de registrar y "loguear" usuarios al sistema de forma segura.
@@ -125,11 +129,11 @@ Esto constaría de:
 * Uso de JWT para autenticación y autorización distribuida.
 
 ### Modelo de dominio
-Teniendo esto en cuenta lo que se busca la aplicación permita, ésta giraría entorno a estas 3 entidades principalmente: <u>Cuentas</u> (en donde se registrarían los usuarios), <u>Inventarios y Productos</u>.
+Teniendo esto en cuenta lo que se busca que la aplicación permita, ésta giraría entorno a estas 3 entidades principalmente: <u>Cuentas</u> (las que representarían a las empresas, negocios, u organizaciones), <u>Inventarios</u>, y <u>Productos</u>.
 
 Como se mencionó es probable que en un negocio, o empresa, no se desee que cualquiera con acceso a la cuenta pueda realizar grandes cambios en los datos, entonces se decidió agregar una cuarta entidad: <u>Usuarios</u> (sub-usuarios). La cual guardaría los permisos para las distintas acciones que se puedan realizar sobre los inventarios y sus productos.
 
-Además también es probable que, según las necesidades del usuario, se requiera que el mismo producto esté en distintos inventarios diferenciándose únicamente por características relacionadas a los mismos. Como cantidad en stock, disponibilidad, y más atributos que podrían estar a futuro. Pensando en esto se dividieron los datos de los productos en dos entidades: Productos en inventario y Productos de referencia.
+Además también es probable que, según las necesidades del usuario, se requiera que el mismo producto esté en distintos inventarios diferenciándose únicamente por características relacionadas a los mismos. Como cantidad en stock, disponibilidad, y más atributos que podrían estar a futuro. Pensando en esto se dividieron los datos de los productos en dos entidades: *Productos en inventario y Productos de referencia.*
 
 **Representación gráfica del modelo:**
 <div style="display: flex; justify-content: center">
@@ -137,7 +141,6 @@ Además también es probable que, según las necesidades del usuario, se requier
 
 #### Productos
 * ##### Productos de referencia
-  
   Encargados de almacenar los datos principales de un producto, o item. Éstos son referenciados en los distintos inventarios, mediante *Producto en inventario* Permitiendo que los mismos datos estén en más de uno, y que si esta referencia se modifica el cambio se vea reflejado en todos los inventarios que posean esta referencia.
 
   Atributos:
@@ -149,7 +152,6 @@ Además también es probable que, según las necesidades del usuario, se requier
   * Categorías
 
 * ##### Productos en inventario
-
   Encargados de guardar la referencia al producto para obtener sus datos principales y almacenar los datos que refieren a ese producto en el inventario asignado.
 
   Atributos:
@@ -191,7 +193,7 @@ Atributos:
 | Spring security | Fundamental para manejar las autenticaciones, autorizaciones, y los tokens que se usarán y verificarán en cada solicitud que entre a la aplicación. |
 | JWT | Elegido debido a qué es una de las formas más seguras de manejar autenticaciones y autorizaciones en un sistema de microservicios. |
 | API Rest | <p>Usada para los servicios de usuarios y de productos, debido a la facilidad de uso y que además para estos no se requería que los datos enviados u obtenidos sean menos.</p><p>Para el caso del servicio de usuarios, es necesario que siempre se reciban los datos completos, ya que esto incluiría los datos de acceso o de permisos a la app.</p><p>Y para el servicio de productos no se vió necesario ya que la obtención de estos datos sería mediante el servicio de inventarios.</p> |
-| API GraphQL | Elegida para el servicio de inventarios. Con la fundamentación de que a traves de éste el cliente obtendría los datos de los productos, eligiendo qué datos mostrar y cuáles no. |
+| API GraphQL | Elegida para el servicio de inventarios. Con la fundamentación de que a través de éste el cliente obtendría los datos de los productos, eligiendo qué datos mostrar y cuáles no. |
 | API Gateway | Al tener una estructura de microservicios, con endpoints tanto externos, con los que se comunica el cliente, como internos, los que usan los microservicios para comunicarse entre sí, se vió la necesidad de implementar una API Gateway. La cual filtraría los endpoints accesibles y redirigiría al servicio que corresponda. |
 | Base de datos relacional: MySQL | Elegida en principio debido a que permite relaciones entre las entidades definidas. Aunque es probable que en versiones futuras, por escalabilidad y rapidez para manejar los datos, se use una base de datos noSQL. Ya que como las entidades están divididas en microservicios y cada uno no posee muchas no es tan necesaria una SQL. |
 | Docker | Se eligió usarlo debido a las ventajas que Docker y sus contenedores ofrecen a la hora de probar, desarrollar, y desplegar una aplicación en distintos entornos. |
@@ -479,7 +481,7 @@ El valor del mismo se debe incluir en las solicitudes siguientes dentro de los h
 Este no es solamente validado en la API gateway sino que también en cada redirección y llamado interno en cada una de las APIs.
 
 El mismo contiene los siguientes claims (pueden ser nulos depende de los logins o logouts que se hayan hecho):
-```json
+```javascript
 {
   "sub": "nombre de usuario de la cuenta",
   "accountId": "id de la cuenta en formato UUID", // se debe incluir en algunos métodos para poder autorizarlos
@@ -525,7 +527,7 @@ Si se ordenaran de menor a mayor, según qué tanto las acciones que permiten es
 5. permisos del admin
 
 ## Endpoints y operaciones
-Todos los endpoints pueden ser accedidos a traves de la gateway. Ubicada en el localhost en el puerto 8080 (http://localhost:8080).
+Todos los endpoints pueden ser accedidos a través de la gateway. Ubicada en el localhost en el puerto 8080 (http://localhost:8080).
 
 Las operaciones se dividen según el servicio y funcionalidad.
 
@@ -721,7 +723,7 @@ En el caso de los que son para login se debe incluir el siguiente cuerpo:
 **Encargado de administrar todo lo relacionado a inventarios y los productos dentro.**
 
 Como este servicio es con GraphQl solo existe un endpoint al que se puede acceder <code>/graphql</code>, siendo una solicitud de método POST y con el cuerpo de ella en formato JSON. Estructura del cuerpo:
-```json
+```javascript
 {
   "query": "query de graphQL",
   "variables": {}, // propiedad opcional en caso de que se quieran usar variables en la query. Estas variables se nombran en la query con un "$" antes del nombre, y de forma normal en este objeto
@@ -747,7 +749,7 @@ Ejemplo de una query para leer datos
   }"
 }
 ```
-> Esta query por ejemplo obtendría todos los inventarios asociados a una cuenta a traves de la id ingresada como parámetro (notar que se escribe de forma literal dentro de la misma query) y devolvería, en este caso, una lista de inventarios con solamente los atributos de id, name y products. 
+> Esta query por ejemplo obtendría todos los inventarios asociados a una cuenta a través de la id ingresada como parámetro (notar que se escribe de forma literal dentro de la misma query) y devolvería, en este caso, una lista de inventarios con solamente los atributos de id, name y products. 
 > 
 > Como "products" también es un objeto **se debe** aclarar las propiedades que serán devueltas, en este caso solo refId, name, unitPrice y stock.
 
@@ -786,7 +788,7 @@ A continuación se detallan las operaciones que se pueden realizar en las querie
 > Si se encuentra un signo de exclamación (**!**) después de la definición de un tipo significa que este es obligatorio. Tanto como en argumento de las operaciones como en las propiedades de los objetos que se pasan o se reciben.
 
 De forma general un retorno se vería de la siguiente forma:
-```json
+```javascript
 {
   "data": {
     "nombreOperación": "retorno de la misma o null en caso de error"
